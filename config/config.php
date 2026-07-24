@@ -25,6 +25,7 @@ if (empty($_SESSION['csrf_token'])) {
 // Autoloader
 spl_autoload_register(function ($class) {
     $prefixes = [
+        'App\\' => __DIR__ . '/../app/',
         'Controllers\\' => __DIR__ . '/../src/Controllers/',
         'Models\\' => __DIR__ . '/../src/Models/',
         'Services\\' => __DIR__ . '/../src/Services/',
@@ -39,6 +40,11 @@ spl_autoload_register(function ($class) {
         }
     }
 });
+
+// Load global helpers
+if (file_exists(__DIR__ . '/../app/Helpers/component.php')) {
+    require_once __DIR__ . '/../app/Helpers/component.php';
+}
 
 function e($value) {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');

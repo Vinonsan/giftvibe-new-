@@ -12,17 +12,9 @@ An application featuring two distinct portals (Public customer portal and Admin 
 - `storage/`: Dynamic file storage (logs, cache, uploads, sessions).
 - `database/`: Database migrations, seeds, and schema configuration.
 
-## Setup Instructions
+## Setup
 
-1. Install dependencies:
-   ```bash
-   composer install
-   npm install
-   ```
-2. Build Tailwind CSS:
-   ```bash
-   npm run build
-   ```
-3. Set up environment variables:
-   - Copy `.env.example` to `.env`
-   - Adjust database credentials
+1. Configure your `.env` file with database credentials.
+2. Import `database/schema.sql` into your MySQL database.
+3. Point your web server to the project root.
+4. Copy `.env.example` to `.env` and adjust database credentials.
