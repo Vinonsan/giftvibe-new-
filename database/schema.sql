@@ -563,6 +563,10 @@ CREATE TABLE admin_notifications (
 CREATE TABLE expenses (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   admin_id BIGINT UNSIGNED NULL,
+  order_id BIGINT UNSIGNED NULL,
+  paid_source VARCHAR(30) NOT NULL DEFAULT 'company_cash',
+  paid_by_admin_id BIGINT UNSIGNED NULL,
+  reimbursement_status VARCHAR(30) NULL,
   expense_number VARCHAR(40) NOT NULL UNIQUE,
   category VARCHAR(120) NOT NULL,
   title VARCHAR(190) NOT NULL,
@@ -575,8 +579,12 @@ CREATE TABLE expenses (
   created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_expenses_admin (admin_id),
+  INDEX idx_expenses_order (order_id),
+  INDEX idx_expenses_paid_by_admin (paid_by_admin_id),
   INDEX idx_expenses_date_status (expense_date, status),
-  CONSTRAINT fk_expenses_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL
+  CONSTRAINT fk_expenses_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_expenses_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
+  CONSTRAINT fk_expenses_paid_by_admin FOREIGN KEY (paid_by_admin_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE wishlists (

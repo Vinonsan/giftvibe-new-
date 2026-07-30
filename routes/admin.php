@@ -69,6 +69,7 @@ return [
     ['method' => 'POST', 'path' => '/expenses', 'middleware' => [StaffAuth::class], 'handler' => [ExpenseController::class, 'store']],
     ['method' => 'GET', 'path' => '/expenses/{id}/receipt', 'middleware' => [StaffAuth::class], 'handler' => [ExpenseController::class, 'receipt']],
     ['method' => 'POST', 'path' => '/expenses/{id}/status', 'middleware' => [StaffAuth::class], 'handler' => [ExpenseController::class, 'update']],
+    ['method' => 'POST', 'path' => '/expenses/{id}/reimbursement', 'middleware' => [StaffAuth::class], 'handler' => [ExpenseController::class, 'reimbursement']],
     ['method' => 'GET', 'path' => '/reports', 'middleware' => [StaffAuth::class], 'handler' => [ExpenseController::class, 'reports']],
     ['method' => 'GET', 'path' => '/products', 'middleware' => [StaffAuth::class], 'handler' => [CatalogController::class, 'products']],
     ['method' => 'POST', 'path' => '/products', 'middleware' => [StaffAuth::class], 'handler' => [CatalogController::class, 'storeProduct']],
