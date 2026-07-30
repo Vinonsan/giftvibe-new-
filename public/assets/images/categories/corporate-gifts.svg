@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Corporate gifts illustration</title>
+  <desc id="desc">Professional hamper and document gift illustration.</desc>
+  <rect width="640" height="400" fill="#F4F4F4"/>
+  <rect x="172" y="142" width="296" height="174" rx="24" fill="#FFFFFF" stroke="#0C2B4E" stroke-width="9"/>
+  <path d="M252 142v-24c0-16 13-28 29-28h78c16 0 29 12 29 28v24" fill="none" stroke="#1A3D64" stroke-width="10"/>
+  <path d="M172 206h296M320 142v174" stroke="#1D546C" stroke-width="8"/>
+  <rect x="220" y="238" width="72" height="44" rx="10" fill="#D9ECF7"/>
+  <rect x="348" y="238" width="72" height="44" rx="10" fill="#D9ECF7"/>
+  <circle cx="510" cy="106" r="54" fill="#D9ECF7"/>
+</svg>

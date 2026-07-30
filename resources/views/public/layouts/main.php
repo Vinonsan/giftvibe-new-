@@ -15,6 +15,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title ?? 'Gift Vibe LK') ?></title>
+    <link rel="icon" type="image/svg+xml" href="<?= e(asset('/public/assets/icons/giftvibe-mark.svg')) ?>">
+    <link rel="apple-touch-icon" href="<?= e(asset('/public/assets/icons/giftvibe-mark.svg')) ?>">
+    <style><?= themeCssVariables() ?></style>
     
     <!-- Tailwind CSS -->
     <?php if (file_exists(__DIR__ . '/../../../../public/assets/css/app.min.css')): ?>
@@ -70,6 +73,6 @@
     <?php component('public/components/common/footer', ['footerData' => $footerData ?? []]); ?>
 
     <!-- Public JS -->
-    <script src="<?= BASE_URL ?>/resources/js/public.js"></script>
+    <script src="<?= asset('/resources/js/public.js') ?>"></script>
 </body>
 </html>

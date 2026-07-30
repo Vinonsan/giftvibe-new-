@@ -1,136 +1,149 @@
 <?php
-/**
- * Public Homepage - Hero Section
- */
+$deliveredTrust = $deliveredTrust ?? ['deliveredOrders' => 0, 'deliveredCities' => 0, 'items' => []];
+$heroProduct = $featuredProducts[0] ?? $latestProducts[0] ?? null;
+$heroImage = asset('/public/assets/images/hero_gift_box.jpg');
+if ($heroProduct && !empty($heroProduct['primary_image'])) {
+    $heroImage = str_starts_with($heroProduct['primary_image'], 'http') ? $heroProduct['primary_image'] : asset('/' . ltrim($heroProduct['primary_image'], '/'));
+}
+$money = static fn ($amount) => 'LKR ' . number_format((float) $amount, 2);
 ?>
-<section class="relative bg-slate-50 overflow-hidden py-16 lg:py-24">
-    <!-- Background subtle gradient glow -->
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-50/40 via-white to-slate-50 pointer-events-none"></div>
-
-    <div class="max-w-container mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            
-            <!-- Left Column: Content & Search -->
-            <div class="lg:col-span-7 space-y-6 sm:space-y-8 animate-slideUp">
-                
-                <!-- Badge -->
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-primary-50 border border-primary-100 rounded-full text-xs font-bold text-primary animate-pulse">
-                    <span>🎁</span>
-                    <span>Premium Gift Delivery in Sri Lanka</span>
-                </div>
-
-                <!-- Main SEO Optimized Heading -->
-                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 leading-tight">
-                    Send Handpicked <span class="text-primary-600 block sm:inline">Gifts to Sri Lanka</span> with Love
-                </h1>
-
-                <!-- Subtitle -->
-                <p class="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed">
-                    Make your distance disappear. Order handpicked luxury gift boxes, fresh flower bouquets, and gourmet chocolates with guaranteed same-day delivery across Colombo and major districts.
-                </p>
-
-                <!-- Search box component -->
-                <div class="bg-white p-2 rounded-card shadow-md max-w-md border border-slate-200/80">
-                    <?php component('public/components/common/search-form', [
-                        'placeholder' => 'Find birthday, anniversary, or thank you gifts...'
-                    ]); ?>
-                </div>
-
-                <!-- Quick tags / suggestions -->
-                <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
-                    <span>Popular Occasions:</span>
-                    <a href="?route=component-showcase" class="px-2.5 py-1 bg-white hover:bg-primary-50 hover:text-primary border border-slate-200 rounded-full transition-colors">Birthday</a>
-                    <a href="?route=component-showcase" class="px-2.5 py-1 bg-white hover:bg-primary-50 hover:text-primary border border-slate-200 rounded-full transition-colors">Anniversary</a>
-                    <a href="?route=component-showcase" class="px-2.5 py-1 bg-white hover:bg-primary-50 hover:text-primary border border-slate-200 rounded-full transition-colors">For Her</a>
-                    <a href="?route=component-showcase" class="px-2.5 py-1 bg-white hover:bg-primary-50 hover:text-primary border border-slate-200 rounded-full transition-colors">For Him</a>
-                </div>
-
-                <!-- Action CTAs -->
-                <div class="flex flex-wrap items-center gap-4 pt-2">
-                    <?php component('public/components/common/button', [
-                        'label' => 'Explore Best Sellers',
-                        'href' => '?route=component-showcase',
-                        'variant' => 'primary',
-                        'size' => 'lg',
-                        'rightIcon' => 'arrow-right'
-                    ]); ?>
-                    
-                    <?php component('public/components/common/whatsapp-cta', [
-                        'phone' => '94771234567',
-                        'label' => 'Chat with Gifting Expert',
-                        'showLabel' => true
-                    ]); ?>
-                </div>
+<section class="relative overflow-hidden bg-slate-950 text-white">
+    <img src="<?= e($heroImage) ?>" alt="GiftVibe.lk featured gift collection" class="absolute inset-0 h-full w-full object-cover opacity-45">
+    <div class="absolute inset-0 bg-slate-950/70"></div>
+    <div class="relative mx-auto grid min-h-[620px] max-w-container grid-cols-1 gap-10 px-4 py-14 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-16">
+        <div class="self-center lg:col-span-7">
+            <p class="text-xs font-bold uppercase tracking-wider text-primary-200">GiftVibe.lk 2026 collection</p>
+            <h1 class="mt-4 max-w-4xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">Shop curated gifts, flowers, hampers, and custom surprises.</h1>
+            <p class="mt-5 max-w-2xl text-base leading-7 text-slate-200">A modern Sri Lankan gifting store with published products, secure checkout, custom requests, customer reviews, and delivery tracking.</p>
+            <form method="GET" action="<?= e(url('/search')) ?>" class="mt-8 flex max-w-2xl flex-col gap-3 rounded-card border border-white/15 bg-white/10 p-2 backdrop-blur sm:flex-row">
+                <input name="q" type="search" class="min-w-0 flex-1 rounded-button border border-white/20 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Search birthday boxes, roses, chocolates...">
+                <button class="rounded-button bg-primary px-5 py-3 text-sm font-bold text-white hover:bg-primary-700">Search gifts</button>
+            </form>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <a href="<?= e(url('/shop')) ?>" class="rounded-button bg-white px-5 py-3 text-sm font-bold text-slate-950">Shop now</a>
+                <a href="<?= e(url('/shop?offers=1')) ?>" class="rounded-button border border-white/25 px-5 py-3 text-sm font-bold text-white hover:bg-white/10">Today&apos;s offers</a>
+                <a href="<?= e(url('/custom-gifts')) ?>" class="rounded-button border border-white/25 px-5 py-3 text-sm font-bold text-white hover:bg-white/10">Custom gift</a>
             </div>
-
-            <!-- Right Column: Visual Product Showcase -->
-            <div class="lg:col-span-5 flex justify-center relative animate-fadeIn">
-                <!-- Decorative background elements -->
-                <div class="absolute -top-6 -left-6 w-32 h-32 bg-primary-100 rounded-full blur-3xl opacity-60"></div>
-                <div class="absolute -bottom-6 -right-6 w-32 h-32 bg-rose-100 rounded-full blur-3xl opacity-60"></div>
-
-                <!-- Floating Main Product Card -->
-                <div class="relative w-full max-w-sm rounded-card border border-slate-200/60 bg-white p-4 shadow-card hover:shadow-xl transition-shadow duration-300 animate-float">
-                    
-                    <!-- Image -->
-                    <div class="aspect-square bg-slate-100 rounded-card overflow-hidden relative mb-4">
-                        <img 
-                            src="<?= BASE_URL ?>/public/assets/images/hero_gift_box.jpg" 
-                            alt="Luxury Gourmet Chocolate and Flowers Gift Box" 
-                            class="w-full h-full object-cover"
-                            width="400"
-                            height="400"
-                            loading="eager"
-                        >
-                        <div class="absolute top-2 left-2">
-                            <?php component('public/components/common/badge', [
-                                'label' => 'Best Seller',
-                                'variant' => 'primary'
-                            ]); ?>
-                        </div>
-                    </div>
-
-                    <!-- Product specifications -->
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs uppercase font-bold text-primary-600 tracking-wider">Curated Gift Box</span>
-                            <div class="flex items-center gap-1">
-                                <?php component('public/components/common/rating', ['rating' => 5, 'size' => 'xs']); ?>
-                                <span class="text-2xs font-bold text-slate-400">(48)</span>
-                            </div>
-                        </div>
-                        <h3 class="text-base font-extrabold text-slate-800">The Royal Crimson Delight</h3>
-                        <p class="text-xs text-slate-500 line-clamp-2">Fresh red roses bouquet paired with hand-crafted dark Belgian chocolate truffles in a pink velvet box.</p>
-                        
-                        <div class="flex items-center justify-between pt-2">
-                            <?php component('public/components/common/price', [
-                                'price' => 7500.00,
-                                'oldPrice' => 8900.00
-                            ]); ?>
-                            <a href="?route=component-showcase" class="text-xs font-bold text-primary-600 hover:text-primary-800 hover:underline">Order Now &rarr;</a>
-                        </div>
-                    </div>
+        </div>
+        <aside class="self-end lg:col-span-5">
+            <div class="rounded-card border border-white/15 bg-white/10 p-4 backdrop-blur">
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="rounded-button bg-white/10 p-3"><strong class="block text-2xl"><?= count($categories ?? []) ?></strong><span class="text-xs text-slate-200">Categories</span></div>
+                    <div class="rounded-button bg-white/10 p-3"><strong class="block text-2xl"><?= count($featuredProducts ?? []) ?></strong><span class="text-xs text-slate-200">Featured</span></div>
+                    <div class="rounded-button bg-white/10 p-3"><strong class="block text-2xl"><?= number_format((int) $deliveredTrust['deliveredOrders']) ?></strong><span class="text-xs text-slate-200">Delivered</span></div>
                 </div>
-
-                <!-- Floating overlay pill: same day delivery -->
-                <div class="absolute -bottom-2 -left-4 bg-white/95 backdrop-blur-md border border-slate-200 rounded-full px-4 py-2 shadow-md flex items-center gap-2 hover:scale-105 transition-transform duration-200">
-                    <span class="text-sm">🚚</span>
-                    <div class="text-left">
-                        <p class="text-2xs font-bold text-slate-400 uppercase tracking-wide">Delivery</p>
-                        <p class="text-xs font-extrabold text-slate-800">Same-Day Colombo</p>
-                    </div>
-                </div>
-
-                <!-- Floating overlay pill: rating stats -->
-                <div class="absolute top-8 -right-4 bg-white/95 backdrop-blur-md border border-slate-200 rounded-full px-4 py-2 shadow-md flex items-center gap-2 hover:scale-105 transition-transform duration-200">
-                    <span class="text-sm">⭐</span>
-                    <div class="text-left">
-                        <p class="text-xs font-extrabold text-slate-800">4.9 Star Rated</p>
-                        <p class="text-2xs font-bold text-slate-400 uppercase tracking-wide">12,000+ Customers</p>
-                    </div>
-                </div>
+                <?php if ($heroProduct): ?>
+                    <a href="<?= e(url('/product/' . $heroProduct['slug'])) ?>" class="mt-4 block rounded-button bg-white p-4 text-slate-950">
+                        <span class="text-xs font-bold uppercase tracking-wider text-primary">Featured gift</span>
+                        <strong class="mt-1 block text-lg"><?= e($heroProduct['name']) ?></strong>
+                        <span class="mt-1 block text-sm text-slate-500"><?= e($money($heroProduct['sale_price'] ?: $heroProduct['base_price'])) ?></span>
+                    </a>
+                <?php endif; ?>
             </div>
+        </aside>
+    </div>
+</section>
 
+<section class="border-y border-slate-200 bg-white py-8">
+    <div class="mx-auto flex max-w-container gap-3 overflow-x-auto px-4 pb-1 sm:px-6 lg:px-8">
+        <a href="<?= e(url('/shop')) ?>" class="shrink-0 rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white">All gifts</a>
+        <?php foreach (($categories ?? []) as $category): ?>
+            <a href="<?= e(url('/category/' . $category['slug'])) ?>" class="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 hover:border-primary-200 hover:text-primary"><?= e($category['name']) ?></a>
+        <?php endforeach; ?>
+    </div>
+</section>
+
+<section class="bg-slate-50 py-12">
+    <div class="mx-auto max-w-container px-4 sm:px-6 lg:px-8">
+        <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-primary">Limited offers</p>
+                <h2 class="mt-1 text-2xl font-extrabold text-slate-950">Deals worth opening today</h2>
+            </div>
+            <a href="<?= e(url('/shop?offers=1')) ?>" class="text-sm font-bold text-primary hover:text-primary-800">View all</a>
+        </div>
+        <div class="flex gap-5 overflow-x-auto pb-3">
+            <?php foreach (($offerProducts ?? []) as $product): ?>
+                <div class="w-72 shrink-0"><?php component('public/partials/product-grid', ['products' => [$product]]); ?></div>
+            <?php endforeach; ?>
+            <?php if (empty($offerProducts)): ?><div class="rounded-card border border-slate-200 bg-white px-5 py-6 text-sm text-slate-500">No published offers yet.</div><?php endif; ?>
+        </div>
+    </div>
+</section>
+
+<section class="bg-white py-12">
+    <div class="mx-auto max-w-container px-4 sm:px-6 lg:px-8">
+        <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-primary">Featured collection</p>
+                <h2 class="mt-1 text-2xl font-extrabold text-slate-950">Popular picks customers notice first</h2>
+            </div>
+            <a href="<?= e(url('/shop?featured=1')) ?>" class="text-sm font-bold text-primary hover:text-primary-800">View featured</a>
+        </div>
+        <?php component('public/partials/product-grid', ['products' => $featuredProducts ?? []]); ?>
+    </div>
+</section>
+
+<section class="bg-slate-50 py-12">
+    <div class="mx-auto grid max-w-container gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+        <div class="lg:col-span-4">
+            <p class="text-xs font-bold uppercase tracking-wider text-primary">Shop by category</p>
+            <h2 class="mt-2 text-2xl font-extrabold text-slate-950">Find the right gift faster</h2>
+            <p class="mt-3 text-sm leading-6 text-slate-600">Browse by occasion, style, and recipient. Each collection is built for fast ecommerce scanning and confident checkout.</p>
+            <a href="<?= e(url('/categories')) ?>" class="mt-5 inline-flex rounded-button bg-primary px-4 py-2 text-sm font-bold text-white">All categories</a>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:col-span-8">
+            <?php foreach (($categories ?? []) as $category): ?>
+                <a href="<?= e(url('/category/' . $category['slug'])) ?>" class="rounded-card border border-slate-200 bg-white p-5 shadow-sm transition hover:border-primary-200 hover:shadow-card">
+                    <span class="text-xs font-bold uppercase tracking-wider text-primary"><?= (int) ($category['products_count'] ?? 0) ?> published</span>
+                    <h3 class="mt-2 text-lg font-extrabold text-slate-900"><?= e($category['name']) ?></h3>
+                    <p class="mt-2 line-clamp-2 text-sm text-slate-500"><?= e($category['description'] ?: 'Curated GiftVibe.lk products in this category.') ?></p>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<section class="bg-white py-12">
+    <div class="mx-auto max-w-container px-4 sm:px-6 lg:px-8">
+        <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wider text-primary">New arrivals</p>
+                <h2 class="mt-1 text-2xl font-extrabold text-slate-950">Fresh gifts in the shop</h2>
+            </div>
+            <a href="<?= e(url('/shop')) ?>" class="text-sm font-bold text-primary hover:text-primary-800">Open shop</a>
+        </div>
+        <?php component('public/partials/product-grid', ['products' => $latestProducts ?? []]); ?>
+    </div>
+</section>
+
+<section class="bg-slate-950 py-12 text-white">
+    <div class="mx-auto grid max-w-container gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+        <div class="lg:col-span-4">
+            <p class="text-xs font-bold uppercase tracking-wider text-primary-200">Delivered with care</p>
+            <h2 class="mt-2 text-2xl font-extrabold">Real orders, real delivery confidence</h2>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+                <div class="rounded-card bg-white/10 p-4"><span class="text-xs font-bold uppercase tracking-wider text-slate-300">Delivered orders</span><strong class="mt-1 block text-3xl text-white"><?= number_format((int) $deliveredTrust['deliveredOrders']) ?></strong></div>
+                <div class="rounded-card bg-white/10 p-4"><span class="text-xs font-bold uppercase tracking-wider text-slate-300">Delivery cities</span><strong class="mt-1 block text-3xl text-white"><?= number_format((int) $deliveredTrust['deliveredCities']) ?></strong></div>
+            </div>
+        </div>
+        <div class="lg:col-span-8">
+            <?php if (!empty($deliveredTrust['items'])): ?>
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
+                    <?php foreach ($deliveredTrust['items'] as $item): ?>
+                        <?php
+                        $path = $item['image_path'] ?? 'public/assets/images/hero_gift_box.jpg';
+                        $src = str_starts_with($path, 'http://') || str_starts_with($path, 'https://') ? $path : asset('/' . ltrim($path, '/'));
+                        ?>
+                        <article class="overflow-hidden rounded-card bg-white text-slate-950">
+                            <img src="<?= e($src) ?>" alt="<?= e($item['product_name']) ?> delivered gift image" class="aspect-square w-full object-cover">
+                            <div class="p-3"><strong class="line-clamp-1 text-sm"><?= e($item['product_name']) ?></strong><p class="mt-1 text-xs text-slate-500"><?= e($item['delivery_city'] ?: 'Sri Lanka') ?> delivery</p></div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="rounded-card border border-white/15 bg-white/10 p-6 text-sm text-slate-200">Delivered order highlights will appear here once orders are marked delivered.</div>
+            <?php endif; ?>
         </div>
     </div>
 </section>

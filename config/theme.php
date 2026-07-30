@@ -3,35 +3,46 @@
 /**
  * Application colour tokens used by Tailwind's CDN configuration.
  *
- * Each semantic colour has a DEFAULT value so classes such as bg-primary,
- * text-danger and border-info work alongside shade classes like bg-primary-700.
+ * The brand palette is intentionally centered on four shared colours:
+ * primary, secondary, dark, and light. Supporting semantic colours are kept for
+ * interface states such as success, warning, danger, and info.
  */
+function brandColors(): array
+{
+    return [
+        'primary' => '#0C2B4E',
+        'secondary' => '#1A3D64',
+        'dark' => '#1D546C',
+        'light' => '#F4F4F4',
+    ];
+}
+
 function themeColors(): array
 {
     return [
         'primary' => [
-            '50' => '#fdf2f4', '100' => '#fbe4e9', '200' => '#f7cdd7',
-            '300' => '#efa6b7', '400' => '#e4738e', '500' => '#c94465',
-            '600' => '#a42c4d', '700' => '#841f3b', '800' => '#6f1c32',
-            '900' => '#5f1b2d', '950' => '#350a16', 'DEFAULT' => '#841f3b',
+            '50' => '#eef6ff', '100' => '#d8eaff', '200' => '#badbff',
+            '300' => '#8bc6ff', '400' => '#55a6f7', '500' => '#2f83d8',
+            '600' => '#1d64b0', '700' => '#164f8f', '800' => '#123f70',
+            '900' => '#0C2B4E', '950' => '#06182d', 'DEFAULT' => '#0C2B4E',
         ],
         'secondary' => [
-            '50' => '#f8fafc', '100' => '#f1f5f9', '200' => '#e2e8f0',
-            '300' => '#cbd5e1', '400' => '#94a3b8', '500' => '#64748b',
-            '600' => '#475569', '700' => '#334155', '800' => '#1e293b',
-            '900' => '#0f172a', '950' => '#020617', 'DEFAULT' => '#64748b',
+            '50' => '#f0f7fb', '100' => '#d9ecf7', '200' => '#b7dcef',
+            '300' => '#84c4e2', '400' => '#4aa4ce', '500' => '#2888b4',
+            '600' => '#216d92', '700' => '#1d5a78', '800' => '#1A3D64',
+            '900' => '#153452', '950' => '#0b1f33', 'DEFAULT' => '#1A3D64',
         ],
         'dark' => [
-            '50' => '#f8fafc', '100' => '#f1f5f9', '200' => '#e2e8f0',
-            '300' => '#cbd5e1', '400' => '#94a3b8', '500' => '#64748b',
-            '600' => '#475569', '700' => '#334155', '800' => '#1e293b',
-            '900' => '#0f172a', '950' => '#020617', 'DEFAULT' => '#0f172a',
+            '50' => '#eef8fa', '100' => '#d6edf2', '200' => '#b2dde7',
+            '300' => '#7fc5d4', '400' => '#46a4b9', '500' => '#2f879e',
+            '600' => '#286d82', '700' => '#1D546C', '800' => '#1a475a',
+            '900' => '#183c4c', '950' => '#0b2733', 'DEFAULT' => '#1D546C',
         ],
         'light' => [
-            '50' => '#ffffff', '100' => '#f8fafc', '200' => '#f1f5f9',
-            '300' => '#e2e8f0', '400' => '#cbd5e1', '500' => '#94a3b8',
-            '600' => '#64748b', '700' => '#475569', '800' => '#334155',
-            '900' => '#1e293b', 'DEFAULT' => '#f8fafc',
+            '50' => '#ffffff', '100' => '#F4F4F4', '200' => '#e8e8e8',
+            '300' => '#d4d4d4', '400' => '#a3a3a3', '500' => '#737373',
+            '600' => '#525252', '700' => '#404040', '800' => '#262626',
+            '900' => '#171717', 'DEFAULT' => '#F4F4F4',
         ],
         'danger' => [
             '50' => '#fef2f2', '100' => '#fee2e2', '200' => '#fecaca',
@@ -58,6 +69,16 @@ function themeColors(): array
     ];
 }
 
+function themeCssVariables(): string
+{
+    $variables = [];
+    foreach (brandColors() as $name => $value) {
+        $variables[] = "--color-{$name}: {$value};";
+    }
+
+    return ':root{' . implode('', $variables) . '}';
+}
+
 function themeTailwindColorsJs(): string
 {
     return json_encode(themeColors(), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
@@ -66,7 +87,7 @@ function themeTailwindColorsJs(): string
 function adminTailwindColorsJs(): string
 {
     return json_encode(array_merge(themeColors(), [
-        'sidebar' => '#841f3b',
+        'sidebar' => '#0C2B4E',
         'surface' => '#ffffff',
     ]), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP);
 }

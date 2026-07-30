@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Flower gifts illustration</title>
+  <desc id="desc">A clean flower bouquet illustration.</desc>
+  <rect width="640" height="400" fill="#F4F4F4"/>
+  <path d="M320 310 258 134M320 310l72-184M320 310l-4-206" stroke="#1D546C" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="258" cy="132" r="38" fill="#FFFFFF" stroke="#0C2B4E" stroke-width="7"/>
+  <circle cx="316" cy="106" r="38" fill="#D9ECF7" stroke="#1A3D64" stroke-width="7"/>
+  <circle cx="392" cy="126" r="38" fill="#FFFFFF" stroke="#1D546C" stroke-width="7"/>
+  <path d="M218 278h204l-34 72H252l-34-72Z" fill="#1A3D64"/>
+  <path d="M246 278c34-30 114-30 148 0" fill="none" stroke="#0C2B4E" stroke-width="8"/>
+</svg>

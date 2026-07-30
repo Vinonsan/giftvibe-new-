@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Gift category illustration</title>
+  <desc id="desc">A branded GiftvibeLK gift box illustration.</desc>
+  <rect width="640" height="400" fill="#F4F4F4"/>
+  <circle cx="505" cy="90" r="54" fill="#D9ECF7"/>
+  <circle cx="130" cy="304" r="76" fill="#E8E8E8"/>
+  <rect x="202" y="148" width="236" height="156" rx="22" fill="#FFFFFF" stroke="#0C2B4E" stroke-width="10"/>
+  <rect x="188" y="126" width="264" height="54" rx="16" fill="#1A3D64"/>
+  <rect x="304" y="126" width="32" height="178" fill="#1D546C"/>
+  <path d="M320 126c-48-70-116-42-92 1 18 32 72 16 92-1Z" fill="#FFFFFF" stroke="#0C2B4E" stroke-width="8"/>
+  <path d="M320 126c48-70 116-42 92 1-18 32-72 16-92-1Z" fill="#FFFFFF" stroke="#0C2B4E" stroke-width="8"/>
+  <path d="M230 246h180" stroke="#1D546C" stroke-width="10" stroke-linecap="round"/>
+</svg>

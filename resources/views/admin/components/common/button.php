@@ -20,19 +20,19 @@ $loading = $loading ?? false;
 $fullWidth = $fullWidth ?? false;
 
 $variants = [
-    'primary' => 'bg-primary text-white hover:bg-primary-600 focus:ring-primary-500',
-    'secondary' => 'bg-slate-800 text-white hover:bg-slate-700 focus:ring-slate-500',
-    'outline' => 'border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 focus:ring-primary-500',
-    'ghost' => 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:ring-slate-500',
+    'primary' => 'bg-primary text-white hover:bg-secondary focus:ring-primary-500',
+    'secondary' => 'bg-secondary text-white hover:bg-primary focus:ring-secondary-500',
+    'outline' => 'border border-primary-900/15 text-primary bg-white hover:bg-primary-50 focus:ring-primary-500',
+    'ghost' => 'text-primary/80 hover:bg-primary-50 hover:text-primary focus:ring-primary-500',
     'danger' => 'bg-danger text-white hover:bg-danger-600 focus:ring-danger-500',
     'success' => 'bg-success text-white hover:bg-success-600 focus:ring-success-500',
 ];
 
 $sizes = [
-    'xs' => 'px-2 py-1 text-xs',
-    'sm' => 'px-2.5 py-1.5 text-sm',
-    'md' => 'px-4 py-2 text-sm',
-    'lg' => 'px-5 py-2.5 text-base',
+    'xs' => 'min-h-9 px-2.5 py-1.5 text-xs',
+    'sm' => 'min-h-10 px-3 py-2 text-sm',
+    'md' => 'min-h-11 px-4 py-2.5 text-sm',
+    'lg' => 'min-h-12 px-5 py-3 text-base',
 ];
 
 $classes = implode(' ', [

@@ -12,10 +12,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title ?? 'Sign In') ?> | Gift Vibe LK</title>
+    <link rel="icon" type="image/svg+xml" href="<?= e(asset('/public/assets/icons/giftvibe-mark.svg')) ?>">
+    <link rel="apple-touch-icon" href="<?= e(asset('/public/assets/icons/giftvibe-mark.svg')) ?>">
+    <style><?= themeCssVariables() ?></style>
     
     <!-- Compiled Tailwind CSS or Fallback CDN -->
-    <?php if (file_exists(__DIR__ . '/../../../../public/assets/css/app.min.css')): ?>
-        <link rel="stylesheet" href="<?= BASE_URL ?>/public/assets/css/app.min.css">
+    <?php if (file_exists(ADMIN_PATH . '/assets/css/style.css')): ?>
+        <link rel="stylesheet" href="<?= asset('/admin/assets/css/style.css') ?>">
+    <?php elseif (file_exists(PUBLIC_PATH . '/assets/css/style.css')): ?>
+        <link rel="stylesheet" href="<?= asset('/public/assets/css/style.css') ?>">
+    <?php elseif (file_exists(PUBLIC_PATH . '/assets/css/app.min.css')): ?>
+        <link rel="stylesheet" href="<?= asset('/public/assets/css/app.min.css') ?>">
     <?php else: ?>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
@@ -24,11 +31,11 @@
                     extend: {
                         colors: <?= adminTailwindColorsJs() ?>,
                         borderRadius: {
-                            button: '0.375rem',
-                            card: '0.5rem',
+                            button: '0.625rem',
+                            card: '0.75rem',
                         },
                         boxShadow: {
-                            card: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                            card: '0 8px 20px -16px rgba(12, 43, 78, 0.45)',
                         },
                         maxWidth: {
                             container: '1280px',
@@ -61,6 +68,6 @@
     </div>
 
     <!-- Admin JS -->
-    <script src="<?= BASE_URL ?>/resources/js/admin.js"></script>
+    <script src="<?= asset('/admin/assets/js/admin.js') ?>"></script>
 </body>
 </html>

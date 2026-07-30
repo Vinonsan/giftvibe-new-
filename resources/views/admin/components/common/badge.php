@@ -15,6 +15,6 @@ $variants = [
 ];
 $badgeClass = $variants[$variant] ?? $variants['gray'];
 ?>
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border <?= $badgeClass ?>">
+<span class="inline-flex items-center rounded-button border px-2.5 py-1 text-xs font-semibold <?= $badgeClass ?>">
     <?= e($label) ?>
 </span>

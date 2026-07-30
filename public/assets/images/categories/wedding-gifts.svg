@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="title desc">
+  <title id="title">Wedding gifts illustration</title>
+  <desc id="desc">Elegant wedding gift boxes and rings illustration.</desc>
+  <rect width="640" height="400" fill="#F4F4F4"/>
+  <circle cx="282" cy="126" r="42" fill="none" stroke="#1A3D64" stroke-width="10"/>
+  <circle cx="340" cy="126" r="42" fill="none" stroke="#1D546C" stroke-width="10"/>
+  <rect x="190" y="206" width="260" height="98" rx="20" fill="#FFFFFF" stroke="#0C2B4E" stroke-width="9"/>
+  <rect x="174" y="174" width="292" height="52" rx="16" fill="#1A3D64"/>
+  <path d="M320 174v130" stroke="#FFFFFF" stroke-width="12"/>
+  <path d="M236 256h168" stroke="#1D546C" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="510" cy="90" r="52" fill="#D9ECF7"/>
+</svg>

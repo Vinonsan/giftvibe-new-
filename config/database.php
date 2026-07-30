@@ -1,26 +1,12 @@
 <?php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'my_app');
 
-class Database {
-    private static $instance = null;
-    private $conn;
-    private function __construct() {
-        try {
-            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-            $this->conn = new PDO($dsn, DB_USER, DB_PASS, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]);
-        } catch (PDOException $e) {
-            die("DB Error: " . $e->getMessage());
-        }
-    }
-    public static function getInstance() {
-        if (self::$instance === null) self::$instance = new self();
-        return self::$instance;
-    }
-    public function getConnection() { return $this->conn; }
-}
+return [
+    'connection' => env('DB_CONNECTION', 'mysql'),
+    'host' => env('DB_HOST', '127.0.0.1'),
+    'port' => env('DB_PORT', '3306'),
+    'database' => env('DB_DATABASE', 'dbof-giftvibelk'),
+    'username' => env('DB_USERNAME', 'root'),
+    'password' => env('DB_PASSWORD', ''),
+    'charset' => 'utf8mb4',
+    'collation' => 'utf8mb4_unicode_ci',
+];

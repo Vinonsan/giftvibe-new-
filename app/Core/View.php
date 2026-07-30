@@ -6,6 +6,22 @@ use Exception;
 
 class View
 {
+    public static function renderPage(string $view, array $data = [], string $layout = 'public/layouts/main'): void
+    {
+        $content = self::capture($view, $data);
+        $data['content'] = $content;
+
+        self::renderComponent($layout, $data);
+    }
+
+    public static function capture(string $name, array $data = []): string
+    {
+        ob_start();
+        self::renderComponent($name, $data);
+
+        return ob_get_clean();
+    }
+
     /**
      * Render a component safely.
      *

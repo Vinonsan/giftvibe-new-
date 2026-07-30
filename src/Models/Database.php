@@ -1,28 +1,16 @@
 <?php
 namespace Models;
 
+use App\Core\Database as CoreDatabase;
+
 class Database
 {
-    private static $instance = null;
+    private static ?self $instance = null;
     private \PDO $conn;
 
     private function __construct()
     {
-        $host = defined('DB_HOST') ? DB_HOST : 'localhost';
-        $name = defined('DB_NAME') ? DB_NAME : 'my_app';
-        $user = defined('DB_USER') ? DB_USER : 'root';
-        $pass = defined('DB_PASS') ? DB_PASS : '';
-
-        try {
-            $dsn = "mysql:host=$host;dbname=$name;charset=utf8mb4";
-            $this->conn = new \PDO($dsn, $user, $pass, [
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-                \PDO::ATTR_EMULATE_PREPARES => false,
-            ]);
-        } catch (\PDOException $e) {
-            die("Database Error: " . $e->getMessage());
-        }
+        $this->conn = CoreDatabase::pdo();
     }
 
     public static function connect(): self

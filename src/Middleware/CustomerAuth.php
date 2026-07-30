@@ -1,10 +1,19 @@
 <?php
 namespace Middleware;
 
-class CustomerAuth {
-    public function handle() {
-        if (empty($_SESSION['customer_id'])) {
-            header('Location: ' . BASE_URL . '/login');
+use App\Core\Auth;
+
+class CustomerAuth
+{
+    public function handle(): void
+    {
+        if (!Auth::check()) {
+            redirect('/login');
+        }
+
+        if (!Auth::isCustomer()) {
+            http_response_code(403);
+            echo '403 Forbidden';
             exit;
         }
     }

@@ -13,20 +13,20 @@ $size = $size ?? 'md';
 $disabled = $disabled ?? false;
 
 $variants = [
-    'primary' => 'bg-primary text-white hover:bg-primary-600 focus:ring-primary-500',
-    'outline' => 'border border-slate-300 text-slate-600 bg-white hover:bg-slate-50 focus:ring-primary-500',
-    'ghost' => 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 focus:ring-slate-500',
+    'primary' => 'bg-primary text-white hover:bg-secondary focus:ring-primary-500',
+    'outline' => 'border border-primary-900/15 text-primary bg-white hover:bg-primary-50 focus:ring-primary-500',
+    'ghost' => 'text-primary/70 hover:bg-primary-50 hover:text-primary focus:ring-primary-500',
 ];
 
 $sizes = [
-    'xs' => 'p-1',
-    'sm' => 'p-1.5',
-    'md' => 'p-2',
-    'lg' => 'p-2.5',
+    'xs' => 'min-h-9 min-w-9 p-1.5',
+    'sm' => 'min-h-10 min-w-10 p-2',
+    'md' => 'min-h-11 min-w-11 p-2.5',
+    'lg' => 'min-h-12 min-w-12 p-3',
 ];
 
 $classes = implode(' ', [
-    'inline-flex items-center justify-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+    'inline-flex items-center justify-center rounded-button transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
     $variants[$variant] ?? $variants['outline'],
     $sizes[$size] ?? $sizes['md'],
     $disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''

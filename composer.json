@@ -7,7 +7,13 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/"
+            "App\\": "app/",
+            "Controllers\\": "src/Controllers/",
+            "Models\\": "src/Models/",
+            "Services\\": "src/Services/",
+            "Middleware\\": "src/Middleware/",
+            "Helpers\\": "src/Helpers/",
+            "Components\\": "src/Components/"
         }
     },
     "authors": [
