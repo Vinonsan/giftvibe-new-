@@ -148,4 +148,16 @@
   [data-admin-shell].sidebar-collapsed [data-admin-main] {
     max-width: calc(100vw - 5rem);
   }
+
+  [data-product-drawer] {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+  }
 }

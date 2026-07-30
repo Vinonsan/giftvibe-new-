@@ -96,7 +96,7 @@ $productJson = static function (array $product): string {
     <!-- Add Product Drawer -->
     <aside
         class="fixed inset-y-0 right-0 z-[9999] flex h-screen h-dvh max-h-screen max-h-dvh w-full translate-x-full flex-col border-l border-primary-900/10 bg-white shadow-[0_24px_80px_-30px_rgba(12,43,78,0.45)] transition-transform duration-300 ease-out sm:max-w-[38rem]"
-        style="height: 100vh; height: 100dvh; max-height: 100vh; max-height: 100dvh;"
+        style="top: 0; bottom: 0; height: 100vh; height: 100dvh; min-height: 100vh; min-height: 100dvh; max-height: none;"
         data-product-drawer
         aria-hidden="true"
         aria-labelledby="product-drawer-title"
@@ -138,17 +138,24 @@ $productJson = static function (array $product): string {
                     <div class="space-y-2">
                         <span class="block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Category</span>
                         <details class="group relative" data-product-category-dropdown>
-                            <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-button border border-primary-900/10 bg-white px-4 text-sm font-semibold text-slate-950 outline-none transition duration-200 marker:hidden focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10">
+                            <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 rounded-button border border-primary-900/10 bg-slate-50 px-4 text-sm font-semibold text-slate-950 outline-none transition duration-200 marker:hidden hover:border-primary-200 hover:bg-white focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10 [&::-webkit-details-marker]:hidden">
                                 <span data-product-category-summary>Select categories</span>
-                                <span class="text-xs text-slate-400 transition group-open:rotate-180">v</span>
+                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white text-primary-900 shadow-sm transition group-open:rotate-180">
+                                    <?php component('admin/components/common/icon', ['name' => 'chevron-down', 'size' => 'xs']); ?>
+                                </span>
                             </summary>
-                            <div class="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-20 max-h-64 overflow-y-auto rounded-button border border-primary-900/10 bg-white p-2 shadow-card">
+                            <div class="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-20 max-h-72 overflow-y-auto rounded-card border border-primary-900/10 bg-white p-3 shadow-[0_22px_70px_-35px_rgba(12,43,78,0.55)]">
+                                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                                 <?php foreach (($categories ?? []) as $cat): ?>
-                                    <label class="flex cursor-pointer items-center gap-2 rounded-button px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-primary-50">
-                                        <input type="checkbox" name="category_ids[]" value="<?= e((string) $cat['id']) ?>" data-product-category-option class="h-4 w-4 rounded border-slate-300 text-primary-900 focus:ring-primary-500">
+                                    <label class="group/category flex min-h-11 cursor-pointer items-center gap-3 rounded-button border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-200 hover:bg-primary-50">
+                                        <input type="checkbox" name="category_ids[]" value="<?= e((string) $cat['id']) ?>" data-product-category-option class="peer sr-only">
+                                        <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded border border-slate-300 bg-white text-white transition peer-checked:border-primary-900 peer-checked:bg-primary-900">
+                                            <?php component('admin/components/common/icon', ['name' => 'check', 'size' => 'xs']); ?>
+                                        </span>
                                         <span><?= e($cat['name']) ?></span>
                                     </label>
                                 <?php endforeach; ?>
+                                </div>
                             </div>
                         </details>
                         <?php if (empty($categories)): ?>
@@ -191,13 +198,20 @@ $productJson = static function (array $product): string {
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="space-y-2">
                                     <label for="product-offer-type" class="block text-xs font-medium text-amber-800">Offer type</label>
-                                    <select id="product-offer-type" name="offer_type"
-                                        class="min-h-12 w-full rounded-button border border-amber-300 bg-white px-4 text-sm font-semibold text-slate-950 outline-none transition duration-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"
-                                        onchange="toggleOfferValue()">
-                                        <option value="none">No offer</option>
-                                        <option value="fixed">Fixed amount (LKR)</option>
-                                        <option value="percentage">Percentage (%)</option>
-                                    </select>
+                                    <div class="relative" data-product-custom-select data-product-offer-custom-select>
+                                        <input id="product-offer-type" name="offer_type" type="hidden" value="none" data-custom-select-value>
+                                        <button type="button" class="flex min-h-12 w-full items-center justify-between gap-3 rounded-button border border-amber-300 bg-white px-4 text-left text-sm font-semibold text-slate-950 outline-none transition duration-200 hover:border-amber-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10" data-custom-select-trigger aria-expanded="false">
+                                            <span data-custom-select-text>No offer</span>
+                                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+                                                <?php component('admin/components/common/icon', ['name' => 'chevron-down', 'size' => 'xs']); ?>
+                                            </span>
+                                        </button>
+                                        <div class="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-30 hidden overflow-hidden rounded-card border border-amber-200 bg-white p-2 shadow-[0_22px_70px_-35px_rgba(12,43,78,0.55)]" data-custom-select-menu>
+                                            <button type="button" class="w-full rounded-button px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-amber-50" data-custom-select-option data-value="none">No offer</button>
+                                            <button type="button" class="w-full rounded-button px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-amber-50" data-custom-select-option data-value="fixed">Fixed amount (LKR)</button>
+                                            <button type="button" class="w-full rounded-button px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-amber-50" data-custom-select-option data-value="percentage">Percentage (%)</button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="space-y-2">
                                     <label for="product-offer-value" class="block text-xs font-medium text-amber-800">Offer value</label>
@@ -259,13 +273,20 @@ $productJson = static function (array $product): string {
                     <!-- Status -->
                     <div class="space-y-2">
                         <label for="product-status" class="block text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Status</label>
-                        <select id="product-status" name="status"
-                            class="min-h-12 w-full rounded-button border border-primary-900/10 bg-white px-4 text-sm font-semibold text-slate-950 outline-none transition duration-200 focus:border-primary-500 focus:bg-white focus:ring-4 focus:ring-primary-500/10"
-                            data-product-status-input>
-                            <?php foreach ($statuses as $status): ?>
-                                <option value="<?= e($status) ?>" <?= $status === 'active' ? 'selected' : '' ?>><?= e($label($status)) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <div class="relative" data-product-custom-select data-product-status-custom-select>
+                            <input id="product-status" name="status" type="hidden" value="active" data-product-status-input data-custom-select-value>
+                            <button type="button" class="flex min-h-12 w-full items-center justify-between gap-3 rounded-button border border-primary-900/10 bg-slate-50 px-4 text-left text-sm font-semibold text-slate-950 outline-none transition duration-200 hover:border-primary-200 hover:bg-white focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10" data-custom-select-trigger aria-expanded="false">
+                                <span data-custom-select-text><?= e($label('active')) ?></span>
+                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-white text-primary-900 shadow-sm">
+                                    <?php component('admin/components/common/icon', ['name' => 'chevron-down', 'size' => 'xs']); ?>
+                                </span>
+                            </button>
+                            <div class="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-30 hidden overflow-hidden rounded-card border border-primary-900/10 bg-white p-2 shadow-[0_22px_70px_-35px_rgba(12,43,78,0.55)]" data-custom-select-menu>
+                                <?php foreach ($statuses as $status): ?>
+                                    <button type="button" class="w-full rounded-button px-3 py-2 text-left text-sm font-bold text-slate-700 transition hover:bg-primary-50" data-custom-select-option data-value="<?= e($status) ?>"><?= e($label($status)) ?></button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- ── Product Variants (Multi Color / Design) ── -->
@@ -277,7 +298,7 @@ $productJson = static function (array $product): string {
                                 + Add variant
                             </button>
                         </div>
-                        <p class="text-xs text-slate-400">Add different colors, designs, or sizes for this product.</p>
+                        <p class="text-xs text-slate-400">Main product name, description, and pricing apply to every variant. Add only the color or design difference and its count.</p>
                         <div id="variants-container" class="space-y-3">
                             <!-- Variant rows added via JS -->
                         </div>
@@ -289,21 +310,15 @@ $productJson = static function (array $product): string {
                                         class="text-xs font-bold text-red-500 hover:text-red-700">Remove</button>
                                 </div>
                                 <div class="grid gap-3 sm:grid-cols-2">
-                                    <input name="variant_name[]" placeholder="Product name" required
+                                    <input name="variant_color[]" placeholder="Color / design" required
                                         class="min-h-10 w-full rounded-button border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100">
-                                    <input name="variant_color[]" placeholder="Description"
-                                        class="min-h-10 w-full rounded-button border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100">
-                                </div>
-                                <div class="grid gap-3 sm:grid-cols-3">
                                     <label class="flex min-h-10 cursor-pointer items-center rounded-button border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition hover:border-primary-300">
                                         <span class="truncate" data-variant-file-label>Upload image</span>
                                         <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" data-variant-image-file>
                                     </label>
-                                    <input name="variant_price[]" type="number" step="0.01" placeholder="Price adj."
-                                        class="min-h-10 w-full rounded-button border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100">
-                                    <input name="variant_stock[]" type="number" min="0" value="0" placeholder="Stock"
-                                        class="min-h-10 w-full rounded-button border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100">
                                 </div>
+                                <input name="variant_stock[]" type="number" min="0" value="0" placeholder="Count / stock"
+                                    class="min-h-10 w-full rounded-button border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-950 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100">
                             </div>
                         </template>
                     </div>

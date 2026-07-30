@@ -538,9 +538,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const categoryDropdown = productsPage.querySelector('[data-product-category-dropdown]');
         const categorySummary = productsPage.querySelector('[data-product-category-summary]');
         const categoryOptions = productsPage.querySelectorAll('[data-product-category-option]');
+        const productCustomSelects = productsPage.querySelectorAll('[data-product-custom-select]');
 
         let lastFocused = null;
         const baseUrl = productsPage.dataset.baseUrl || '';
+
+        document.body.append(overlay, drawer);
+
+        const setProductCustomSelect = (container, value) => {
+            if (!container) return;
+            const input = container.querySelector('[data-custom-select-value]');
+            const text = container.querySelector('[data-custom-select-text]');
+            const option = container.querySelector(`[data-custom-select-option][data-value="${value}"]`);
+            if (input) input.value = value;
+            if (text && option) text.textContent = option.textContent.trim();
+        };
+
+        const closeProductCustomSelects = (except = null) => {
+            productCustomSelects.forEach((select) => {
+                if (select === except) return;
+                select.querySelector('[data-custom-select-menu]')?.classList.add('hidden');
+                select.querySelector('[data-custom-select-trigger]')?.setAttribute('aria-expanded', 'false');
+            });
+        };
 
         const setOverlayOpen = (isOpen) => {
             overlay.classList.toggle('hidden', !isOpen);
@@ -560,6 +580,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (saveLabel) saveLabel.textContent = 'Save';
             if (mainImageInput) mainImageInput.required = true;
             if (mainImageLabel) mainImageLabel.textContent = 'Upload product image';
+            setProductCustomSelect(productsPage.querySelector('[data-product-status-custom-select]'), 'active');
+            setProductCustomSelect(productsPage.querySelector('[data-product-offer-custom-select]'), 'none');
             document.getElementById('variants-container')?.replaceChildren();
             updateCategorySummary();
         };
@@ -578,6 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (descriptionInput) descriptionInput.value = product.description || '';
             if (featuredInput) featuredInput.checked = Number(product.is_featured || 0) === 1;
             if (statusInput) statusInput.value = product.status || 'active';
+            setProductCustomSelect(productsPage.querySelector('[data-product-status-custom-select]'), product.status || 'active');
+            setProductCustomSelect(productsPage.querySelector('[data-product-offer-custom-select]'), product.offer_type || 'none');
             if (mainImageInput) mainImageInput.required = false;
             if (mainImageLabel) mainImageLabel.textContent = 'Upload new product image';
             const selectedCategories = new Set((product.category_ids || []).map(String));
@@ -648,9 +672,33 @@ document.addEventListener('DOMContentLoaded', () => {
             option.addEventListener('change', updateCategorySummary);
         });
 
+        productCustomSelects.forEach((select) => {
+            const trigger = select.querySelector('[data-custom-select-trigger]');
+            const menu = select.querySelector('[data-custom-select-menu]');
+            trigger?.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const willOpen = menu?.classList.contains('hidden');
+                closeProductCustomSelects(select);
+                menu?.classList.toggle('hidden', !willOpen);
+                trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            });
+
+            select.querySelectorAll('[data-custom-select-option]').forEach((option) => {
+                option.addEventListener('click', () => {
+                    setProductCustomSelect(select, option.dataset.value || '');
+                    menu?.classList.add('hidden');
+                    trigger?.setAttribute('aria-expanded', 'false');
+                    select.querySelector('[data-custom-select-value]')?.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            });
+        });
+
         document.addEventListener('click', (event) => {
             if (categoryDropdown && !categoryDropdown.contains(event.target)) {
                 categoryDropdown.removeAttribute('open');
+            }
+            if (!event.target.closest('[data-product-custom-select]')) {
+                closeProductCustomSelects();
             }
         });
 

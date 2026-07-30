@@ -100,20 +100,17 @@ class CatalogController
             ['product_id' => $productId, 'image_path' => $image, 'alt_text' => $name . ' gift image']
         );
 
-        // Handle variants (multi color / design)
-        $variantNames = isset($_POST['variant_name']) ? (array) $_POST['variant_name'] : [];
+        // Handle variants (multi color / design). Product name, description, and pricing apply to every variant.
         $variantColors = isset($_POST['variant_color']) ? (array) $_POST['variant_color'] : [];
         $variantImages = isset($_POST['variant_image']) ? (array) $_POST['variant_image'] : [];
-        $variantPrice = isset($_POST['variant_price']) ? (array) $_POST['variant_price'] : [];
         $variantStock = isset($_POST['variant_stock']) ? (array) $_POST['variant_stock'] : [];
 
-        foreach ($variantNames as $i => $vName) {
-            $vName = trim((string) $vName);
-            if ($vName === '') continue;
+        foreach ($variantColors as $i => $variantDesign) {
+            $vColor = trim((string) $variantDesign);
+            if ($vColor === '') continue;
+            $vName = $name . ' - ' . $vColor;
             $vSku = $sku . '-' . $this->slug($vName) . '-' . ($i + 1);
-            $vColor = trim((string) ($variantColors[$i] ?? ''));
             $vImg = trim((string) ($variantImages[$i] ?? ''));
-            $vPrice = (float) ($variantPrice[$i] ?? 0);
             $vStock = (int) ($variantStock[$i] ?? 0);
 
             // Handle variant image upload
@@ -135,7 +132,7 @@ class CatalogController
                     'color_name' => $vColor,
                     'color_hex' => null,
                     'image_path' => $variantImagePath,
-                    'price_adjustment' => $vPrice,
+                    'price_adjustment' => 0,
                     'stock_quantity' => $vStock,
                     'status' => 'active',
                 ]
