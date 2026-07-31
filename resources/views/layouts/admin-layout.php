@@ -2,23 +2,8 @@
 
 declare(strict_types=1);
 
-/**
- * Admin layout — wraps every admin page.
- * Shares the same common assets (fonts, Tailwind, global.css) and
- * includes the admin sidebar, admin navbar and footer components.
- *
- * @var string $title
- * @var string $content
- * @var string $pageTitle   Optional page heading shown in the navbar.
- */
-
 $pageTitle = $pageTitle ?? ($title ?? 'Dashboard');
 
-/* ──────────────────────────────────────────────────────────────────────
-   Sidebar menu — array-based parent/child structure.
-   Each item: label, icon (inline SVG), href, active, children.
-   Separators: ['type' => 'separator', 'label' => 'Section Title']
-   ────────────────────────────────────────────────────────────────────── */
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/admin', PHP_URL_PATH) ?: '/admin';
 
 $sidebarMenu = [
@@ -64,7 +49,6 @@ $sidebarMenu = [
     ],
 ];
 
-/* Admin user info — in production, this would come from session/auth. */
 $adminUser = $adminUser ?? [
     'name'   => 'Vinonsan',
     'role'   => 'Administrator',
@@ -79,19 +63,15 @@ $adminUser = $adminUser ?? [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> | Admin &mdash; Gift Vibe</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS v4 -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-    <!-- Global styles & brand colors — imported from global.css -->
     <style type="text/tailwindcss">
         <?= file_get_contents(BASE_PATH . '/public/assets/css/global.css') ?>
 
-        /* Sidebar & Layout Transitions */
         #admin-sidebar {
             transition: transform 0.3s ease-in-out, width 0.3s ease-in-out !important;
         }
@@ -99,18 +79,16 @@ $adminUser = $adminUser ?? [
             transition: padding-left 0.3s ease-in-out !important;
         }
 
-        /* Collapsed Sidebar CSS overrides on desktop */
         @media (min-width: 1024px) {
             body.sidebar-collapsed [data-admin-content] {
-                padding-left: 5rem !important; /* pl-20 */
+                padding-left: 5rem !important;
             }
             body.sidebar-collapsed #admin-sidebar {
-                width: 5rem !important; /* w-20 */
+                width: 5rem !important;
             }
             body.sidebar-collapsed #admin-sidebar [data-sidebar-text],
             body.sidebar-collapsed #admin-sidebar [data-sidebar-chevron],
             body.sidebar-collapsed #admin-sidebar [data-sidebar-submenu],
-            body.sidebar-collapsed #admin-sidebar [data-sidebar-separator-label],
             body.sidebar-collapsed #admin-sidebar [data-sidebar-logo-text] {
                 display: none !important;
                 opacity: 0 !important;
@@ -128,7 +106,6 @@ $adminUser = $adminUser ?? [
             }
         }
     </style>
-    <!-- Sync collapsed state immediately on load to prevent UI flash -->
     <script>
         if (localStorage.getItem('sidebar-collapsed') === 'true') {
             document.documentElement.classList.add('sidebar-collapsed');
