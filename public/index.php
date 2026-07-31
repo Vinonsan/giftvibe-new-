@@ -1,62 +1,45 @@
 <?php
+
+declare(strict_types=1);
+
 /**
- * Public Portal Entry Point
+ * Front controller — the single entry point for the application.
  *
- * Bootstraps and loads the public-facing customer portal.
+ * Flow: define paths → autoloader → load routes → dispatch request.
  */
 
-require_once __DIR__ . '/../config/config.php';
+define('BASE_PATH', dirname(__DIR__));
 
-$route = isset($_GET['route']) ? rtrim($_GET['route'], '/') : '';
+/* Simple PSR-4 style autoloader for the App\ namespace (app/ folder). */
+spl_autoload_register(function (string $class): void {
+    $prefix = 'App\\';
 
-// 1. Navigation items
-$navigation = [
-    ['label' => 'Home', 'url' => 'index.php', 'active' => ($route === '')],
-    ['label' => 'Shop All', 'url' => '?route=component-showcase', 'active' => false],
-    [
-        'label' => 'Occasions',
-        'url' => '#',
-        'active' => false,
-        'children' => [
-            ['label' => 'Birthday Gifts', 'url' => '?route=component-showcase'],
-            ['label' => 'Anniversary Gifts', 'url' => '?route=component-showcase'],
-        ]
-    ],
-    ['label' => 'Component Showcase', 'url' => '?route=component-showcase', 'active' => ($route === 'component-showcase')]
-];
+    if (!str_starts_with($class, $prefix)) {
+        return;
+    }
 
-// 2. Routing logic
-if ($route === 'component-showcase') {
-    $title = "Public UI Component Showcase";
-    
-    ob_start();
-    include __DIR__ . '/../resources/views/public/pages/component-showcase.php';
-    $content = ob_get_clean();
-    
-    include __DIR__ . '/../resources/views/public/layouts/main.php';
-    exit;
-} else {
-    // Default Home page
-    $title = "Send Premium Gifts to Sri Lanka | Gift Vibe LK";
-    $meta = [
-        'description' => 'Send premium, handpicked gift boxes, fresh flower bouquets, and gourmet chocolates to Sri Lanka. Fast, same-day delivery across Colombo and major cities.',
-        'image' => BASE_URL . '/public/assets/images/hero_gift_box.jpg'
-    ];
-    $structuredData = [
-        '@context' => 'https://schema.org',
-        '@type' => 'GiftStore',
-        'name' => 'Gift Vibe LK',
-        'description' => 'Premium Gift Delivery Shop in Sri Lanka',
-        'url' => BASE_URL,
-        'logo' => BASE_URL . '/public/assets/images/hero_gift_box.jpg',
-        'telephone' => '+94771234567',
-        'priceRange' => '$$'
-    ];
+    $file = BASE_PATH . '/app/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
 
-    ob_start();
-    include __DIR__ . '/../resources/views/public/pages/home.php';
-    $content = ob_get_clean();
-    
-    include __DIR__ . '/../resources/views/public/layouts/main.php';
-    exit;
+    if (is_file($file)) {
+        require $file;
+    }
+});
+
+/**
+ * Return the public URL for an asset inside public/assets/.
+ */
+function asset(string $path): string
+{
+    $base = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php')), '/');
+
+    return $base . '/assets/' . ltrim($path, '/');
 }
+
+$router = new App\Core\Router();
+
+require BASE_PATH . '/routes/web.php';
+
+$router->dispatch(
+    $_SERVER['REQUEST_METHOD'] ?? 'GET',
+    $_SERVER['REQUEST_URI'] ?? '/',
+);

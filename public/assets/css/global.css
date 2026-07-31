@@ -1,0 +1,18 @@
+/* ==========================================================================
+   global.css — Global styles & brand colors (Tailwind CSS v4)
+   This file is processed by the Tailwind v4 browser build because the
+   layouts import it inside a <style type="text/tailwindcss"> block.
+   ========================================================================== */
+
+/* Global brand colors — set once here, then use utilities like
+   bg-primary, text-secondary, border-accent anywhere in the app. */
+@theme {
+    --color-primary: #4f46e5;   /* indigo-600 — main brand color */
+    --color-secondary: #0f172a; /* slate-900  — dark / text color */
+    --color-accent: #ec4899;    /* pink-500   — highlight color */
+}
+
+/* Base styles */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
