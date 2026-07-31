@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Phone input component — country-code select + telephone number field.
+ * Phone input component — uses intl-tel-input library for flag dropdowns and validation.
  *
  * Usage (in any view/component):
  *   <?php require BASE_PATH . '/resources/views/components/base/phone-input.php'; ?>
@@ -14,10 +14,9 @@ declare(strict_types=1);
  *   $phoneInputName       string   name attribute of the phone number field.
  *   $phoneInputId         string   id (defaults to $phoneInputName).
  *   $phoneInputValue      string   Current phone number value.
- *   $phoneCodeName        string   name of the country-code select (default: country_code).
+ *   $phoneCodeName        string   name of the country-code hidden field (default: country_code).
  *   $phoneCodeValue       string   Selected dial code, e.g. '94' (default: 94 — Sri Lanka).
  *   $phoneCountries       array    List of countries: ['code'=>'US','dial'=>'1','flag'=>'🇺🇸','name'=>'United States'].
- *                                 Uses a sensible default list when omitted.
  *   $phoneInputLabel      string   Label above the field.
  *   $phoneInputHint       string   Helper text.
  *   $phoneInputError      string   Error message (switches state to "error").
@@ -27,11 +26,6 @@ declare(strict_types=1);
  *   $phoneInputDisabled   bool     Disabled.
  *   $phoneInputAttributes array    Extra HTML attributes on the tel input.
  *   $phoneInputClass      string   Extra CSS classes.
- *
- * -----------------------------------------------------------------------------
- * Example:
- * -----------------------------------------------------------------------------
- *   $phoneInputName = 'mobile'; $phoneInputLabel = 'Mobile number'; require 'phone-input.php';
  *
  * @var string|null  $phoneInputName
  * @var string|null  $phoneInputId
@@ -65,7 +59,7 @@ $phoneInputClass    = $phoneInputClass    ?? '';
 
 $phoneInputState = $phoneInputState ?? ($phoneInputError !== '' ? 'error' : 'default');
 
-/* A sensible default list of countries (flag · dial code). */
+/* Sensible fallback list of countries if not defined. */
 $phoneCountries = $phoneCountries ?? [
     ['code' => 'US', 'dial' => '1',  'flag' => '🇺🇸', 'name' => 'United States'],
     ['code' => 'GB', 'dial' => '44', 'flag' => '🇬🇧', 'name' => 'United Kingdom'],
@@ -77,17 +71,16 @@ $phoneCountries = $phoneCountries ?? [
     ['code' => 'MY', 'dial' => '60', 'flag' => '🇲🇾', 'name' => 'Malaysia'],
     ['code' => 'AU', 'dial' => '61', 'flag' => '🇦🇺', 'name' => 'Australia'],
     ['code' => 'CA', 'dial' => '1',  'flag' => '🇨🇦', 'name' => 'Canada'],
-    ['code' => 'DE', 'dial' => '49', 'flag' => '🇩🇪', 'name' => 'Germany'],
-    ['code' => 'FR', 'dial' => '33', 'flag' => '🇫🇷', 'name' => 'France'],
-    ['code' => 'IT', 'dial' => '39', 'flag' => '🇮🇹', 'name' => 'Italy'],
-    ['code' => 'ES', 'dial' => '34', 'flag' => '🇪🇸', 'name' => 'Spain'],
-    ['code' => 'JP', 'dial' => '81', 'flag' => '🇯🇵', 'name' => 'Japan'],
-    ['code' => 'KR', 'dial' => '82', 'flag' => '🇰🇷', 'name' => 'South Korea'],
-    ['code' => 'CN', 'dial' => '86', 'flag' => '🇨🇳', 'name' => 'China'],
-    ['code' => 'BD', 'dial' => '880','flag' => '🇧🇩', 'name' => 'Bangladesh'],
-    ['code' => 'NP', 'dial' => '977','flag' => '🇳🇵', 'name' => 'Nepal'],
-    ['code' => 'PK', 'dial' => '92', 'flag' => '🇵🇰', 'name' => 'Pakistan'],
 ];
+
+/* Determine the initial country code matching the dial code. */
+$initialCountryCode = 'lk';
+foreach ($phoneCountries as $country) {
+    if ((string) $country['dial'] === (string) $phoneCodeValue) {
+        $initialCountryCode = strtolower($country['code']);
+        break;
+    }
+}
 
 $phoneSizes = [
     'sm' => 'px-3 py-1.5 text-sm',
@@ -97,25 +90,15 @@ $phoneSizes = [
 
 $phoneStateClasses = [
     'default'  => 'border-slate-300 bg-white text-secondary placeholder:text-slate-400 focus:border-primary focus:ring-primary/20',
-    'error'    => 'border-rose-400 bg-rose-50/30 text-secondary focus:border-rose-500 focus:ring-rose-500/20',
+    'error'    => 'border-rose-500 bg-rose-50/30 text-secondary focus:border-rose-500 focus:ring-rose-500/20',
     'success'  => 'border-emerald-400 bg-emerald-50/30 text-secondary focus:border-emerald-500 focus:ring-emerald-500/20',
     'disabled' => 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500',
 ];
 
 $phoneBase = 'rounded-lg border shadow-sm outline-none transition focus:ring-2';
-
-/* Split the field border between the code select and the number input. */
-$phoneCodeClasses = trim(implode(' ', [
-    $phoneBase,
-    'cursor-pointer border-r-0 bg-slate-50 pl-3 pr-1 font-medium text-secondary focus:ring-0',
-    $phoneSizes[$phoneSize ?? $phoneInputSize],
-    $phoneStateClasses[$phoneInputState] ?? $phoneStateClasses['default'],
-    $phoneInputState === 'disabled' ? ' cursor-not-allowed' : '',
-]));
-
 $phoneNumberClasses = trim(implode(' ', [
     $phoneBase,
-    'w-full',
+    'w-full pl-12',
     $phoneSizes[$phoneInputSize],
     $phoneStateClasses[$phoneInputState] ?? $phoneStateClasses['default'],
     $phoneInputClass,
@@ -127,8 +110,27 @@ foreach ($phoneInputAttributes ?? [] as $attrName => $attrValue) {
 }
 
 $labelId = $phoneInputId !== '' ? $phoneInputId : $phoneInputName;
+$wrapperId = 'phone-wrapper-' . uniqid();
 ?>
-<div class="space-y-1.5">
+
+<!-- Load intl-tel-input assets dynamically if not already present in layouts -->
+<script>
+if (!document.getElementById('intl-tel-css')) {
+    const link = document.createElement('link');
+    link.id = 'intl-tel-css';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/css/intlTelInput.css';
+    document.head.appendChild(link);
+}
+if (typeof window.intlTelInput === 'undefined' && !document.getElementById('intl-tel-js')) {
+    const script = document.createElement('script');
+    script.id = 'intl-tel-js';
+    script.src = 'https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/intlTelInput.min.js';
+    document.head.appendChild(script);
+}
+</script>
+
+<div class="space-y-1.5" id="<?= htmlspecialchars($wrapperId) ?>">
     <?php if ($phoneInputLabel !== ''): ?>
         <label for="<?= htmlspecialchars($labelId) ?>" class="block text-sm font-medium text-secondary">
             <?= htmlspecialchars((string) $phoneInputLabel) ?>
@@ -136,40 +138,25 @@ $labelId = $phoneInputId !== '' ? $phoneInputId : $phoneInputName;
         </label>
     <?php endif; ?>
 
-    <div class="flex">
-        <select
-            name="<?= htmlspecialchars($phoneCodeName) ?>"
-            class="<?= $phoneCodeClasses ?>"
+    <div class="relative">
+        <input
+            type="tel"
+            id="<?= htmlspecialchars($labelId) ?>"
+            name="<?= htmlspecialchars($phoneInputName) ?>"
+            value="<?= htmlspecialchars((string) $phoneInputValue) ?>"
+            class="<?= $phoneNumberClasses ?>"
+            <?= $phoneInputRequired ? ' required' : '' ?>
             <?= $phoneInputDisabled || $phoneInputState === 'disabled' ? ' disabled' : '' ?>
-            aria-label="Country code"
+            aria-invalid="<?= $phoneInputError !== '' ? 'true' : 'false' ?>"
+            <?= $phoneAttr ?>
         >
-            <?php foreach ($phoneCountries as $country): ?>
-                <option value="<?= htmlspecialchars((string) ($country['dial'] ?? '')) ?>"
-                    <?= (string) ($country['dial'] ?? '') === (string) $phoneCodeValue ? 'selected' : '' ?>>
-                    <?= htmlspecialchars((string) ($country['flag'] ?? '')) ?> +<?= htmlspecialchars((string) ($country['dial'] ?? '')) ?> <?= htmlspecialchars((string) ($country['code'] ?? '')) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
 
-        <div class="relative w-full">
-            <input
-                type="tel"
-                id="<?= htmlspecialchars($labelId) ?>"
-                name="<?= htmlspecialchars($phoneInputName) ?>"
-                value="<?= htmlspecialchars((string) $phoneInputValue) ?>"
-                placeholder="7XX XXX XXX"
-                class="<?= $phoneNumberClasses ?>"
-                <?= $phoneInputRequired ? ' required' : '' ?>
-                <?= $phoneInputDisabled || $phoneInputState === 'disabled' ? ' disabled' : '' ?>
-                aria-invalid="<?= $phoneInputError !== '' ? 'true' : 'false' ?>"
-                <?= $phoneAttr ?>
-            >
-            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/>
-                </svg>
-            </span>
-        </div>
+        <!-- Hidden input to submit the country dial code -->
+        <input
+            type="hidden"
+            name="<?= htmlspecialchars($phoneCodeName) ?>"
+            value="<?= htmlspecialchars($phoneCodeValue) ?>"
+        >
     </div>
 
     <?php if ($phoneInputError !== ''): ?>
@@ -178,3 +165,40 @@ $labelId = $phoneInputId !== '' ? $phoneInputId : $phoneInputName;
         <p class="text-xs text-slate-500"><?= htmlspecialchars($phoneInputHint) ?></p>
     <?php endif; ?>
 </div>
+
+<script>
+(function () {
+    const wrapper = document.getElementById('<?= $wrapperId ?>');
+    if (!wrapper) return;
+
+    const input = wrapper.querySelector('input[type="tel"]');
+    const hiddenCode = wrapper.querySelector('input[type="hidden"]');
+
+    function init() {
+        if (typeof window.intlTelInput === 'undefined') {
+            setTimeout(init, 50);
+            return;
+        }
+
+        const iti = window.intlTelInput(input, {
+            initialCountry: "<?= $initialCountryCode ?>",
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.10/build/js/utils.js",
+            autoPlaceholder: "polite",
+        });
+
+        function syncCode() {
+            const data = iti.getSelectedCountryData();
+            if (data && data.dialCode) {
+                hiddenCode.value = data.dialCode;
+            }
+        }
+
+        input.addEventListener('countrychange', syncCode);
+        input.addEventListener('input', syncCode);
+        
+        // Handle initial load sync
+        setTimeout(syncCode, 100);
+    }
+    init();
+})();
+</script>

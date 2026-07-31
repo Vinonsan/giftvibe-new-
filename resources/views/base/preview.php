@@ -131,6 +131,90 @@ $renderPhoneInput = function (string $name, string $label = '', string $value = 
     require $C . 'phone-input.php';
 };
 
+$renderOtpInput = function (string $name, string $label = '', string $value = '', int $length = 6, string $error = '', string $hint = '', string $size = 'md') use ($C): void {
+    $otpInputName = $name;
+    $otpInputLabel = $label;
+    $otpInputValue = $value;
+    $otpLength = $length;
+    $otpInputError = $error;
+    $otpInputHint = $hint;
+    $otpInputSize = $size;
+    $otpInputId = '';
+    $otpInputRequired = false;
+    $otpInputDisabled = false;
+    $otpInputClass = '';
+    require $C . 'otp-input.php';
+};
+
+$renderTimeInput = function (string $name, string $label = '', string $value = '', string $error = '', string $hint = '', string $size = 'md') use ($C): void {
+    $timeInputName = $name;
+    $timeInputLabel = $label;
+    $timeInputValue = $value;
+    $timeInputError = $error;
+    $timeInputHint = $hint;
+    $timeInputSize = $size;
+    $timeInputId = '';
+    $timeInputRequired = false;
+    $timeInputDisabled = false;
+    $timeInputState = '';
+    $timeInputAttributes = [];
+    $timeInputClass = '';
+    require $C . 'time-input.php';
+};
+
+$renderCheckbox = function (string $name, string $label = '', bool $checked = false, string $color = 'primary', string $size = 'md', string $error = '', string $hint = '', bool $disabled = false) use ($C): void {
+    $checkboxName = $name;
+    $checkboxLabel = $label;
+    $checkboxChecked = $checked;
+    $checkboxColor = $color;
+    $checkboxSize = $size;
+    $checkboxError = $error;
+    $checkboxHint = $hint;
+    $checkboxDisabled = $disabled;
+    $checkboxId = '';
+    $checkboxValue = '1';
+    $checkboxRequired = false;
+    $checkboxState = '';
+    $checkboxAttributes = [];
+    $checkboxClass = '';
+    require $C . 'checkbox.php';
+};
+
+$renderRadio = function (string $name, string $value, string $label = '', bool $checked = false, string $color = 'primary', string $size = 'md', string $error = '', string $hint = '', bool $disabled = false) use ($C): void {
+    $radioName = $name;
+    $radioValue = $value;
+    $radioLabel = $label;
+    $radioChecked = $checked;
+    $radioColor = $color;
+    $radioSize = $size;
+    $radioError = $error;
+    $radioHint = $hint;
+    $radioDisabled = $disabled;
+    $radioId = '';
+    $radioRequired = false;
+    $radioState = '';
+    $radioAttributes = [];
+    $radioClass = '';
+    require $C . 'radio.php';
+};
+
+$renderToggle = function (string $name, string $label = '', bool $checked = false, string $color = 'primary', string $size = 'md', string $error = '', string $hint = '', bool $disabled = false) use ($C): void {
+    $toggleName = $name;
+    $toggleLabel = $label;
+    $toggleChecked = $checked;
+    $toggleColor = $color;
+    $toggleSize = $size;
+    $toggleError = $error;
+    $toggleHint = $hint;
+    $toggleDisabled = $disabled;
+    $toggleId = '';
+    $toggleRequired = false;
+    $toggleState = '';
+    $toggleAttributes = [];
+    $toggleClass = '';
+    require $C . 'toggle.php';
+};
+
 $renderBadge = function (string $label, string $variant = 'soft', string $color = 'primary', string $size = 'md', bool $removable = false, string $icon = '') use ($C): void {
     $badgeLabel = $label;
     $badgeVariant = $variant;
@@ -226,7 +310,7 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
         $renderInput('email', 'Email', '', 'you@example.com', 'email', '', '', $svgMail, '', 'md', true);
         $renderInput('search', '', '', 'Search products…', 'search', '', '', $svgSearch);
         $renderInput('price', 'Price (LKR)', '', '0.00', 'number', '', '', '', ' LKR');
-        $renderInput('password', 'Password', '', '••••••••', 'password');
+        $renderInput('password', 'Password', 'SecretPass123!', 'Enter your password', 'password', '', 'Includes an interactive eye visibility toggle.');
         $renderInput('invalid', 'With error', 'oops', '', 'text', 'This field is required.');
         $renderInput('small', 'Small', '', 'Small input', 'text', '', '', '', '', 'sm');
         $renderInput('large', 'Large', '', 'Large input', 'text', '', '', '', '', 'lg');
@@ -282,7 +366,7 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
         echo '<div class="flex flex-wrap items-start gap-8">';
 
         $dropdownId = 'dd-actions';
-        $dropdownLabel = 'Actions';
+        $dropdownLabel = 'Actions (Light Menu)';
         $dropdownTriggerVariant = 'outline';
         $dropdownTriggerColor = 'secondary';
         $dropdownTriggerSize = 'md';
@@ -292,6 +376,7 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
         $dropdownWidth = 'w-56';
         $dropdownMenuClass = '';
         $dropdownIconTrailing = '';
+        $dropdownMenuVariant = 'light';
         $dropdownItems = [
             ['type' => 'header', 'label' => 'Product actions'],
             ['label' => 'Edit', 'icon' => $svgPencil, 'href' => '#'],
@@ -303,7 +388,7 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
         require $C . 'dropdown-menu.php';
 
         $dropdownId = 'dd-profile';
-        $dropdownLabel = 'Account';
+        $dropdownLabel = 'Account (Primary Menu)';
         $dropdownTriggerVariant = 'soft';
         $dropdownTriggerColor = 'primary';
         $dropdownTriggerSize = 'md';
@@ -313,6 +398,7 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
         $dropdownWidth = 'w-56';
         $dropdownMenuClass = '';
         $dropdownIconTrailing = '';
+        $dropdownMenuVariant = 'primary';
         $dropdownItems = [
             ['label' => 'Profile', 'href' => '#'],
             ['label' => 'Settings', 'href' => '#'],
@@ -459,38 +545,80 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
     $drawerBody = $capture(static function () use ($C): void {
         echo '<div class="flex flex-wrap items-center gap-3">';
 
-        $drawerId = 'drawer-right';
+        // Small Drawer
+        $drawerId = 'drawer-sm';
         $drawerSide = 'right';
-        $drawerSize = 'md';
-        $drawerTriggerLabel = 'Right drawer';
+        $drawerSize = 'sm';
+        $drawerTriggerLabel = 'Small Drawer (sm)';
         $drawerTriggerVariant = 'outline';
         $drawerTriggerColor = 'secondary';
         $drawerTriggerSize = 'md';
         $drawerTriggerIcon = '';
         $drawerTrigger = '';
-        $drawerTitle = 'Shopping cart';
-        $drawerDescription = '2 items';
-        $drawerBodyContent = '<p>Your cart lives here.</p>';
-        $drawerFooter = '<button data-drawer-close class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-secondary hover:bg-slate-50">Continue shopping</button> <button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">Checkout</button>';
+        $drawerTitle = 'Small Drawer';
+        $drawerDescription = 'Width: 320px';
+        $drawerBodyContent = '<p>This is a small drawer (sm size, w-80).</p>';
+        $drawerFooter = '<button data-drawer-close class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-secondary hover:bg-slate-50 cursor-pointer">Cancel</button>';
         $drawerStatic = false;
         $drawerCloseOnEsc = true;
         $drawerShowCloseButton = true;
         $drawerOverlay = true;
         require $C . 'drawer.php';
 
-        $drawerId = 'drawer-left';
+        // Medium Drawer
+        $drawerId = 'drawer-md';
+        $drawerSide = 'right';
+        $drawerSize = 'md';
+        $drawerTriggerLabel = 'Medium Drawer (md)';
+        $drawerTriggerVariant = 'outline';
+        $drawerTriggerColor = 'secondary';
+        $drawerTriggerSize = 'md';
+        $drawerTriggerIcon = '';
+        $drawerTrigger = '';
+        $drawerTitle = 'Medium Drawer';
+        $drawerDescription = 'Width: 384px';
+        $drawerBodyContent = '<p>This is a medium drawer (md size, w-96).</p>';
+        $drawerFooter = '<button data-drawer-close class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-secondary hover:bg-slate-50 cursor-pointer">Cancel</button>';
+        $drawerStatic = false;
+        $drawerCloseOnEsc = true;
+        $drawerShowCloseButton = true;
+        $drawerOverlay = true;
+        require $C . 'drawer.php';
+
+        // Large Drawer
+        $drawerId = 'drawer-lg';
         $drawerSide = 'left';
         $drawerSize = 'lg';
-        $drawerTriggerLabel = 'Left drawer';
+        $drawerTriggerLabel = 'Left Large Drawer (lg)';
         $drawerTriggerVariant = 'soft';
         $drawerTriggerColor = 'accent';
         $drawerTriggerSize = 'md';
         $drawerTriggerIcon = '';
         $drawerTrigger = '';
-        $drawerTitle = 'Filters';
-        $drawerDescription = 'Refine your search';
-        $drawerBodyContent = '<p>Filter controls could go here.</p>';
-        $drawerFooter = '<button data-drawer-close class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">Apply filters</button>';
+        $drawerTitle = 'Large Left Drawer';
+        $drawerDescription = 'Width: 448px';
+        $drawerBodyContent = '<p>This is a left-aligned large drawer (lg size, w-[28rem]).</p>';
+        $drawerFooter = '<button data-drawer-close class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 cursor-pointer">Apply</button>';
+        $drawerStatic = false;
+        $drawerCloseOnEsc = true;
+        $drawerShowCloseButton = true;
+        $drawerOverlay = true;
+        require $C . 'drawer.php';
+
+        // Full Screen Drawer
+        $drawerId = 'drawer-full';
+        $drawerSide = 'right';
+        $drawerSize = 'full';
+        $drawerTriggerLabel = 'Full Screen Drawer';
+        $drawerTriggerVariant = 'solid';
+        $drawerTriggerColor = 'primary';
+        $drawerTriggerSize = 'md';
+        $drawerTriggerIcon = '';
+        $drawerTrigger = '';
+        $drawerTitle = 'Full Screen Panel';
+        $drawerDescription = 'Width: 100% of viewport';
+        $drawerBodyContent = '<div class="space-y-4"><p>This is a screen-width full drawer (full size, w-full).</p><p>Perfect for full checkout details, complex creation steps, or immersive screens.</p></div>';
+        $drawerFooter = '<button data-drawer-close class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 cursor-pointer">Close Panel</button>';
         $drawerStatic = false;
         $drawerCloseOnEsc = true;
         $drawerShowCloseButton = true;
@@ -529,4 +657,217 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
     $badgeBody .= '</div>';
     $section('badges', 'Badges', '4 variants × 6 colours + neutral, sizes, removable and icon badges.', $badgeBody);
     ?>
+
+    <?php
+    /* ======================= OTP INPUTS ======================= */
+    $otpBody = $capture(static function () use ($renderOtpInput): void {
+        echo '<div class="grid gap-5 lg:grid-cols-2">';
+        $renderOtpInput('verification_code', 'Enter Verification Code', '', 6, '', 'A 6-digit code was sent to your phone.');
+        $renderOtpInput('short_code', 'Short Code (4 boxes)', '12', 4, '', 'Custom length of 4 boxes.');
+        echo '</div>';
+    });
+    $section('otp-inputs', 'OTP Inputs (Single Boxes)', 'Customizable lengths, autotab focus, backspace navigation, paste support, and full value sync.', $otpBody);
+    ?>
+
+    <?php
+    /* ======================= TIME INPUTS ======================= */
+    $timeBody = $capture(static function () use ($renderTimeInput): void {
+        echo '<div class="grid gap-5 lg:grid-cols-3">';
+        $renderTimeInput('start_time', 'Start Time', '09:00');
+        $renderTimeInput('end_time', 'End Time', '18:00', '', 'Standard working hours.');
+        $renderTimeInput('invalid_time', 'With Error', '', 'Invalid time chosen.');
+        echo '</div>';
+    });
+    $section('time-inputs', 'Time Inputs', 'Flatpickr time picker, supporting 12h format and error states.', $timeBody);
+    ?>
+
+    <?php
+    /* ======================= SELECTION CONTROLS ======================= */
+    $selectionControlsBody = $capture(static function () use ($renderCheckbox, $renderRadio, $renderToggle): void {
+        echo '<div class="space-y-6">';
+
+        // 1. Checkboxes
+        echo '<div>';
+        echo '<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Checkboxes</h3>';
+        echo '<div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 items-start">';
+        $renderCheckbox('chk_primary', 'Primary Color', true, 'primary');
+        $renderCheckbox('chk_accent', 'Accent Color', true, 'accent');
+        $renderCheckbox('chk_success', 'Success Color', true, 'success');
+        $renderCheckbox('chk_warning', 'Warning Color', true, 'warning');
+        $renderCheckbox('chk_danger', 'Danger Color', true, 'danger');
+        $renderCheckbox('chk_disabled', 'Disabled Checked', true, 'primary', 'md', '', '', true);
+        echo '</div>';
+        echo '</div>';
+
+        // Sizes and states
+        echo '<div class="mt-4 border-t border-slate-100 pt-4">';
+        echo '<div class="grid gap-4 sm:grid-cols-3 items-start">';
+        // Sizes
+        echo '<div class="space-y-2">';
+        echo '<p class="text-xs font-semibold text-slate-400">Sizes</p>';
+        $renderCheckbox('chk_sm', 'Small size', false, 'primary', 'sm');
+        $renderCheckbox('chk_md', 'Medium size', false, 'primary', 'md');
+        $renderCheckbox('chk_lg', 'Large size', false, 'primary', 'lg');
+        echo '</div>';
+        // States
+        echo '<div class="space-y-2">';
+        echo '<p class="text-xs font-semibold text-slate-400">States</p>';
+        $renderCheckbox('chk_err', 'Error State', false, 'primary', 'md', 'You must accept the terms.');
+        $renderCheckbox('chk_dis_un', 'Disabled Unchecked', false, 'primary', 'md', '', '', true);
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+
+        // 2. Radio Buttons
+        echo '<div class="mt-6 border-t border-slate-100 pt-6">';
+        echo '<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Radio Buttons</h3>';
+        echo '<div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 items-start">';
+        $renderRadio('rad_group1', '1', 'Primary Color', true, 'primary');
+        $renderRadio('rad_group1', '2', 'Accent Color', false, 'accent');
+        $renderRadio('rad_group1', '3', 'Success Color', false, 'success');
+        $renderRadio('rad_group1', '4', 'Warning Color', false, 'warning');
+        $renderRadio('rad_group1', '5', 'Danger Color', false, 'danger');
+        $renderRadio('rad_group1', '6', 'Disabled Option', false, 'primary', 'md', '', '', true);
+        echo '</div>';
+        echo '</div>';
+
+        // Sizes & States
+        echo '<div class="mt-4 border-t border-slate-100 pt-4">';
+        echo '<div class="grid gap-4 sm:grid-cols-3 items-start">';
+        // Sizes
+        echo '<div class="space-y-2">';
+        echo '<p class="text-xs font-semibold text-slate-400">Sizes</p>';
+        $renderRadio('rad_size', 'sm', 'Small size', false, 'primary', 'sm');
+        $renderRadio('rad_size', 'md', 'Medium size', false, 'primary', 'md');
+        $renderRadio('rad_size', 'lg', 'Large size', false, 'primary', 'lg');
+        echo '</div>';
+        // States
+        echo '<div class="space-y-2">';
+        echo '<p class="text-xs font-semibold text-slate-400">States</p>';
+        $renderRadio('rad_err', 'err', 'Error State', false, 'primary', 'md', 'Please choose a payment method.');
+        $renderRadio('rad_dis_c', 'disc', 'Disabled Checked', true, 'primary', 'md', '', '', true);
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+
+        // 3. Toggles
+        echo '<div class="mt-6 border-t border-slate-100 pt-6">';
+        echo '<h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">Toggle Switches</h3>';
+        echo '<div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 items-start">';
+        $renderToggle('tog_primary', 'Primary Color', true, 'primary');
+        $renderToggle('tog_accent', 'Accent Color', true, 'accent');
+        $renderToggle('tog_success', 'Success Color', true, 'success');
+        $renderToggle('tog_warning', 'Warning Color', true, 'warning');
+        $renderToggle('tog_danger', 'Danger Color', true, 'danger');
+        $renderToggle('tog_disabled', 'Disabled Active', true, 'primary', 'md', '', '', true);
+        echo '</div>';
+        echo '</div>';
+
+        // Sizes & States
+        echo '<div class="mt-4 border-t border-slate-100 pt-4">';
+        echo '<div class="grid gap-4 sm:grid-cols-3 items-start">';
+        // Sizes
+        echo '<div class="space-y-2">';
+        echo '<p class="text-xs font-semibold text-slate-400">Sizes</p>';
+        $renderToggle('tog_sm', 'Small size', false, 'primary', 'sm');
+        $renderToggle('tog_md', 'Medium size', false, 'primary', 'md');
+        $renderToggle('tog_lg', 'Large size', false, 'primary', 'lg');
+        echo '</div>';
+        // States
+        echo '<div class="space-y-2">';
+        echo '<p class="text-xs font-semibold text-slate-400">States</p>';
+        $renderToggle('tog_err', 'Error State', false, 'primary', 'md', 'Accept push notifications.');
+        $renderToggle('tog_dis_u', 'Disabled Inactive', false, 'primary', 'md', '', '', true);
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+
+        echo '</div>';
+    });
+    $section('selection-controls', 'Selection Controls', 'Checkbox, Radio, and Toggle Switch components in all sizes and colors.', $selectionControlsBody);
+    ?>
+
+    <?php
+    /* ======================= VALIDATION & ERROR STATES ======================= */
+    $validationBody = $capture(static function () use ($C, $renderInput, $renderSelect, $renderPhoneInput, $renderDateInput, $renderOtpInput, $renderTimeInput, $renderCheckbox, $renderRadio, $renderToggle): void {
+        echo '<div class="space-y-6">';
+        
+        echo '<div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3 items-start">';
+        
+        // Input error
+        echo '<div>';
+        $renderInput('error_username', 'Username', 'invalid_user', '', 'text', 'Username is already taken.');
+        echo '</div>';
+        
+        // Select error
+        echo '<div>';
+        $renderSelect('error_role', ['' => 'Choose...', 'admin' => 'Admin'], 'Role', '', '', false, 'Please select a user role.');
+        echo '</div>';
+        
+        // Phone input error
+        echo '<div>';
+        $renderPhoneInput('error_phone', 'Phone Number', '77 111', '94', 'Please enter a valid phone number.');
+        echo '</div>';
+
+        // Date input error
+        echo '<div>';
+        $renderDateInput('error_date', 'Event Date', '', '', '', 'Date cannot be in the past.');
+        echo '</div>';
+
+        // Time input error
+        echo '<div>';
+        $renderTimeInput('error_time', 'Meeting Time', '', 'Meeting time is outside office hours.');
+        echo '</div>';
+
+        // OTP input error
+        echo '<div>';
+        $renderOtpInput('error_otp', 'One-Time Password', '12', 6, 'Verification code has expired.');
+        echo '</div>';
+
+        // Checkbox error
+        echo '<div>';
+        $renderCheckbox('error_chk', 'Accept terms & conditions', false, 'primary', 'md', 'You must agree to continue.');
+        echo '</div>';
+
+        // Radio error
+        echo '<div>';
+        $renderRadio('error_rad', 'val', 'Subscribe to newsletter', false, 'primary', 'md', 'Please choose a preference.');
+        echo '</div>';
+
+        // Toggle error
+        echo '<div>';
+        $renderToggle('error_tog', 'Enable GPS tracking', false, 'primary', 'md', 'Location access is required.');
+        echo '</div>';
+
+        echo '</div>'; // grid close
+
+        echo '<div class="border-t border-slate-100 pt-6 flex flex-wrap items-end gap-6">';
+        
+        // Badge error
+        echo '<div class="space-y-1.5">';
+        echo '<span class="block text-sm font-medium text-slate-500">Badge Validation</span>';
+        $badgeLabel = 'Expiring';
+        $badgeColor = 'danger';
+        $badgeVariant = 'outline';
+        $badgeError = 'Status is invalid';
+        require $C . 'badge.php';
+        echo '</div>';
+
+        // Button error
+        echo '<div class="space-y-1.5">';
+        echo '<span class="block text-sm font-medium text-slate-500">Button Validation</span>';
+        $buttonLabel = 'Submit Form';
+        $buttonVariant = 'solid';
+        $buttonColor = 'primary';
+        $buttonError = 'Form has validation errors';
+        require $C . 'button.php';
+        echo '</div>';
+
+        echo '</div>'; // flex close
+
+        echo '</div>';
+    });
+    $section('validation', 'Validation & Error States', 'Comprehensive demo of badge, button, text inputs, selects, phone, date, time, and OTP inputs with active validation errors.', $validationBody);
+    ?>
 </section>
+

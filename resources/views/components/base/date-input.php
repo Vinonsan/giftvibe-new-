@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Date input component — native HTML5 date picker with a calendar icon.
+ * Date input component — uses Flatpickr library for a custom styled calendar picker.
  *
  * Usage (in any view/component):
  *   <?php require BASE_PATH . '/resources/views/components/base/date-input.php'; ?>
@@ -25,14 +25,6 @@ declare(strict_types=1);
  *   $dateInputDisabled   bool     Disabled.
  *   $dateInputAttributes array    Extra HTML attributes.
  *   $dateInputClass      string   Extra CSS classes.
- *
- * -----------------------------------------------------------------------------
- * Examples:
- * -----------------------------------------------------------------------------
- *   $dateInputName = 'event_date'; $dateInputLabel = 'Event date';
- *   $dateInputMin = date('Y-m-d'); require 'date-input.php';
- *
- *   $dateInputName = 'from'; $dateInputLabel = 'From'; $dateInputValue = '2026-01-01'; require 'date-input.php';
  *
  * @var string|null  $dateInputName
  * @var string|null  $dateInputId
@@ -73,12 +65,12 @@ $dateInputSizes = [
 
 $dateInputStateClasses = [
     'default'  => 'border-slate-300 bg-white text-secondary placeholder:text-slate-400 focus:border-primary focus:ring-primary/20',
-    'error'    => 'border-rose-400 bg-rose-50/30 text-secondary focus:border-rose-500 focus:ring-rose-500/20',
+    'error'    => 'border-rose-500 bg-rose-50/30 text-secondary focus:border-rose-500 focus:ring-rose-500/20',
     'success'  => 'border-emerald-400 bg-emerald-50/30 text-secondary focus:border-emerald-500 focus:ring-emerald-500/20',
     'disabled' => 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500',
 ];
 
-$dateInputBase = 'w-full rounded-lg border pl-10 pr-3 shadow-sm outline-none transition focus:ring-2';
+$dateInputBase = 'w-full rounded-lg border pl-10 pr-3 shadow-sm outline-none transition focus:ring-2 cursor-pointer';
 $dateInputClasses = trim(implode(' ', [
     $dateInputBase,
     $dateInputSizes[$dateInputSize],
@@ -92,8 +84,27 @@ foreach ($dateInputAttributes ?? [] as $attrName => $attrValue) {
 }
 
 $labelId = $dateInputId !== '' ? $dateInputId : $dateInputName;
+$wrapperId = 'date-wrapper-' . uniqid();
 ?>
-<div class="space-y-1.5">
+
+<!-- Load Flatpickr assets dynamically if not present -->
+<script>
+if (!document.getElementById('flatpickr-css')) {
+    const link = document.createElement('link');
+    link.id = 'flatpickr-css';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+    document.head.appendChild(link);
+}
+if (typeof window.flatpickr === 'undefined' && !document.getElementById('flatpickr-js')) {
+    const script = document.createElement('script');
+    script.id = 'flatpickr-js';
+    script.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+    document.head.appendChild(script);
+}
+</script>
+
+<div class="space-y-1.5" id="<?= htmlspecialchars($wrapperId) ?>">
     <?php if ($dateInputLabel !== ''): ?>
         <label for="<?= htmlspecialchars($labelId) ?>" class="block text-sm font-medium text-secondary">
             <?= htmlspecialchars((string) $dateInputLabel) ?>
@@ -109,13 +120,12 @@ $labelId = $dateInputId !== '' ? $dateInputId : $dateInputName;
         </span>
 
         <input
-            type="date"
+            type="text"
             id="<?= htmlspecialchars($labelId) ?>"
             name="<?= htmlspecialchars($dateInputName) ?>"
             value="<?= htmlspecialchars((string) $dateInputValue) ?>"
             class="<?= $dateInputClasses ?>"
-            <?= $dateInputMin !== '' ? 'min="' . htmlspecialchars($dateInputMin) . '"' : '' ?>
-            <?= $dateInputMax !== '' ? 'max="' . htmlspecialchars($dateInputMax) . '"' : '' ?>
+            placeholder="YYYY-MM-DD"
             <?= $dateInputRequired ? ' required' : '' ?>
             <?= $dateInputDisabled || $dateInputState === 'disabled' ? ' disabled' : '' ?>
             aria-invalid="<?= $dateInputError !== '' ? 'true' : 'false' ?>"
@@ -129,3 +139,50 @@ $labelId = $dateInputId !== '' ? $dateInputId : $dateInputName;
         <p class="text-xs text-slate-500"><?= htmlspecialchars($dateInputHint) ?></p>
     <?php endif; ?>
 </div>
+
+<script>
+(function () {
+    const wrapper = document.getElementById('<?= $wrapperId ?>');
+    if (!wrapper) return;
+
+    const input = wrapper.querySelector('input');
+
+    function init() {
+        if (typeof window.flatpickr === 'undefined') {
+            setTimeout(init, 50);
+            return;
+        }
+
+        window.flatpickr(input, {
+            dateFormat: "Y-m-d",
+            allowInput: true,
+            minDate: "<?= $dateInputMin ?>",
+            maxDate: "<?= $dateInputMax ?>",
+            disableMobile: true,
+            onReady: function(selectedDates, dateStr, instance) {
+                const prev = instance.prevMonthNav;
+                const next = instance.nextMonthNav;
+                if (prev && next) {
+                    const newPrev = prev.cloneNode(true);
+                    const newNext = next.cloneNode(true);
+                    
+                    prev.parentNode.replaceChild(newPrev, prev);
+                    next.parentNode.replaceChild(newNext, next);
+                    
+                    newPrev.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        instance.changeYear(instance.currentYear - 1);
+                    });
+                    newNext.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        instance.changeYear(instance.currentYear + 1);
+                    });
+                }
+            }
+        });
+    }
+    init();
+})();
+</script>

@@ -68,6 +68,7 @@ $dropdownTriggerVariant = $dropdownTriggerVariant ?? 'outline';
 $dropdownTriggerColor = $dropdownTriggerColor ?? 'secondary';
 $dropdownTriggerSize  = $dropdownTriggerSize  ?? 'md';
 $dropdownMenuClass    = $dropdownMenuClass    ?? '';
+$dropdownMenuVariant  = $dropdownMenuVariant  ?? 'light';
 
 /* Reuse the same trigger palette as the button component. */
 $triggerPalette = [
@@ -123,7 +124,7 @@ $triggerSizes = [
     'xl' => 'px-6 py-3 text-base',
 ];
 
-$triggerBase = 'inline-flex select-none items-center justify-center gap-2 rounded-lg font-semibold transition focus:outline-none focus-visible:ring-2';
+$triggerBase = 'inline-flex select-none items-center justify-center gap-2 rounded-lg font-semibold transition focus:outline-none focus-visible:ring-2 cursor-pointer';
 $triggerClasses = trim(implode(' ', [
     $triggerBase,
     $triggerSizes[$dropdownTriggerSize],
@@ -143,9 +144,20 @@ $triggerHtml = $dropdownTrigger !== ''
 <div class="relative inline-block text-left" data-dropdown="<?= htmlspecialchars($dropdownId) ?>">
     <?= $triggerHtml ?>
 
+    <?php
+    if ($dropdownMenuVariant === 'primary') {
+        $panelBgClass = 'bg-primary border-primary/20 text-white';
+        $dividerBorderClass = 'border-white/10';
+        $headerTextClass = 'text-white/60';
+    } else {
+        $panelBgClass = 'bg-white border-slate-200 text-secondary';
+        $dividerBorderClass = 'border-slate-100';
+        $headerTextClass = 'text-slate-400';
+    }
+    ?>
     <div
         data-dropdown-menu="<?= htmlspecialchars($dropdownId) ?>"
-        class="absolute z-20 mt-2 hidden min-w-full origin-top rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5 <?= $dropdownAlign === 'right' ? 'right-0' : 'left-0' ?> <?= $dropdownWidth ?> <?= $dropdownMenuClass ?>"
+        class="absolute z-20 mt-2 hidden min-w-full origin-top rounded-xl border py-1 shadow-lg ring-1 ring-black/5 <?= $panelBgClass ?> <?= $dropdownAlign === 'right' ? 'right-0' : 'left-0' ?> <?= $dropdownWidth ?> <?= $dropdownMenuClass ?>"
         role="menu"
         aria-orientation="vertical"
     >
@@ -157,21 +169,30 @@ $triggerHtml = $dropdownTrigger !== ''
             <?php $itemType = $item['type'] ?? 'item'; ?>
 
             <?php if ($itemType === 'divider'): ?>
-                <div class="my-1 border-t border-slate-100"></div>
+                <div class="my-1 border-t <?= $dividerBorderClass ?>"></div>
             <?php elseif ($itemType === 'header'): ?>
-                <p class="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400"><?= htmlspecialchars((string) ($item['label'] ?? '')) ?></p>
+                <p class="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide <?= $headerTextClass ?>"><?= htmlspecialchars((string) ($item['label'] ?? '')) ?></p>
             <?php else: ?>
                 <?php
                 $isDanger   = (bool) ($item['danger'] ?? false);
                 $isActive   = (bool) ($item['active'] ?? false);
                 $isDisabled = (bool) ($item['disabled'] ?? false);
 
-                $itemBase = 'flex w-full items-center gap-2.5 px-4 py-2 text-sm transition';
-                $itemClass = $isDanger
-                    ? $itemBase . ' text-rose-600 hover:bg-rose-50'
-                    : ($isActive
-                        ? $itemBase . ' bg-primary/5 font-semibold text-primary'
-                        : $itemBase . ' text-secondary hover:bg-slate-50');
+                $itemBase = 'flex w-full items-center gap-2.5 px-4 py-2 text-sm transition font-medium cursor-pointer';
+                
+                if ($dropdownMenuVariant === 'primary') {
+                    $itemClass = $isDanger
+                        ? $itemBase . ' text-rose-200 hover:bg-rose-500/20'
+                        : ($isActive
+                            ? $itemBase . ' bg-white/20 font-semibold text-white'
+                            : $itemBase . ' text-white/90 hover:bg-white/10');
+                } else {
+                    $itemClass = $isDanger
+                        ? $itemBase . ' text-rose-600 hover:bg-rose-50'
+                        : ($isActive
+                            ? $itemBase . ' bg-primary/5 font-semibold text-primary'
+                            : $itemBase . ' text-secondary hover:bg-slate-50');
+                }
 
                 $itemAttrs = 'data-dropdown-item' . ($isDisabled ? ' disabled' : '');
                 if (!empty($item['keepOpen'])) {
@@ -201,6 +222,8 @@ $triggerHtml = $dropdownTrigger !== ''
         <?php endforeach; ?>
     </div>
 </div>
+
+
 
 <script>
 (function () {

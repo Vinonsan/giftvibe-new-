@@ -90,7 +90,7 @@ $inputSizes = [
 
 $inputStateClasses = [
     'default'  => 'border-slate-300 bg-white text-secondary placeholder:text-slate-400 focus:border-primary focus:ring-primary/20',
-    'error'    => 'border-rose-400 bg-rose-50/30 text-secondary placeholder:text-slate-400 focus:border-rose-500 focus:ring-rose-500/20',
+    'error'    => 'border-rose-500 bg-rose-50/30 text-secondary placeholder:text-slate-400 focus:border-rose-500 focus:ring-rose-500/20',
     'success'  => 'border-emerald-400 bg-emerald-50/30 text-secondary placeholder:text-slate-400 focus:border-emerald-500 focus:ring-emerald-500/20',
     'disabled' => 'cursor-not-allowed border-slate-200 bg-slate-100 text-slate-500 placeholder:text-slate-400',
 ];
@@ -100,7 +100,7 @@ $inputPadding = '';
 if ($inputLeadingIcon !== '' || $inputPrefix !== '') {
     $inputPadding .= ' pl-10';
 }
-if ($inputTrailingIcon !== '' || $inputSuffix !== '') {
+if ($inputTrailingIcon !== '' || $inputSuffix !== '' || $inputType === 'password') {
     $inputPadding .= ' pr-10';
 }
 
@@ -151,7 +151,22 @@ $labelId = $inputId !== '' ? $inputId : $inputName;
             <?= $inputAttr ?>
         >
 
-        <?php if ($inputTrailingIcon !== ''): ?>
+        <?php if ($inputType === 'password'): ?>
+            <button
+                type="button"
+                data-password-toggle
+                class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                aria-label="Toggle password visibility"
+            >
+                <svg data-eye-open class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg data-eye-closed class="h-5 w-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9.88 9.88a3 3 0 104.24 4.24M10.73 5.08A10.43 10.43 0 0112 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639a9.82 9.82 0 01-1.39 2.5m-3.08 1.83A10.03 10.03 0 0112 19.5c-4.638 0-8.573-3.007-9.963-7.178.07-.207.07-.431 0-.639a9.86 9.86 0 012.7-4l-.07-.07M3 3l18 18"/>
+                </svg>
+            </button>
+        <?php elseif ($inputTrailingIcon !== ''): ?>
             <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400"><?= $inputTrailingIcon ?></span>
         <?php elseif ($inputSuffix !== ''): ?>
             <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-medium text-slate-500"><?= htmlspecialchars($inputSuffix) ?></span>
@@ -164,3 +179,37 @@ $labelId = $inputId !== '' ? $inputId : $inputName;
         <p class="text-xs text-slate-500"><?= htmlspecialchars($inputHint) ?></p>
     <?php endif; ?>
 </div>
+
+<script>
+(function () {
+    if (window.GiftVibeUI && window.GiftVibeUI.passwordToggle) { return; }
+    window.GiftVibeUI = window.GiftVibeUI || {};
+
+    document.addEventListener('click', function (e) {
+        var toggle = e.target.closest('[data-password-toggle]');
+        if (!toggle) return;
+
+        var relativeDiv = toggle.closest('.relative');
+        if (!relativeDiv) return;
+
+        var input = relativeDiv.querySelector('input');
+        if (!input) return;
+
+        var eyeOpen = toggle.querySelector('[data-eye-open]');
+        var eyeClosed = toggle.querySelector('[data-eye-closed]');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (eyeOpen) eyeOpen.classList.add('hidden');
+            if (eyeClosed) eyeClosed.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            if (eyeOpen) eyeOpen.classList.remove('hidden');
+            if (eyeClosed) eyeClosed.classList.add('hidden');
+        }
+    });
+
+    window.GiftVibeUI.passwordToggle = true;
+})();
+</script>
+

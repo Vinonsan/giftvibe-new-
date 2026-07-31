@@ -81,12 +81,13 @@ $drawerTriggerVariant  = $drawerTriggerVariant  ?? 'solid';
 $drawerTriggerColor    = $drawerTriggerColor    ?? 'primary';
 $drawerTriggerSize     = $drawerTriggerSize     ?? 'md';
 
-/* sm=320px, md=384px, lg=448px, xl=512px */
+/* sm=320px, md=384px, lg=448px, xl=512px, full=100% */
 $drawerSizes = [
     'sm' => 'w-80',
     'md' => 'w-96',
-    'lg' => 'w-[28rem]',
-    'xl' => 'w-[32rem]',
+    'lg' => 'w-[36rem]',
+    'xl' => 'w-[40rem]',
+    'full' => 'w-full',
 ];
 
 $isRight = $drawerSide === 'right';
@@ -131,7 +132,7 @@ if ($drawerTrigger === '') {
     <?php endif; ?>
 
     <aside
-        class="absolute inset-y-0 <?= $isRight ? 'right-0' : 'left-0' ?> flex w-full <?= $drawerSizes[$drawerSize] ?? $drawerSizes['md'] ?> max-w-full flex-col bg-white shadow-2xl transition-transform duration-300 <?= $slideClosed ?>"
+        class="absolute inset-y-0 <?= $isRight ? 'right-0' : 'left-0' ?> flex <?= $drawerSizes[$drawerSize] ?? $drawerSizes['md'] ?> max-w-full flex-col bg-white shadow-2xl transition-drawer <?= $slideClosed ?>"
         role="dialog"
         aria-modal="true"
         aria-labelledby="<?= htmlspecialchars($drawerId) ?>-title"
