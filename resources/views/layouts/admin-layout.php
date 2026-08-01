@@ -22,6 +22,11 @@ $sidebarMenu = [
         ],
     ],
     [
+        'label' => 'Hero Banners',
+        'icon'  => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.75A2 2 0 015.75 3.75h12.5a2 2 0 012 2v12.5a2 2 0 01-2 2H5.75a2 2 0 01-2-2V5.75zM3.75 16l4.2-4.2a2 2 0 012.83 0l1.47 1.47 1.2-1.2a2 2 0 012.83 0l3.97 3.97M15.5 8.25h.01"/></svg>',
+        'href'  => '/admin/hero',
+    ],
+    [
         'label' => 'Orders',
         'icon'  => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>',
         'href'  => '/admin/orders',
@@ -115,7 +120,7 @@ $adminUser = $adminUser ?? [
         }
     </script>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased">
+<body class="bg-white font-sans text-slate-800 antialiased">
     <?php require BASE_PATH . '/resources/views/components/navigation/admin-sidebar.php'; ?>
 
     <div class="flex min-h-screen min-w-0 flex-col lg:pl-72" data-admin-content>
@@ -126,8 +131,6 @@ $adminUser = $adminUser ?? [
                 <?= $content ?? '' ?>
             </div>
         </main>
-
-        <?php require BASE_PATH . '/resources/views/components/navigation/footer.php'; ?>
     </div>
 </body>
 </html>

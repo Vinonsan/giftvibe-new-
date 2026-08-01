@@ -17,6 +17,7 @@ $adminUser = $adminUser ?? [
     'avatar' => null,
 ];
 $pageTitle = $pageTitle ?? 'Dashboard';
+$showPageTitle = $showPageTitle ?? true;
 
 $initials = '';
 $nameParts = explode(' ', trim($adminUser['name']));
@@ -39,7 +40,9 @@ $initials = substr($initials, 0, 2);
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
             </svg>
         </button>
-        <h1 class="text-base font-semibold text-secondary"><?= htmlspecialchars($pageTitle) ?></h1>
+        <?php if ($showPageTitle): ?>
+            <h1 class="text-base font-semibold text-secondary"><?= htmlspecialchars($pageTitle) ?></h1>
+        <?php endif; ?>
     </div>
 
     <!-- Right: Actions + Profile -->

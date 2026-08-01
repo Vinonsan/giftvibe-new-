@@ -27,14 +27,10 @@ declare(strict_types=1);
  *                                   are read from $row['_actions'] or a 'render' callback.
  *   $tableRows           array    Array of rows. Each row: ['name' => ..., 'price' => ...,
  *                                   '_actions' => '<button>...</button>', ...].
- *   $tableTitle          string   Optional title shown above the table.
- *   $tableSearchable     bool     Show the search box (default: true).
- *   $tableSearchPlaceholder string Placeholder text for search.
  *   $tableSortable       bool     Allow column sorting (default: true).
  *   $tableDefaultSort    array    ['key' => 'name', 'dir' => 'asc'] initial sort.
  *   $tablePaginated      bool     Enable pagination (default: true).
  *   $tablePerPage        int      Rows per page (default: 10).
- *   $tablePerPageOptions array    Options for the rows-per-page dropdown (default: [5, 10, 25, 50]).
  *   $tableZebra          bool     Zebra striped rows (default: true).
  *   $tableEmptyMessage   string   Message shown when there are no rows.
  *   $tableFooter         bool     Show a totals footer row.
@@ -59,14 +55,10 @@ declare(strict_types=1);
  * @var string       $tableId
  * @var array        $tableColumns
  * @var array        $tableRows
- * @var string|null  $tableTitle
- * @var bool         $tableSearchable
- * @var string       $tableSearchPlaceholder
  * @var bool         $tableSortable
  * @var array|null   $tableDefaultSort
  * @var bool         $tablePaginated
  * @var int          $tablePerPage
- * @var array        $tablePerPageOptions
  * @var bool         $tableZebra
  * @var string       $tableEmptyMessage
  * @var bool         $tableFooter
@@ -77,19 +69,16 @@ declare(strict_types=1);
 $tableId           = $tableId           ?? 'table-' . uniqid();
 $tableColumns      = $tableColumns      ?? [];
 $tableRows         = $tableRows         ?? [];
-$tableTitle        = $tableTitle        ?? '';
-$tableSearchable   = $tableSearchable   ?? true;
-$tableSearchPlaceholder = $tableSearchPlaceholder ?? 'Search…';
 $tableSortable     = $tableSortable     ?? true;
 $tableDefaultSort  = $tableDefaultSort  ?? null;
 $tablePaginated    = $tablePaginated    ?? true;
 $tablePerPage      = max(1, (int) ($tablePerPage ?? 10));
-$tablePerPageOptions = $tablePerPageOptions ?? [5, 10, 25, 50];
 $tableZebra        = $tableZebra        ?? true;
 $tableEmptyMessage = $tableEmptyMessage ?? 'No records found.';
 $tableFooter       = $tableFooter       ?? false;
 $tableClass        = $tableClass        ?? '';
 $tableAttributes   = $tableAttributes   ?? [];
+$tableEmbedded     = $tableEmbedded     ?? false;
 
 $alignMap = ['left' => 'text-left', 'center' => 'text-center', 'right' => 'text-right'];
 
@@ -102,38 +91,13 @@ $defaultSort = $tableDefaultSort ?? [];
 $defaultKey  = $defaultSort['key']  ?? '';
 $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 ?>
-<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-300 <?= htmlspecialchars($tableClass) ?>"
+<div class="overflow-hidden bg-white <?= $tableEmbedded ? '' : 'rounded-2xl border border-slate-200 shadow-sm' ?> <?= htmlspecialchars($tableClass) ?>"
      data-datatable
      data-id="<?= htmlspecialchars($tableId) ?>"
      data-per-page="<?= $tablePerPage ?>"
-     data-per-page-options="<?= htmlspecialchars(json_encode($tablePerPageOptions)) ?>"
      data-sortable="<?= $tableSortable ? '1' : '0' ?>"
      data-default-key="<?= htmlspecialchars($defaultKey) ?>"
      data-default-dir="<?= $defaultDir ?>">
-
-    <?php if ($tableTitle !== '' || $tableSearchable): ?>
-        <div class="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <?php if ($tableTitle !== ''): ?>
-                <h3 class="text-base font-semibold text-secondary"><?= htmlspecialchars((string) $tableTitle) ?></h3>
-            <?php endif; ?>
-
-            <?php if ($tableSearchable): ?>
-                <div class="relative w-full sm:w-72">
-                    <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-slate-400">
-                        <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-                        </svg>
-                    </span>
-                    <input
-                        type="search"
-                        data-datatable-search
-                        placeholder="<?= htmlspecialchars($tableSearchPlaceholder) ?>"
-                        class="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-secondary shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    >
-                </div>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
 
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-100"<?= $tableAttr ?>>
@@ -169,7 +133,7 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white">
                 <?php foreach ($tableRows as $row): ?>
-                    <tr data-row class="group transition duration-200 ease-in-out hover:bg-primary/[0.03] hover:translate-x-0.5 <?= $tableZebra ? 'odd:bg-primary/[0.01]' : '' ?>">
+                    <tr data-row class="group transition-colors duration-150 hover:bg-primary/[0.03] <?= $tableZebra ? 'odd:bg-primary/[0.01]' : '' ?>">
                         <?php foreach ($tableColumns as $column): ?>
                             <?php
                             $colKey = $column['key'] ?? '';
@@ -214,18 +178,6 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         <p class="text-sm text-slate-400"><?= htmlspecialchars($tableEmptyMessage) ?></p>
     </div>
 
-    <div class="flex flex-col items-center justify-between gap-4 border-t border-slate-100 px-6 py-4 sm:flex-row">
-        <div class="flex items-center gap-2">
-            <label class="text-sm text-slate-500" data-table-perpage-label>Rows per page</label>
-            <select data-table-perpage class="rounded-lg border border-slate-200 bg-white py-1.5 pl-3 pr-8 text-sm text-secondary shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer appearance-none" style="background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 0.5rem center;background-size:1rem">
-                <?php foreach ($tablePerPageOptions as $opt): ?>
-                    <option value="<?= (int) $opt ?>" <?= (int) $opt === $tablePerPage ? 'selected' : '' ?>><?= (int) $opt ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <p data-table-summary class="text-sm font-medium text-slate-400"></p>
-        <nav data-table-pagination class="flex flex-wrap items-center justify-end gap-1.5" aria-label="Pagination"></nav>
-    </div>
 </div>
 
 <script>
@@ -236,16 +188,21 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
     function initTable(root) {
         var tbody = root.querySelector('tbody');
         var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-row]'));
-        var searchInput = root.querySelector('[data-datatable-search]');
+        var tableId = root.getAttribute('data-id');
+        var searchInput = document.querySelector('[data-datatable-search][data-datatable-target="' + tableId + '"]');
+        var filterInputs = document.querySelectorAll('[data-datatable-filter][data-datatable-target="' + tableId + '"]');
+        var resetButton = document.querySelector('[data-datatable-reset][data-datatable-target="' + tableId + '"]');
         var emptyEl = root.querySelector('[data-table-empty]');
-        var summaryEl = root.querySelector('[data-table-summary]');
-        var paginationEl = root.querySelector('[data-table-pagination]');
-        var perPageSelect = root.querySelector('[data-table-perpage]');
+        var summaryEl = document.querySelector('[data-table-summary][data-datatable-target="' + tableId + '"]');
+        var paginationEl = document.querySelector('[data-table-pagination][data-datatable-target="' + tableId + '"]');
+        var paginationWrap = document.querySelector('[data-table-pagination-wrap][data-datatable-target="' + tableId + '"]');
+        var perPageSelect = document.querySelector('[data-table-perpage][data-datatable-target="' + tableId + '"]');
         var perPage = parseInt(root.getAttribute('data-per-page'), 10) || 10;
         var sortable = root.getAttribute('data-sortable') === '1';
 
         var state = {
             query: '',
+            filters: {},
             sortKey: root.getAttribute('data-default-key') || '',
             sortDir: root.getAttribute('data-default-dir') || 'asc',
             page: 1
@@ -271,6 +228,14 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                 var q = state.query.toLowerCase();
                 list = rows.filter(function (row) { return row.textContent.toLowerCase().indexOf(q) !== -1; });
             }
+            Object.keys(state.filters).forEach(function (key) {
+                var value = state.filters[key];
+                if (!value) return;
+                list = list.filter(function (row) {
+                    var cell = row.querySelector('td[data-key="' + key + '"]');
+                    return cell && cell.textContent.trim().toLowerCase() === value;
+                });
+            });
             if (state.sortKey) {
                 var th = root.querySelector('th[data-sort-key="' + state.sortKey + '"]');
                 var type = th ? th.getAttribute('data-sort-type') : 'string';
@@ -328,7 +293,7 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
             if (summaryEl) {
                 summaryEl.textContent = total === 0
-                    ? 'No results'
+                    ? 'Showing 0 of 0'
                     : 'Showing ' + (start + 1) + '\u2013' + Math.min(start + perPage, total) + ' of ' + total;
             }
 
@@ -365,7 +330,9 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         }
 
         function renderPagination(pages) {
+            if (!paginationEl || !paginationWrap) return;
             paginationEl.innerHTML = '';
+            paginationWrap.classList.toggle('hidden', pages <= 1);
             if (pages <= 1) { return; }
             paginationEl.appendChild(pageButton('\u2039', state.page - 1, false, state.page === 1));
             pageList(state.page, pages).forEach(function (p) {
@@ -389,10 +356,29 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
             });
         }
 
+        filterInputs.forEach(function (input) {
+            input.addEventListener('change', function () {
+                state.filters[input.getAttribute('data-filter-key')] = input.value.toLowerCase();
+                state.page = 1;
+                render();
+            });
+        });
+
         if (perPageSelect) {
             perPageSelect.addEventListener('change', function () {
-                perPage = parseInt(perPageSelect.value, 10) || 10;
+                perPage = parseInt(perPageSelect.value, 10) || perPage;
                 state.page = 1;
+                render();
+            });
+        }
+
+        if (resetButton) {
+            resetButton.addEventListener('click', function () {
+                state.query = '';
+                state.filters = {};
+                state.page = 1;
+                if (searchInput) searchInput.value = '';
+                filterInputs.forEach(function (input) { input.value = ''; });
                 render();
             });
         }

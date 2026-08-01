@@ -10,6 +10,15 @@ declare(strict_types=1);
 
 define('BASE_PATH', dirname(__DIR__));
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    $sessionPath = BASE_PATH . '/storage/sessions';
+    if (!is_dir($sessionPath)) {
+        mkdir($sessionPath, 0775, true);
+    }
+    session_save_path($sessionPath);
+    session_start();
+}
+
 /* Simple PSR-4 style autoloader for the App\ namespace (app/ folder). */
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
