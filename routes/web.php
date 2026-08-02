@@ -12,3 +12,5 @@ $router->get('/base', 'Public\BaseController@index');
 $router->get('/admin', 'Admin\DashboardController@index');
 $router->get('/admin/hero', 'Admin\HeroController@index');
 $router->post('/admin/hero', 'Admin\HeroController@index');
+$router->get('/admin/categories', 'Admin\CategoryController@index');
+$router->post('/admin/categories', 'Admin\CategoryController@index');

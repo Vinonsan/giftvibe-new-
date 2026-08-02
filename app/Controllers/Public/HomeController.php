@@ -11,9 +11,17 @@ class HomeController extends Controller
 {
     public function index(): void
     {
+        $categories = [];
         try {
-            $statement = Database::connection()->query("SELECT * FROM banners WHERE placement = 'hero' AND status = 'active' ORDER BY sort_order, id");
+            $pdo = Database::connection();
+            $statement = $pdo->query("SELECT * FROM banners WHERE placement = 'hero' AND status = 'active' ORDER BY sort_order, id");
             $banners = $statement->fetchAll();
+
+            $columns = $pdo->query('DESCRIBE categories')->fetchAll(\PDO::FETCH_COLUMN);
+            $statusColumn = in_array('status', $columns, true) ? 'status' : (in_array('is_active', $columns, true) ? 'is_active' : null);
+            $orderColumn = in_array('sort_order', $columns, true) ? 'sort_order' : (in_array('display_order', $columns, true) ? 'display_order' : 'id');
+            $where = $statusColumn === 'status' ? " WHERE status = 'active'" : ($statusColumn === 'is_active' ? ' WHERE is_active = 1' : '');
+            $categories = $pdo->query("SELECT * FROM categories{$where} ORDER BY {$orderColumn}, id")->fetchAll();
         } catch (\Throwable) {
             $banners = [];
         }
@@ -42,6 +50,7 @@ class HomeController extends Controller
                 'title' => 'Home',
                 'message' => 'Welcome to Gift Vibe',
                 'heroSlides' => $banners,
+                'categories' => $categories,
             ]),
         ]);
     }
