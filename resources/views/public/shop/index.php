@@ -1,5 +1,5 @@
 <?php declare(strict_types=1); ?>
-<section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
+<section class="mx-auto max-w-7xl">
     <?php $animatedHeadingEyebrow = 'GiftVibe shop'; $animatedHeadingTitle = $activeName; $animatedHeadingDescription = 'Choose a category and discover the perfect gift.'; require BASE_PATH . '/resources/views/components/base/animated-heading.php'; ?>
     <nav class="mt-8 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]" aria-label="Product categories">
         <a href="/shop" class="shrink-0 rounded-full px-4 py-2 text-sm font-semibold <?= $categorySlug === '' ? 'bg-primary text-white' : 'border border-slate-200 bg-white text-secondary hover:border-primary' ?>">All gifts</a>

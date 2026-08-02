@@ -237,112 +237,64 @@ $isPlaceholderActive = count($selectedLabels) === 0;
 
 <script>
 (function () {
-    if (window.GiftVibeUI && window.GiftVibeUI.customSelect) return;
     window.GiftVibeUI = window.GiftVibeUI || {};
-
-    function closeAll(exceptEl) {
-        document.querySelectorAll('[data-select-options]').forEach(function (el) {
-            if (el !== exceptEl) {
-                el.classList.add('hidden');
-                const trigger = el.previousElementSibling.previousElementSibling;
-                if (trigger) trigger.setAttribute('aria-expanded', 'false');
-            }
+    function closeOthers(current) {
+        document.querySelectorAll('[data-custom-select]').forEach(function (wrapper) {
+            if (wrapper === current) return;
+            wrapper.querySelector('[data-select-options]')?.classList.add('hidden');
+            wrapper.querySelector('button[aria-haspopup="listbox"]')?.setAttribute('aria-expanded', 'false');
         });
     }
+    document.querySelectorAll('[data-custom-select]').forEach(function (wrapper) {
+        if (wrapper.dataset.selectReady === 'true') return;
+        var trigger = wrapper.querySelector('button[aria-haspopup="listbox"]');
+        var dropdown = wrapper.querySelector('[data-select-options]');
+        var display = wrapper.querySelector('[data-select-display-text]');
+        var hiddenContainer = wrapper.querySelector('[data-select-hidden-container]');
+        var isMultiple = wrapper.hasAttribute('data-multiple');
+        var name = wrapper.getAttribute('data-name');
 
-    document.addEventListener('click', function (e) {
-        // 1. Click on Trigger
-        const trigger = e.target.closest('[data-select-trigger]') || e.target.closest('button[aria-haspopup="listbox"]');
-        if (trigger) {
-            e.stopPropagation();
-            const dropdown = trigger.nextElementSibling.nextElementSibling;
-            const isHidden = dropdown.classList.contains('hidden');
-            closeAll(dropdown);
-            if (isHidden) {
-                dropdown.classList.remove('hidden');
-                trigger.setAttribute('aria-expanded', 'true');
-            } else {
-                dropdown.classList.add('hidden');
-                trigger.setAttribute('aria-expanded', 'false');
-            }
-            return;
-        }
-
-        // 2. Click on Option
-        const option = e.target.closest('[data-select-option]');
-        if (option) {
-            e.stopPropagation();
-            const wrapper = option.closest('[data-custom-select]');
-            const isMultiple = wrapper.hasAttribute('data-multiple');
-            const value = option.getAttribute('data-value');
-            const label = option.getAttribute('data-label');
-            const dropdown = option.closest('[data-select-options]');
-            const trigger = dropdown.previousElementSibling.previousElementSibling;
-
-            if (!isMultiple) {
-                dropdown.querySelectorAll('[data-select-option]').forEach(function (opt) {
-                    opt.classList.remove('bg-primary/10', 'text-primary', 'font-semibold');
-                    opt.setAttribute('data-selected', 'false');
-                });
-                option.classList.add('bg-primary/10', 'text-primary', 'font-semibold');
-                option.setAttribute('data-selected', 'true');
-
-                trigger.querySelector('[data-select-display-text]').textContent = label;
-                trigger.querySelector('[data-select-display-text]').classList.remove('text-slate-400');
-
-                const hiddenContainer = wrapper.querySelector('[data-select-hidden-container]');
-                const name = wrapper.getAttribute('data-name');
-                hiddenContainer.innerHTML = '<input type="hidden" name="' + name + '" value="' + value + '">';
-
-                dropdown.classList.add('hidden');
-                trigger.setAttribute('aria-expanded', 'false');
-            } else {
-                const isSelected = option.getAttribute('data-selected') === 'true';
-                const nextSelected = !isSelected;
-                option.setAttribute('data-selected', nextSelected ? 'true' : 'false');
-
-                const checkbox = option.querySelector('[data-select-checkbox]');
-                const checkSvg = checkbox.querySelector('svg');
-                if (nextSelected) {
-                    checkbox.classList.add('bg-primary', 'border-primary');
-                    checkSvg.classList.remove('hidden');
-                    option.classList.add('text-primary', 'font-semibold');
-                } else {
-                    checkbox.classList.remove('bg-primary', 'border-primary');
-                    checkSvg.classList.add('hidden');
-                    option.classList.remove('text-primary', 'font-semibold');
+        function sync() {
+            var selected = Array.prototype.slice.call(dropdown.querySelectorAll('[data-select-option][data-selected="true"]'));
+            dropdown.querySelectorAll('[data-select-option]').forEach(function (option) {
+                var active = option.getAttribute('data-selected') === 'true';
+                option.setAttribute('aria-selected', active ? 'true' : 'false');
+                option.classList.toggle('bg-primary/10', active);
+                option.classList.toggle('text-primary', active);
+                option.classList.toggle('font-semibold', active);
+                var box = option.querySelector('[data-select-checkbox]');
+                if (box) {
+                    box.classList.toggle('bg-primary', active);
+                    box.classList.toggle('border-primary', active);
+                    box.classList.toggle('bg-white', !active);
+                    box.querySelector('svg')?.classList.toggle('hidden', !active);
                 }
-
-                const selectedLabels = [];
-                const selectedValues = [];
-                dropdown.querySelectorAll('[data-select-option][data-selected="true"]').forEach(function (opt) {
-                    selectedLabels.push(opt.getAttribute('data-label'));
-                    selectedValues.push(opt.getAttribute('data-value'));
-                });
-
-                const displayText = trigger.querySelector('[data-select-display-text]');
-                if (selectedLabels.length > 0) {
-                    displayText.textContent = selectedLabels.join(', ');
-                    displayText.classList.remove('text-slate-400');
-                } else {
-                    displayText.textContent = wrapper.getAttribute('data-placeholder') || 'Choose options...';
-                    displayText.classList.add('text-slate-400');
-                }
-
-                const hiddenContainer = wrapper.querySelector('[data-select-hidden-container]');
-                const name = wrapper.getAttribute('data-name');
-                let inputsHtml = '';
-                selectedValues.forEach(function (val) {
-                    inputsHtml += '<input type="hidden" name="' + name + '" value="' + val + '">';
-                });
-                hiddenContainer.innerHTML = inputsHtml;
-            }
-            return;
+            });
+            display.textContent = selected.length ? selected.map(function (option) { return option.getAttribute('data-label'); }).join(', ') : (wrapper.getAttribute('data-placeholder') || 'Choose options...');
+            display.classList.toggle('text-slate-400', selected.length === 0);
+            hiddenContainer.innerHTML = '';
+            selected.forEach(function (option) {
+                var input = document.createElement('input'); input.type = 'hidden'; input.name = name; input.value = option.getAttribute('data-value'); hiddenContainer.appendChild(input);
+            });
+            wrapper.dispatchEvent(new CustomEvent('select:change', {bubbles: true, detail: {values: selected.map(function (option) { return option.getAttribute('data-value'); })}}));
         }
-
-        closeAll();
+        trigger.addEventListener('click', function (event) {
+            event.stopPropagation(); closeOthers(wrapper); var opening = dropdown.classList.contains('hidden'); dropdown.classList.toggle('hidden', !opening); trigger.setAttribute('aria-expanded', opening ? 'true' : 'false');
+        });
+        dropdown.querySelectorAll('[data-select-option]').forEach(function (option) {
+            option.addEventListener('click', function (event) {
+                event.stopPropagation();
+                if (isMultiple) option.setAttribute('data-selected', option.getAttribute('data-selected') === 'true' ? 'false' : 'true');
+                else { dropdown.querySelectorAll('[data-select-option]').forEach(function (item) { item.setAttribute('data-selected', 'false'); }); option.setAttribute('data-selected', 'true'); dropdown.classList.add('hidden'); trigger.setAttribute('aria-expanded', 'false'); }
+                sync();
+            });
+        });
+        wrapper.dataset.selectReady = 'true';
     });
-
+    if (!window.GiftVibeUI.customSelectOutsideClick) {
+        document.addEventListener('click', function () { closeOthers(null); });
+        window.GiftVibeUI.customSelectOutsideClick = true;
+    }
     window.GiftVibeUI.customSelect = true;
 })();
 </script>

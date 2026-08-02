@@ -14,16 +14,25 @@ class ProductController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') $this->handlePost($pdo);
         $products = $pdo->query("SELECT p.*,pi.image_path,GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') category_names FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN product_categories pc ON pc.product_id=p.id LEFT JOIN categories c ON c.id=pc.category_id GROUP BY p.id ORDER BY p.id DESC")->fetchAll();
         $categories = $pdo->query("SELECT id,name FROM categories WHERE status='active' ORDER BY sort_order,id")->fetchAll();
-        $editProduct = null; $editCategoryIds = [];
+        $editProduct = null; $editCategoryIds = []; $secondaryImages = []; $productVideos = [];
         $editId = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT);
         if ($editId) {
-            $statement = $pdo->prepare("SELECT p.*,pi.image_path FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 WHERE p.id=?"); $statement->execute([$editId]);
+            $statement = $pdo->prepare("SELECT p.*,pi.image_path,pi.alt_text FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 WHERE p.id=?"); $statement->execute([$editId]);
             $editProduct = $statement->fetch() ?: null;
             $statement = $pdo->prepare('SELECT category_id FROM product_categories WHERE product_id=?'); $statement->execute([$editId]); $editCategoryIds = array_map('intval', $statement->fetchAll(PDO::FETCH_COLUMN));
+            
+            // Get every saved image for gallery management.
+            $secImagesStmt = $pdo->prepare("SELECT id, image_path, alt_text, is_primary FROM product_images WHERE product_id=? ORDER BY is_primary DESC, sort_order, id");
+            $secImagesStmt->execute([$editId]);
+            $secondaryImages = $secImagesStmt->fetchAll();
+            $videoStatement = $pdo->prepare('SELECT video_url FROM product_videos WHERE product_id=? ORDER BY sort_order,id');
+            $videoStatement->execute([$editId]);
+            $productVideos = $videoStatement->fetchAll(PDO::FETCH_COLUMN);
+            if (!$productVideos && trim((string) ($editProduct['video_url'] ?? '')) !== '') $productVideos[] = $editProduct['video_url'];
         }
         $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
         $flash = $_SESSION['product_flash'] ?? null; unset($_SESSION['product_flash']);
-        $this->view('layouts/admin-layout', ['title'=>'Products','pageTitle'=>'Products','showPageTitle'=>false,'content'=>$this->render('admin/products/index', compact('products','categories','editProduct','editCategoryIds','flash') + ['csrfToken'=>$_SESSION['csrf_token']])]);
+        $this->view('layouts/admin-layout', ['title'=>'Products','pageTitle'=>'Products','showPageTitle'=>false,'content'=>$this->render('admin/products/index', compact('products','categories','editProduct','editCategoryIds','flash','secondaryImages','productVideos') + ['csrfToken'=>$_SESSION['csrf_token']])]);
     }
 
     private function handlePost(PDO $pdo): never
@@ -41,23 +50,62 @@ class ProductController extends Controller
         if ($name === '' || $sku === '' || !$categoryIds) $this->redirect('Name, SKU and at least one category are required.', 'error', $id);
         $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $name), '-'));
         if ($id) $slug .= '-' . $id;
-        $basePrice = max(0, (float) ($_POST['base_price'] ?? 0));
-        $saleInput = trim((string) ($_POST['sale_price'] ?? '')); $salePrice = $saleInput === '' ? null : max(0, (float) $saleInput);
-        $image = '';
-        if ($id) { $s=$pdo->prepare('SELECT image_path FROM product_images WHERE product_id=? AND is_primary=1'); $s->execute([$id]); $image=(string)($s->fetchColumn() ?: ''); }
-        try { $image = $this->upload($_FILES['product_image'] ?? null) ?? $image; } catch (\RuntimeException $e) { $this->redirect($e->getMessage(),'error',$id); }
-        if ($image === '') $this->redirect('Product image is required.','error',$id);
-        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),$basePrice,$salePrice,max(0,(int)($_POST['stock_quantity'] ?? 0)),isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft'];
+        $basePrice = max(0, (float) ($_POST['selling_price'] ?? 0));
+        $costPrice = max(0, (float) ($_POST['buying_price'] ?? 0));
+        $videoUrls = array_values(array_unique(array_filter(array_map('trim', (array) ($_POST['video_urls'] ?? [])), static fn(string $url): bool => filter_var($url, FILTER_VALIDATE_URL) !== false)));
+        $videoUrl = $videoUrls[0] ?? '';
+        $imageAltText = trim((string) ($_POST['image_alt_text'] ?? ''));
+        if ($imageAltText === '') $imageAltText = $name;
+
+        $deleteIds = array_values(array_filter(array_map('intval', (array) ($_POST['delete_images'] ?? []))));
+        $existingImageIds = [];
+        if ($id) { $s=$pdo->prepare('SELECT id FROM product_images WHERE product_id=?'); $s->execute([$id]); $existingImageIds=array_map('intval',$s->fetchAll(PDO::FETCH_COLUMN)); }
+        $newImages = [];
+        try {
+            $files = $_FILES['product_images'] ?? null;
+            if ($files && is_array($files['name'] ?? null)) {
+                foreach (array_keys($files['name']) as $index) {
+                    if (($files['error'][$index] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) continue;
+                    $newImages[] = $this->upload(['name'=>$files['name'][$index],'type'=>$files['type'][$index]??'','tmp_name'=>$files['tmp_name'][$index]??'','error'=>$files['error'][$index],'size'=>$files['size'][$index]??0]);
+                }
+            }
+        } catch (\RuntimeException $e) { $this->redirect($e->getMessage(),'error',$id); }
+        $remainingExisting = array_diff($existingImageIds, $deleteIds);
+        if (!$remainingExisting && !$newImages) $this->redirect('Upload at least one product image.','error',$id);
+        
+        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,max(0,(int)($_POST['stock_quantity'] ?? 0)),isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl];
         $pdo->beginTransaction();
         try {
-            if ($id) { $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,base_price=?,sale_price=?,stock_quantity=?,is_featured=?,status=? WHERE id=?')->execute([...$data,$id]); }
-            else { $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,base_price,sale_price,stock_quantity,is_featured,status) VALUES (?,?,?,?,?,?,?,?,?)')->execute($data); $id=(int)$pdo->lastInsertId(); }
+            if ($id) { 
+                $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,description=?,base_price=?,cost_price=?,sale_price=NULL,stock_quantity=?,is_featured=?,status=?,video_url=? WHERE id=?')->execute([...$data,$id]); 
+            }
+            else { 
+                $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,description,base_price,cost_price,sale_price,stock_quantity,is_featured,status,video_url) VALUES (?,?,?,?,?,?,?,NULL,?,?,?,?)')->execute($data); 
+                $id=(int)$pdo->lastInsertId(); 
+            }
+            
+            // Categories
             $pdo->prepare('DELETE FROM product_categories WHERE product_id=?')->execute([$id]);
-            $relation=$pdo->prepare('INSERT INTO product_categories(product_id,category_id) VALUES(?,?)'); foreach ($categoryIds as $categoryId) $relation->execute([$id,$categoryId]);
-            $pdo->prepare('DELETE FROM product_images WHERE product_id=? AND is_primary=1')->execute([$id]);
-            $pdo->prepare('INSERT INTO product_images(product_id,image_path,alt_text,sort_order,is_primary) VALUES(?,?,?,0,1)')->execute([$id,$image,$name]);
+            $relation=$pdo->prepare('INSERT INTO product_categories(product_id,category_id) VALUES(?,?)'); 
+            foreach ($categoryIds as $categoryId) $relation->execute([$id,$categoryId]);
+            
+            if ($id && $deleteIds) {
+                $inQuery = implode(',', array_fill(0, count($deleteIds), '?'));
+                $deleteStmt = $pdo->prepare("DELETE FROM product_images WHERE id IN ($inQuery) AND product_id = ?");
+                $deleteStmt->execute(array_merge($deleteIds, [$id]));
+            }
+            $sort=(int)$pdo->query('SELECT COALESCE(MAX(sort_order),0) FROM product_images WHERE product_id='.(int)$id)->fetchColumn();
+            $insertImage=$pdo->prepare('INSERT INTO product_images(product_id,image_path,alt_text,sort_order,is_primary) VALUES(?,?,?,?,0)');
+            foreach($newImages as $index=>$path)$insertImage->execute([$id,$path,$imageAltText.' '.($index+1),++$sort]);
+            $pdo->prepare('UPDATE product_images SET is_primary=0 WHERE product_id=?')->execute([$id]);
+            $primaryId=$pdo->query('SELECT id FROM product_images WHERE product_id='.(int)$id.' ORDER BY sort_order,id LIMIT 1')->fetchColumn();
+            $pdo->prepare('UPDATE product_images SET is_primary=1 WHERE id=?')->execute([$primaryId]);
+            $pdo->prepare('DELETE FROM product_videos WHERE product_id=?')->execute([$id]);
+            $insertVideo=$pdo->prepare('INSERT INTO product_videos(product_id,video_url,sort_order) VALUES(?,?,?)');
+            foreach($videoUrls as $index=>$url)$insertVideo->execute([$id,$url,$index]);
+
             $pdo->commit();
-        } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); $this->redirect('SKU or product details already exist.','error',$id); }
+        } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); $this->redirect('SKU or product details already exist. ' . $e->getMessage(),'error',$id); }
         $this->redirect('Product saved.');
     }
 

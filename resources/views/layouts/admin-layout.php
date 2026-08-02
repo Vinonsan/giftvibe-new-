@@ -19,12 +19,18 @@ $sidebarMenu = [
         'children' => [
             ['label' => 'All Products',  'href' => '/admin/products'],
             ['label' => 'Categories',    'href' => '/admin/categories'],
+            ['label' => 'Combos',        'href' => '/admin/combos'],
         ],
     ],
     [
         'label' => 'Hero Banners',
         'icon'  => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.75A2 2 0 015.75 3.75h12.5a2 2 0 012 2v12.5a2 2 0 01-2 2H5.75a2 2 0 01-2-2V5.75zM3.75 16l4.2-4.2a2 2 0 012.83 0l1.47 1.47 1.2-1.2a2 2 0 012.83 0l3.97 3.97M15.5 8.25h.01"/></svg>',
         'href'  => '/admin/hero',
+    ],
+    [
+        'label' => 'Page CTAs',
+        'icon'  => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5.75A1.75 1.75 0 0 1 5.75 4h12.5A1.75 1.75 0 0 1 20 5.75v12.5A1.75 1.75 0 0 1 18.25 20H5.75A1.75 1.75 0 0 1 4 18.25V5.75ZM8 9h5M8 12h8M8 15h4"/></svg>',
+        'href'  => '/admin/cta',
     ],
     [
         'label' => 'Orders',
@@ -45,6 +51,11 @@ $sidebarMenu = [
         'label' => 'Reviews',
         'icon'  => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>',
         'href'  => '/admin/reviews',
+    ],
+    [
+        'label' => 'FAQs',
+        'icon'  => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M9.8 9a2.4 2.4 0 1 1 3.3 2.22c-.72.33-1.1.75-1.1 1.53M12 16.5h.01"/></svg>',
+        'href'  => '/admin/faqs',
     ],
     [
         'label' => 'Settings',

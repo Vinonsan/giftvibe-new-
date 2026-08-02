@@ -6,7 +6,7 @@ $fallbackImages = [
     '/assets/images/hero_slide_3.jpg',
 ];
 ?>
-<section class="bg-white py-8 sm:py-20" aria-labelledby="category-heading">
+<section class="bg-white py-12" aria-labelledby="category-heading">
     <div class="mx-auto max-w-7xl ">
    
         <?php if ($categories): ?>

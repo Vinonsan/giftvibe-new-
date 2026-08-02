@@ -13,9 +13,9 @@ $publicNavigation = $publicNavigation ?? [
 <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl" data-public-header>
     <nav class="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8" aria-label="Primary navigation">
         <a href="/" class="flex shrink-0 items-center gap-2.5" aria-label="GiftVibe home">
-            <img src="/assets/images/giftvibe-mark.svg" alt="" class="h-10 w-10 rounded-xl shadow-sm">
+            <img src="/assets/images/logo.svg" alt="" class="h-10 w-10 rounded-xl shadow-sm">
             <span class="text-xl font-extrabold tracking-tight text-secondary">
-                Gift<span class="text-primary">Vibe</span>
+                GiftVibe<span class="text-primary"> LK</span>
             </span>
         </a>
 

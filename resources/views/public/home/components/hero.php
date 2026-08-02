@@ -12,14 +12,14 @@ $heroSlides = $heroSlides ?? [];
 ?>
 
 <div id="hero-slider-container" 
-     class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-6 overflow-hidden transition-colors duration-1000 ease-in-out bg-[#0B1528] rounded-3xl"
+     class="relative mx-auto max-w-7xl px-4  my-6 overflow-hidden transition-colors duration-1000 ease-in-out bg-[#0B1528] rounded-3xl"
      style="min-height: 520px;">
 
     <!-- Background overlays for smooth color blending -->
     <div class="absolute inset-0 bg-linear-to-t from-black/20 to-transparent pointer-events-none"></div>
 
     <!-- Slides container -->
-    <div class="relative w-full h-full flex flex-col justify-center py-12 md:py-20 lg:py-24 px-6 md:px-12 lg:px-16" style="min-height: 520px;">
+    <div class="relative w-full h-full flex flex-col justify-center py-12  px-8" style="min-height: 520px;">
         <?php foreach ($heroSlides as $index => $slide):
             /* Parse custom packed subtitle format: tag|subText|price|btnText|bgColor */
             $parts = explode('|', $slide['subtitle'] ?? '');
@@ -34,7 +34,7 @@ $heroSlides = $heroSlides ?? [];
             <!-- Single Slide Panel -->
             <div data-hero-slide="<?= $index ?>" 
                  data-bg-class="<?= htmlspecialchars($bgColor) ?>"
-                 class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full transition-all duration-700 absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 md:px-12 lg:px-16 <?= $isActive ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0' ?>">
+                 class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full transition-all duration-700 absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 <?= $isActive ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0' ?>">
                 
                 <!-- Left: Text Content (Slides UP when active) -->
                 <div class="text-left space-y-4 md:space-y-6">

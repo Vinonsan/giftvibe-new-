@@ -52,6 +52,7 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     </style>
 </head>
 <body class="flex min-h-screen flex-col bg-white font-sans text-slate-800 antialiased">
+    <?php require BASE_PATH . '/resources/views/components/public/theme-cursor.php'; ?>
     <?php require BASE_PATH . '/resources/views/components/navigation/navbar.php'; ?>
 
     <main class="flex-1 px-8 py-12 gap-6">
