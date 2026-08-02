@@ -5,12 +5,18 @@ $fieldClass = 'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm tex
 $imageValue = (string) ($editCategory['image_path'] ?? $editCategory['image'] ?? '');
 $orderValue = (int) ($editCategory['sort_order'] ?? $editCategory['display_order'] ?? count($categories) + 1);
 $isActive = isset($editCategory['is_active']) ? (bool) $editCategory['is_active'] : (($editCategory['status'] ?? 'active') === 'active');
+$normalizeImagePath = static function (string $path): string {
+    if (str_starts_with($path, 'public/')) return '/' . substr($path, 7);
+    if ($path !== '' && !str_starts_with($path, '/') && !str_starts_with($path, 'http')) return '/' . $path;
+    return $path;
+};
+$imageValue = $normalizeImagePath($imageValue);
 $tableRows = [];
 foreach ($categories as $category) {
     $id = (int) $category['id'];
     $name = htmlspecialchars((string) ($category['name'] ?? $category['title'] ?? 'Category'), ENT_QUOTES);
     $description = htmlspecialchars((string) ($category['description'] ?? 'No description added.'), ENT_QUOTES);
-    $image = htmlspecialchars((string) ($category['image_path'] ?? $category['image'] ?? '/assets/images/hero_slide_1.jpg'), ENT_QUOTES);
+    $image = htmlspecialchars($normalizeImagePath((string) ($category['image_path'] ?? $category['image'] ?? '/assets/images/hero_slide_1.jpg')), ENT_QUOTES);
     $active = isset($category['is_active']) ? (bool) $category['is_active'] : (($category['status'] ?? 'active') === 'active');
     $status = $active
         ? '<span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Active</span>'

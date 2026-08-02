@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 <?php require BASE_PATH . '/resources/views/public/home/components/categories.php'; ?>
 
+<?php require BASE_PATH . '/resources/views/public/home/components/products.php'; ?>
+
 <!-- Rest of homepage placeholder content -->
 <section class="bg-gradient-to-br from-indigo-50 via-white to-pink-50 py-16">
     <div class="mx-auto max-w-7xl px-6 text-center">

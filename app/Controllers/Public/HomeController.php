@@ -12,6 +12,7 @@ class HomeController extends Controller
     public function index(): void
     {
         $categories = [];
+        $products = [];
         try {
             $pdo = Database::connection();
             $statement = $pdo->query("SELECT * FROM banners WHERE placement = 'hero' AND status = 'active' ORDER BY sort_order, id");
@@ -22,6 +23,7 @@ class HomeController extends Controller
             $orderColumn = in_array('sort_order', $columns, true) ? 'sort_order' : (in_array('display_order', $columns, true) ? 'display_order' : 'id');
             $where = $statusColumn === 'status' ? " WHERE status = 'active'" : ($statusColumn === 'is_active' ? ' WHERE is_active = 1' : '');
             $categories = $pdo->query("SELECT * FROM categories{$where} ORDER BY {$orderColumn}, id")->fetchAll();
+            $products = $pdo->query("SELECT p.*, pi.image_path, GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') AS category_names FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN product_categories pc ON pc.product_id=p.id LEFT JOIN categories c ON c.id=pc.category_id WHERE p.status='active' GROUP BY p.id ORDER BY p.is_featured DESC,p.id DESC LIMIT 8")->fetchAll();
         } catch (\Throwable) {
             $banners = [];
         }
@@ -51,6 +53,7 @@ class HomeController extends Controller
                 'message' => 'Welcome to Gift Vibe',
                 'heroSlides' => $banners,
                 'categories' => $categories,
+                'products' => $products,
             ]),
         ]);
     }

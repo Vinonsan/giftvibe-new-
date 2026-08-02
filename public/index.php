@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+/* Let PHP's development server serve existing static assets directly. */
+if (PHP_SAPI === 'cli-server') {
+    $requestPath = rawurldecode((string) (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/'));
+    $publicFile = __DIR__ . str_replace('/', DIRECTORY_SEPARATOR, $requestPath);
+    if ($requestPath !== '/' && is_file($publicFile)) {
+        return false;
+    }
+}
+
 /**
  * Front controller — the single entry point for the application.
  *

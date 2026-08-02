@@ -261,6 +261,19 @@ $variants = ['solid', 'outline', 'soft', 'ghost', 'link'];
     </header>
 
     <?php
+    /* ======================= ANIMATED HEADING ======================= */
+    $animatedHeadingBody = $capture(static function () use ($C): void {
+        $animatedHeadingEyebrow = 'Celebrate every moment';
+        $animatedHeadingTitle = 'Find a gift they will always remember';
+        $animatedHeadingDescription = 'A reusable heading with an animated gift icon and playful confetti spray.';
+        $animatedHeadingAlign = 'center';
+        $animatedHeadingTag = 'h2';
+        require $C . 'animated-heading.php';
+    });
+    $section('animated-heading', 'Animated Heading', 'Gift icon heading with a lightweight CSS spray animation and reduced-motion support.', $animatedHeadingBody);
+    ?>
+
+    <?php
     /* ======================= BUTTONS ======================= */
     $buttonBody = '';
     foreach ($colors as $color) {
