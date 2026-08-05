@@ -18,7 +18,7 @@ $categoryName = (string) ($product['category_names'] ?? 'GiftVibe Collection');
 <article class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
     <!-- Image Wrapper -->
     <div class="relative aspect-square overflow-hidden bg-slate-50">
-        <img src="<?= htmlspecialchars($productImage) ?>" alt="<?= htmlspecialchars($productName) ?> - Buy Online from GiftVibe" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-103">
+        <img src="<?= htmlspecialchars($productImage) ?>" alt="<?= htmlspecialchars($productName) ?> - Buy Online from GiftVibe" width="600" height="600" loading="lazy" decoding="async" class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-103">
         
         <!-- Glassmorphism Quick View Overlay on Hover -->
         <div class="absolute inset-0 z-10 flex items-center justify-center bg-secondary/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100">

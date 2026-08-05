@@ -12,7 +12,7 @@ $heroSlides = $heroSlides ?? [];
 ?>
 
 <div id="hero-slider-container" 
-     class="relative mx-auto max-w-7xl px-4  my-6 overflow-hidden transition-colors duration-1000 ease-in-out bg-[#0B1528] rounded-3xl"
+     class="relative mx-auto w-full max-w-7xl overflow-hidden rounded-3xl bg-[#0B1528] px-4 transition-colors duration-1000 ease-in-out"
      style="min-height: 520px;">
 
     <!-- Background overlays for smooth color blending -->
@@ -34,7 +34,7 @@ $heroSlides = $heroSlides ?? [];
             <!-- Single Slide Panel -->
             <div data-hero-slide="<?= $index ?>" 
                  data-bg-class="<?= htmlspecialchars($bgColor) ?>"
-                 class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full transition-all duration-700 absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 <?= $isActive ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0' ?>">
+                 class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full transition-all duration-700 absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 <?= $isActive ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 z-0' ?>">
                 
                 <!-- Left: Text Content (Slides UP when active) -->
                 <div class="text-left space-y-4 md:space-y-6">
@@ -80,7 +80,7 @@ $heroSlides = $heroSlides ?? [];
                          height="480"
                          loading="<?= $index === 0 ? 'eager' : 'lazy' ?>"
                          fetchpriority="<?= $index === 0 ? 'high' : 'auto' ?>"
-                         class="max-h-[300px] md:max-h-[420px] object-contain rounded-2xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] transform transition-all duration-1000 ease-out delay-200 <?= $isActive ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-12 opacity-0 scale-95' ?>"
+                         class="max-h-[300px] md:max-h-[420px] object-contain rounded-2xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] transform transition-all duration-1000 ease-out delay-200 <?= $isActive ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-12 scale-95' ?>"
                          data-slide-el="img">
                 </div>
             </div>

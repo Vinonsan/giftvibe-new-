@@ -56,6 +56,8 @@ $button = static function($label, $options = []) {
 $quickLinks = json_decode((string)($settings['footer.quick_links'] ?? '[]'), true) ?: [
     ['label' => 'Home', 'href' => '/'],
     ['label' => 'Shop', 'href' => '/shop'],
+    ['label' => 'Services', 'href' => '/services'],
+    ['label' => 'Blog', 'href' => '/blog'],
     ['label' => 'About Us', 'href' => '/about'],
     ['label' => 'Contact', 'href' => '/contact']
 ];
@@ -160,7 +162,7 @@ $productsLinks = json_decode((string)($settings['footer.products_links'] ?? '[]'
                 </h3>
                 
                 <div class="space-y-3">
-                    <?php for ($i = 0; $i < 5; $i++): 
+                    <?php for ($i = 0; $i < 7; $i++): 
                         $link = $quickLinks[$i] ?? ['label' => '', 'href' => ''];
                     ?>
                         <div class="flex gap-2 items-center">

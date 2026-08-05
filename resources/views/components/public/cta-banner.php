@@ -5,7 +5,7 @@ $image=trim((string)($cta['image_path']??''));
 $background=preg_match('/^#[0-9A-Fa-f]{6}$/',(string)($cta['background_color']??''))?$cta['background_color']:'#0B182E';
 $spray=[[8,18,4,.55],[15,72,2,.4],[28,12,3,.7],[38,82,4,.35],[47,22,2,.6],[58,68,3,.45],[66,15,2,.7],[73,88,4,.4],[84,28,3,.6],[92,73,2,.5],[52,45,2,.35],[33,55,3,.5]];
 ?>
-<div class="py-8 sm:py-10 lg:py-12">
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
 <section class="relative isolate overflow-hidden rounded-2xl text-white" style="background-color:<?=htmlspecialchars($background)?>">
     <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden opacity-70">
         <div class="absolute -left-24 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-blue-400/15 blur-3xl"></div>

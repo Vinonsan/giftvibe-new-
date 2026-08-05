@@ -8,6 +8,8 @@ declare(strict_types=1);
  */
 
 $router->get('/', 'Public\HomeController@index');
+$router->get('/robots.txt', 'Public\SeoController@robots');
+$router->get('/sitemap.xml', 'Public\SeoController@sitemap');
 $router->get('/base', 'Public\BaseController@index');
 $router->get('/shop', 'Public\ShopController@index');
 $router->get('/categories', 'Public\ShopController@index');
@@ -16,6 +18,8 @@ $router->get('/reviews', 'Public\ReviewController@index');
 $router->post('/reviews', 'Public\ReviewController@submit');
 $router->get('/combos', 'Public\ComboController@index');
 $router->get('/about', 'Public\PageController@about');
+$router->get('/services', 'Public\PageController@services');
+$router->get('/blog', 'Public\PageController@blog');
 $router->get('/contact', 'Public\PageController@contact');
 $router->get('/privacy', 'Public\PageController@privacy');
 $router->get('/terms', 'Public\PageController@terms');

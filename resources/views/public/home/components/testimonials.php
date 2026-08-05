@@ -1,15 +1,144 @@
-<?php declare(strict_types=1);$testimonials=array_slice($testimonials??[],0,6);$first=$testimonials[0]??null;?>
-<section id="testimonials" class="relative overflow-hidden py-16 sm:py-24" aria-labelledby="testimonials-title" data-testimonial-map>
- <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(59,130,246,.10),transparent_38%)]"></div>
- <div class="relative mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-  <?php $animatedHeadingIcon=true;$animatedHeadingEyebrow='Loved by gift givers';$animatedHeadingTitle='What our customers say';$animatedHeadingDescription='';$animatedHeadingAlign='center';$animatedHeadingTag='h2';require BASE_PATH.'/resources/views/components/base/animated-heading.php';?>
-  <?php if($first):?><div id="testimonial-route-stage" class="relative mx-auto mt-8 h-[520px] max-w-6xl overflow-hidden sm:h-[560px]">
-   <svg data-route-map class="pointer-events-none absolute inset-0 z-0 h-full w-full" aria-hidden="true"></svg>
-   <div data-review-vehicle class="pointer-events-none absolute left-0 top-0 z-20 hidden h-12 w-[4.5rem] will-change-transform" aria-hidden="true"><svg viewBox="0 0 76 50" class="h-full w-full overflow-visible"><defs><linearGradient id="van-primary" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#315f91"/><stop offset=".48" stop-color="#102E50"/><stop offset="1" stop-color="#071526"/></linearGradient><linearGradient id="van-danger" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fb7185"/><stop offset=".5" stop-color="#e11d48"/><stop offset="1" stop-color="#9f1239"/></linearGradient><linearGradient id="van-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eff6ff"/><stop offset="1" stop-color="#60a5fa"/></linearGradient><filter id="van-shadow" x="-30%" y="-30%" width="170%" height="190%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#0B182E" flood-opacity=".3"/></filter></defs><ellipse cx="39" cy="44" rx="29" ry="4" fill="#0B182E" opacity=".17"/><g filter="url(#van-shadow)"><path d="M7 12c0-4 3-7 7-7h34c4 0 7 3 7 7v25H7V12Z" fill="url(#van-primary)"/><path d="M55 18h9l9 11v8H55V18Z" fill="url(#van-danger)"/><path d="M59 21h4l6 8H59v-8Z" fill="url(#van-glass)" stroke="#fff" stroke-opacity=".65"/><path d="M11 9h36" stroke="#fff" stroke-opacity=".3" stroke-width="2" stroke-linecap="round"/><rect x="17" y="14" width="19" height="15" rx="3" fill="#fff"/><path d="M26.5 14v15M17 21.5h19" stroke="#102E50" stroke-width="2.4"/><path d="M7 34h66v4H7z" fill="#e11d48"/><circle cx="20" cy="39" r="7" fill="#071526"/><circle cx="20" cy="39" r="3" fill="#cbd5e1"/><circle cx="61" cy="39" r="7" fill="#071526"/><circle cx="61" cy="39" r="3" fill="#cbd5e1"/><circle cx="72" cy="34" r="2" fill="#fde68a"/></g></svg></div>
-   <div class="absolute inset-0 z-10"><?php $positions=[[8,30,62],[27,14,74],[73,13,70],[92,31,62],[18,82,70],[82,82,74]];foreach($testimonials as $i=>$review):[$left,$top,$size]=$positions[$i];$payload=htmlspecialchars(json_encode(['name'=>$review['reviewer_name'],'role'=>$review['reviewer_role'],'title'=>$review['title'],'text'=>$review['review_text'],'rating'=>(int)$review['rating']],JSON_HEX_APOS|JSON_HEX_QUOT),ENT_QUOTES);$avatar=(string)($review['avatar_path']??'');?><button type="button" data-map-person data-index="<?=$i?>" data-review="<?=$payload?>" aria-label="Read <?=htmlspecialchars($review['reviewer_name'])?>'s review" class="map-person pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-[5px] border-white bg-[#0B182E] shadow-[0_14px_35px_rgba(11,24,46,.22)] ring-2 ring-transparent transition duration-300 hover:z-30 hover:scale-110 hover:ring-primary data-[active=true]:scale-110 data-[active=true]:ring-primary" style="left:<?=$left?>%;top:<?=$top?>%;width:<?=$size?>px;height:<?=$size?>px;--delay:<?=$i*.37?>s" data-active="<?=$i===0?'true':'false'?>"><?php if($avatar):?><img src="<?=htmlspecialchars($avatar)?>" alt="" class="h-full w-full rounded-full object-cover"><?php else:?><span class="flex h-full w-full items-center justify-center text-xl font-black text-white"><?=htmlspecialchars(mb_strtoupper(mb_substr($review['reviewer_name'],0,1)))?></span><?php endif;?><span class="absolute -bottom-2 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-white bg-primary shadow"></span></button><?php endforeach;?></div>
-   <article data-center-review class="absolute left-1/2 top-1/2 z-30 w-[min(88%,430px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white/90 bg-white/95 p-7 text-center shadow-[0_26px_70px_rgba(11,24,46,.16)] ring-1 ring-slate-100 backdrop-blur-xl transition duration-500 sm:p-9" aria-live="polite"><span class="pointer-events-none absolute -right-2 -top-9 text-[8rem] font-black leading-none text-primary/[.07]">&ldquo;</span><div data-review-rating class="relative text-base tracking-[.18em] text-amber-400"><?=str_repeat('★',(int)$first['rating'])?><?=str_repeat('☆',5-(int)$first['rating'])?></div><h3 data-review-title class="relative mt-3 text-lg font-black text-[#0B182E]"><?=htmlspecialchars($first['title']?:'A memorable GiftVibe experience')?></h3><blockquote data-review-text class="relative mt-3 text-sm leading-7 text-slate-600">“<?=htmlspecialchars($first['review_text'])?>”</blockquote><div class="mx-auto mt-5 h-px w-10 bg-primary/25"></div><p class="mt-4 text-xs font-extrabold uppercase tracking-[.15em] text-[#0B182E]" data-review-name><?=htmlspecialchars($first['reviewer_name'])?></p><p data-review-role class="mt-1 text-[11px] text-slate-400"><?=htmlspecialchars((string)$first['reviewer_role'])?></p></article>
-  </div><?php endif;?>
- </div>
+<?php
+
+declare(strict_types=1);
+
+$testimonials = array_slice($testimonials ?? [], 0, 6);
+if (!$testimonials) return;
+
+$initials = static function (string $name): string {
+    $parts = preg_split('/\s+/', trim($name)) ?: [];
+    $value = '';
+    foreach (array_slice($parts, 0, 2) as $part) $value .= mb_strtoupper(mb_substr($part, 0, 1));
+    return $value ?: 'G';
+};
+
+$positions = [
+    ['left' => 9,  'top' => 30],
+    ['left' => 28, 'top' => 18],
+    ['left' => 72, 'top' => 18],
+    ['left' => 91, 'top' => 30],
+    ['left' => 17, 'top' => 77],
+    ['left' => 83, 'top' => 77],
+];
+?>
+
+<section id="testimonials" class="relative overflow-hidden bg-white py-20 sm:py-28" aria-labelledby="testimonial-title" data-testimonial-constellation>
+    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div class="absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-100/60 blur-[100px]"></div>
+        <div class="absolute -left-32 bottom-0 h-72 w-72 rounded-full bg-rose-100/40 blur-[100px]"></div>
+    </div>
+
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+            <span class="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.22em] text-primary">
+                <span class="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(59,130,246,.8)]"></span>
+                Shared with love
+            </span>
+            <h2 id="testimonial-title" class="mt-5 text-4xl font-black tracking-[-.04em] text-secondary sm:text-5xl">Happy moments, delivered.</h2>
+            <p class="mx-auto mt-4 max-w-lg text-sm leading-7 text-slate-500">Tap a customer to discover the moments GiftVibe helped make memorable.</p>
+        </div>
+
+        <div class="relative mx-auto mt-16 hidden h-[590px] max-w-6xl sm:block" data-constellation-stage>
+            <svg class="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1100 590" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                    <linearGradient id="testimonial-line" x1="0" y1="0" x2="1" y2="1">
+                        <stop stop-color="#93c5fd" stop-opacity=".25"/>
+                        <stop offset=".5" stop-color="#3b82f6" stop-opacity=".7"/>
+                        <stop offset="1" stop-color="#fda4af" stop-opacity=".25"/>
+                    </linearGradient>
+                </defs>
+                <path d="M105 177 Q310 190 550 295"/><path d="M308 106 Q410 170 550 295"/>
+                <path d="M792 106 Q690 170 550 295"/><path d="M995 177 Q790 190 550 295"/>
+                <path d="M187 455 Q360 430 550 295"/><path d="M913 455 Q740 430 550 295"/>
+                <style>path{fill:none;stroke:url(#testimonial-line);stroke-width:1.5;stroke-dasharray:5 9;stroke-linecap:round}</style>
+            </svg>
+
+            <div class="pointer-events-none absolute left-1/2 top-1/2 h-[390px] w-[390px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-100/80"></div>
+            <div class="pointer-events-none absolute left-1/2 top-1/2 h-[490px] w-[490px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-blue-100/60"></div>
+
+            <?php foreach ($testimonials as $index => $review):
+                $payload = htmlspecialchars(json_encode([
+                    'name' => $review['reviewer_name'],
+                    'role' => $review['reviewer_role'] ?: 'GiftVibe customer',
+                    'title' => $review['title'] ?: 'A memorable GiftVibe experience',
+                    'text' => $review['review_text'],
+                    'rating' => (int) $review['rating'],
+                    'avatar' => $review['avatar_path'] ?: '',
+                    'initials' => $initials((string) $review['reviewer_name']),
+                ], JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES);
+                $position = $positions[$index];
+            ?>
+                <button type="button" data-person data-review="<?= $payload ?>" data-active="<?= $index === 0 ? 'true' : 'false' ?>" aria-label="Read <?= htmlspecialchars((string) $review['reviewer_name']) ?>'s review" class="testimonial-person absolute z-20 -translate-x-1/2 -translate-y-1/2 text-center" style="left:<?= $position['left'] ?>%;top:<?= $position['top'] ?>%;--delay:<?= $index * .45 ?>s">
+                    <span class="relative mx-auto block h-[76px] w-[76px] rounded-full bg-white p-1.5 shadow-[0_15px_38px_rgba(15,45,80,.18)] ring-1 ring-slate-100 transition duration-300 group-hover:scale-105 data-[active=true]:ring-4 data-[active=true]:ring-blue-400/25">
+                        <?php if (!empty($review['avatar_path'])): ?>
+                            <img src="<?= htmlspecialchars((string) $review['avatar_path']) ?>" alt="" class="h-full w-full rounded-full object-cover">
+                        <?php else: ?>
+                            <span class="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-secondary to-primary text-sm font-black text-white"><?= htmlspecialchars($initials((string) $review['reviewer_name'])) ?></span>
+                        <?php endif; ?>
+                        <span class="absolute bottom-0 right-0 h-4 w-4 rounded-full border-[3px] border-white bg-emerald-400"></span>
+                    </span>
+                    <span class="mt-3 block rounded-full border border-slate-100 bg-white/90 px-3 py-1.5 text-xs font-extrabold text-secondary shadow-sm backdrop-blur transition data-[active=true]:border-blue-200 data-[active=true]:bg-primary data-[active=true]:text-white"><?= htmlspecialchars((string) $review['reviewer_name']) ?></span>
+                </button>
+            <?php endforeach; ?>
+
+            <article class="absolute left-1/2 top-1/2 z-10 flex h-[370px] w-[370px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border-[8px] border-white bg-white/90 p-11 text-center shadow-[0_30px_80px_rgba(19,58,99,.16)] ring-1 ring-blue-100 backdrop-blur-xl lg:h-[390px] lg:w-[390px]" data-review-panel aria-live="polite">
+                <span class="absolute -top-5 grid h-11 w-11 place-items-center rounded-full bg-primary font-serif text-3xl text-white shadow-lg shadow-blue-500/25" aria-hidden="true">&ldquo;</span>
+                <div class="text-sm tracking-[.2em] text-amber-400" data-rating><?= str_repeat('&#9733;', (int) $testimonials[0]['rating']) ?></div>
+                <h3 class="mt-4 text-xl font-black tracking-tight text-secondary" data-title><?= htmlspecialchars((string) ($testimonials[0]['title'] ?: 'A memorable GiftVibe experience')) ?></h3>
+                <blockquote class="mt-4 line-clamp-4 text-sm leading-7 text-slate-600" data-text>&ldquo;<?= htmlspecialchars((string) $testimonials[0]['review_text']) ?>&rdquo;</blockquote>
+                <div class="mt-5 h-px w-10 bg-blue-200"></div>
+                <p class="mt-3 text-sm font-black text-secondary" data-name><?= htmlspecialchars((string) $testimonials[0]['reviewer_name']) ?></p>
+                <p class="mt-1 text-xs text-slate-400" data-role><?= htmlspecialchars((string) ($testimonials[0]['reviewer_role'] ?: 'GiftVibe customer')) ?></p>
+            </article>
+        </div>
+
+        <div class="mt-10 sm:hidden">
+            <div class="flex gap-3 overflow-x-auto px-1 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <?php foreach ($testimonials as $index => $review):
+                    $payload = htmlspecialchars(json_encode(['name'=>$review['reviewer_name'],'role'=>$review['reviewer_role']?:'GiftVibe customer','title'=>$review['title']?:'A memorable GiftVibe experience','text'=>$review['review_text'],'rating'=>(int)$review['rating']], JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES);
+                ?>
+                    <button type="button" data-mobile-person data-review="<?= $payload ?>" data-active="<?= $index === 0 ? 'true' : 'false' ?>" class="shrink-0 rounded-2xl border border-slate-100 bg-white p-2 shadow-sm data-[active=true]:border-blue-300 data-[active=true]:bg-blue-50">
+                        <span class="block h-14 w-14 overflow-hidden rounded-xl">
+                            <?php if (!empty($review['avatar_path'])): ?><img src="<?= htmlspecialchars((string)$review['avatar_path']) ?>" alt="" class="h-full w-full object-cover"><?php else: ?><span class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-primary text-xs font-black text-white"><?= htmlspecialchars($initials((string)$review['reviewer_name'])) ?></span><?php endif; ?>
+                        </span>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+            <article class="mt-3 rounded-3xl border border-blue-100 bg-white p-7 text-center shadow-[0_20px_55px_rgba(19,58,99,.12)]" data-mobile-panel aria-live="polite">
+                <div class="text-sm tracking-[.18em] text-amber-400" data-rating><?= str_repeat('&#9733;', (int)$testimonials[0]['rating']) ?></div>
+                <h3 class="mt-4 text-xl font-black text-secondary" data-title><?= htmlspecialchars((string)($testimonials[0]['title']?:'A memorable GiftVibe experience')) ?></h3>
+                <blockquote class="mt-4 text-sm leading-7 text-slate-600" data-text>&ldquo;<?= htmlspecialchars((string)$testimonials[0]['review_text']) ?>&rdquo;</blockquote>
+                <p class="mt-5 text-sm font-black text-secondary" data-name><?= htmlspecialchars((string)$testimonials[0]['reviewer_name']) ?></p>
+                <p class="mt-1 text-xs text-slate-400" data-role><?= htmlspecialchars((string)($testimonials[0]['reviewer_role']?:'GiftVibe customer')) ?></p>
+            </article>
+        </div>
+    </div>
 </section>
-<style>@keyframes map-person-float{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-8px)}}.map-person{animation:map-person-float 5s ease-in-out var(--delay) infinite}#testimonial-route-stage{position:relative!important;display:grid!important;place-items:center!important}[data-center-review]{position:relative!important;inset:auto!important;grid-area:1/1!important;place-self:center!important;z-index:30!important;width:min(88%,430px)!important;min-height:270px;margin:0!important;transform:none!important;transform-origin:center!important}@media(prefers-reduced-motion:reduce){.map-person{animation:none}}</style>
-<script>(()=>{const root=document.querySelector('[data-testimonial-map]'),stage=document.getElementById('testimonial-route-stage');if(!root||!stage)return;const svg=stage.querySelector('[data-route-map]'),people=[...stage.querySelectorAll('[data-map-person]')],vehicle=stage.querySelector('[data-review-vehicle]'),card=stage.querySelector('[data-center-review]'),rating=stage.querySelector('[data-review-rating]'),title=stage.querySelector('[data-review-title]'),text=stage.querySelector('[data-review-text]'),name=stage.querySelector('[data-review-name]'),role=stage.querySelector('[data-review-role]');let current=0,timer,route=null,raf;function point(el){const a=el.getBoundingClientRect(),b=stage.getBoundingClientRect();return{x:a.left+a.width/2-b.left,y:a.top+a.height/2-b.top}}function curve(a,b,bend=0){const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y,l=Math.hypot(dx,dy)||1,offset=(bend||((a.x+b.x)%2?1:-1))*Math.min(52,l*.18);return{cx:mx-dy/l*offset,cy:my+dx/l*offset,d:`M ${a.x} ${a.y} Q ${mx-dy/l*offset} ${my+dx/l*offset} ${b.x} ${b.y}`}}function draw(){svg.innerHTML='';const order=[...people.keys()];order.forEach((from,i)=>{const to=order[(i+1)%order.length],a=point(people[from]),b=point(people[to]),c=curve(a,b,i%2?1:-1),p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',c.d);p.setAttribute('fill','none');p.setAttribute('stroke','#cbd5e1');p.setAttribute('stroke-width','1.4');p.setAttribute('stroke-dasharray','4 8');p.setAttribute('stroke-linecap','round');p.setAttribute('opacity','.72');svg.appendChild(p)});route=null}function update(i){const d=JSON.parse(people[i].dataset.review);people.forEach((p,n)=>p.dataset.active=n===i?'true':'false');card.style.opacity='0';card.style.transform='translate(-50%,-50%) scale(.96)';setTimeout(()=>{rating.textContent='★'.repeat(d.rating)+'☆'.repeat(5-d.rating);title.textContent=d.title||'A memorable GiftVibe experience';text.textContent='“'+d.text+'”';name.textContent=d.name;role.textContent=d.role||'';card.style.opacity='1';card.style.transform='translate(-50%,-50%) scale(1)'},260)}function travel(to){cancelAnimationFrame(raf);const a=point(people[current]),b=point(people[to]),c=curve(a,b,current%2?1:-1),path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',c.d);path.setAttribute('fill','none');path.setAttribute('stroke','#0B182E');path.setAttribute('stroke-width','2.4');path.setAttribute('stroke-dasharray','7 8');path.setAttribute('stroke-linecap','round');svg.appendChild(path);const length=path.getTotalLength();path.style.strokeDasharray=length;path.style.strokeDashoffset=length;path.style.transition='stroke-dashoffset 2.25s cubic-bezier(.22,.75,.18,1),opacity .5s';path.getBoundingClientRect();path.style.strokeDashoffset='0';vehicle.classList.remove('hidden');const start=performance.now(),duration=2250;function frame(now){const t=Math.min(1,(now-start)/duration),ease=1-Math.pow(1-t,3),p=path.getPointAtLength(length*ease),p2=path.getPointAtLength(Math.min(length,length*ease+2)),angle=Math.atan2(p2.y-p.y,p2.x-p.x)*180/Math.PI;vehicle.style.transform=`translate3d(${p.x-24}px,${p.y-20}px,0) rotate(${angle}deg)`;if(t<1)raf=requestAnimationFrame(frame);else{current=to;update(to);setTimeout(()=>{vehicle.classList.add('hidden');path.style.opacity='0';setTimeout(()=>path.remove(),500)},250)}}raf=requestAnimationFrame(frame)}function next(){if(people.length<2)return;let target;do{target=Math.floor(Math.random()*people.length)}while(target===current);travel(target)}function restart(){clearInterval(timer);if(!matchMedia('(prefers-reduced-motion:reduce)').matches)timer=setInterval(next,5200)}people.forEach((p,i)=>p.addEventListener('click',()=>{if(i!==current)travel(i);restart()}));addEventListener('resize',draw,{passive:true});draw();restart()})();</script>
+
+<style>
+@keyframes testimonial-float{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-10px)}}
+.testimonial-person{animation:testimonial-float 5s ease-in-out var(--delay) infinite}
+.testimonial-person[data-active="true"]>span:first-child{box-shadow:0 18px 45px rgba(37,99,235,.25);outline:4px solid rgba(96,165,250,.18)}
+.testimonial-person[data-active="true"]>span:last-child{border-color:#bfdbfe;background:#2563eb;color:#fff}
+@media(prefers-reduced-motion:reduce){.testimonial-person{animation:none}}
+</style>
+
+<script>
+(() => {
+    const root = document.querySelector('[data-testimonial-constellation]');
+    if (!root) return;
+    const bind = (buttons, panel) => {
+        if (!panel) return;
+        const fields = {rating:panel.querySelector('[data-rating]'),title:panel.querySelector('[data-title]'),text:panel.querySelector('[data-text]'),name:panel.querySelector('[data-name]'),role:panel.querySelector('[data-role]')};
+        buttons.forEach(button => button.addEventListener('click', () => {
+            const review = JSON.parse(button.dataset.review);
+            buttons.forEach(item => item.dataset.active = item === button ? 'true' : 'false');
+            panel.animate([{opacity:.55,transform:'translate(-50%,-48%) scale(.98)'},{opacity:1,transform:'translate(-50%,-50%) scale(1)'}],{duration:350,easing:'ease-out'});
+            fields.rating.innerHTML='&#9733;'.repeat(review.rating);fields.title.textContent=review.title;fields.text.textContent='\u201c'+review.text+'\u201d';fields.name.textContent=review.name;fields.role.textContent=review.role;
+        }));
+    };
+    bind([...root.querySelectorAll('[data-person]')], root.querySelector('[data-review-panel]'));
+    const mobileButtons=[...root.querySelectorAll('[data-mobile-person]')],mobilePanel=root.querySelector('[data-mobile-panel]');
+    if(mobilePanel){mobileButtons.forEach(button=>button.addEventListener('click',()=>{const review=JSON.parse(button.dataset.review);mobileButtons.forEach(item=>item.dataset.active=item===button?'true':'false');mobilePanel.animate([{opacity:.6,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],{duration:300,easing:'ease-out'});mobilePanel.querySelector('[data-rating]').innerHTML='&#9733;'.repeat(review.rating);mobilePanel.querySelector('[data-title]').textContent=review.title;mobilePanel.querySelector('[data-text]').textContent='\u201c'+review.text+'\u201d';mobilePanel.querySelector('[data-name]').textContent=review.name;mobilePanel.querySelector('[data-role]').textContent=review.role}))}
+})();
+</script>

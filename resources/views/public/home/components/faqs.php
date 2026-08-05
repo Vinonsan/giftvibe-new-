@@ -7,7 +7,7 @@ if (!$faqs) return;
     <!-- Subtle premium radial background glow -->
     <div class="pointer-events-none absolute left-1/2 top-0 h-[350px] w-[500px] -translate-x-1/2 -z-10 rounded-full bg-gradient-to-b from-primary/5 to-transparent blur-3xl" aria-hidden="true"></div>
 
-    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         <!-- Clean, Premium Center Header (No cluttered lines or side icons) -->
         <div class="text-center mb-16">

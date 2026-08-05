@@ -49,7 +49,12 @@ class ProductController extends Controller
         $categoryIds = array_values(array_filter(array_map('intval', (array) ($_POST['category_ids'] ?? []))));
         if ($name === '' || $sku === '' || !$categoryIds) $this->redirect('Name, SKU and at least one category are required.', 'error', $id);
         $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $name), '-'));
-        if ($id) $slug .= '-' . $id;
+        if ($id) {
+            $slugStatement = $pdo->prepare('SELECT slug FROM products WHERE id=?');
+            $slugStatement->execute([$id]);
+            $existingSlug = trim((string) $slugStatement->fetchColumn());
+            if ($existingSlug !== '') $slug = $existingSlug;
+        }
         $basePrice = max(0, (float) ($_POST['selling_price'] ?? 0));
         $costPrice = max(0, (float) ($_POST['buying_price'] ?? 0));
         $videoUrls = array_values(array_unique(array_filter(array_map('trim', (array) ($_POST['video_urls'] ?? [])), static fn(string $url): bool => filter_var($url, FILTER_VALIDATE_URL) !== false)));
@@ -73,14 +78,16 @@ class ProductController extends Controller
         $remainingExisting = array_diff($existingImageIds, $deleteIds);
         if (!$remainingExisting && !$newImages) $this->redirect('Upload at least one product image.','error',$id);
         
-        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,max(0,(int)($_POST['stock_quantity'] ?? 0)),isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl];
+        $metaTitle = trim((string) ($_POST['meta_title'] ?? '')) ?: $name;
+        $metaDescription = trim((string) ($_POST['meta_description'] ?? '')) ?: trim((string) ($_POST['short_description'] ?? ''));
+        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,max(0,(int)($_POST['stock_quantity'] ?? 0)),isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl,$metaTitle,$metaDescription];
         $pdo->beginTransaction();
         try {
             if ($id) { 
-                $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,description=?,base_price=?,cost_price=?,sale_price=NULL,stock_quantity=?,is_featured=?,status=?,video_url=? WHERE id=?')->execute([...$data,$id]); 
+                $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,description=?,base_price=?,cost_price=?,sale_price=NULL,stock_quantity=?,is_featured=?,status=?,video_url=?,meta_title=?,meta_description=? WHERE id=?')->execute([...$data,$id]); 
             }
             else { 
-                $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,description,base_price,cost_price,sale_price,stock_quantity,is_featured,status,video_url) VALUES (?,?,?,?,?,?,?,NULL,?,?,?,?)')->execute($data); 
+                $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,description,base_price,cost_price,sale_price,stock_quantity,is_featured,status,video_url,meta_title,meta_description) VALUES (?,?,?,?,?,?,?,NULL,?,?,?,?,?,?)')->execute($data); 
                 $id=(int)$pdo->lastInsertId(); 
             }
             

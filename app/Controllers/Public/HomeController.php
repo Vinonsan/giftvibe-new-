@@ -47,6 +47,8 @@ class HomeController extends Controller
         $primarySlide = $banners[0];
         $parts = explode('|', (string) ($primarySlide['subtitle'] ?? ''));
         $description = trim((string) ($parts[1] ?? '')) ?: 'Discover thoughtful gifts, curated gift boxes, flowers and sweet hampers from GiftVibe.';
+        $siteUrl = rtrim((string) (getenv('APP_URL') ?: 'https://giftvibelk.lk'), '/');
+        $averageRating = $testimonials ? round(array_sum(array_map(static fn(array $review): int => (int) $review['rating'], $testimonials)) / count($testimonials), 1) : null;
 
         $this->view('layouts/public-layout', [
             'title' => (string) $primarySlide['title'],
@@ -56,9 +58,9 @@ class HomeController extends Controller
             'structuredData' => [
                 '@context' => 'https://schema.org',
                 '@graph' => array_values(array_filter([
-                    ['@type'=>'WebSite','name'=>'GiftVibe','url'=>'/','description'=>$description],
+                    ['@type'=>'WebSite','name'=>'GiftVibe LK','url'=>$siteUrl.'/','description'=>$description],
                     $faqs ? ['@type'=>'FAQPage','mainEntity'=>array_map(fn($faq)=>['@type'=>'Question','name'=>$faq['question'],'acceptedAnswer'=>['@type'=>'Answer','text'=>$faq['answer']]],$faqs)] : null,
-                    $testimonials ? ['@type'=>'Organization','name'=>'GiftVibe','url'=>'/','review'=>array_map(fn($review)=>['@type'=>'Review','author'=>['@type'=>'Person','name'=>$review['reviewer_name']],'reviewRating'=>['@type'=>'Rating','ratingValue'=>(int)$review['rating'],'bestRating'=>5],'name'=>$review['title']?:'GiftVibe customer review','reviewBody'=>$review['review_text']],$testimonials)] : null,
+                    $testimonials ? ['@type'=>'Organization','name'=>'GiftVibe LK','url'=>$siteUrl.'/','logo'=>$siteUrl.'/assets/images/giftvibe-mark.svg','aggregateRating'=>['@type'=>'AggregateRating','ratingValue'=>$averageRating,'reviewCount'=>count($testimonials),'bestRating'=>5],'review'=>array_map(fn($review)=>['@type'=>'Review','author'=>['@type'=>'Person','name'=>$review['reviewer_name']],'reviewRating'=>['@type'=>'Rating','ratingValue'=>(int)$review['rating'],'bestRating'=>5],'name'=>$review['title']?:'GiftVibe customer review','reviewBody'=>$review['review_text']],$testimonials)] : null,
                 ])),
             ],
             'content' => $this->render('public/home/index', [

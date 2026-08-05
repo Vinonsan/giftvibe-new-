@@ -11,11 +11,10 @@ declare(strict_types=1);
  */
 ?>
 
-<!-- Premium Dynamic Hero Slider -->
-<?php require BASE_PATH . '/resources/views/public/home/components/hero.php'; ?>
-
+<div class="flex flex-col gap-4">
 <?php require BASE_PATH . '/resources/views/public/home/components/categories.php'; ?>
-
+ 
+<?php require BASE_PATH . '/resources/views/public/home/components/hero.php'; ?>
 
 <?php require BASE_PATH . '/resources/views/public/home/components/products.php'; ?>
 
@@ -26,3 +25,4 @@ declare(strict_types=1);
 
 <?php require BASE_PATH . '/resources/views/public/home/components/faqs.php'; ?>
 <?php $cta = $homepageCtas['home_between_products_combos'] ?? null; require BASE_PATH . '/resources/views/components/public/cta-banner.php'; ?>
+</div>

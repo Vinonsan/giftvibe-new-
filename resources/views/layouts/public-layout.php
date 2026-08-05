@@ -9,11 +9,13 @@ $metaDescription = trim((string) ($metaDescription ?? 'Find thoughtful gifts for
 $canonicalPath = '/' . ltrim((string) ($canonicalPath ?? $currentPath), '/');
 $host = preg_replace('/[^a-zA-Z0-9.:-]/', '', (string) ($_SERVER['HTTP_HOST'] ?? 'localhost')) ?: 'localhost';
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-$siteUrl = rtrim((string) (getenv('APP_URL') ?: "{$scheme}://{$host}"), '/');
+$siteUrl = rtrim((string) (getenv('APP_URL') ?: 'https://giftvibelk.lk'), '/');
 $canonicalUrl = $siteUrl . ($canonicalPath === '/' ? '/' : rtrim($canonicalPath, '/'));
 $ogImage = (string) ($ogImage ?? '/assets/images/giftvibe-mark.svg');
 $ogImageUrl = str_starts_with($ogImage, 'http') ? $ogImage : $siteUrl . '/' . ltrim($ogImage, '/');
 $structuredData = $structuredData ?? null;
+$robots = (string) ($robots ?? 'index, follow, max-image-preview:large');
+$ogType = (string) ($ogType ?? 'website');
 if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     $structuredData['url'] = $siteUrl . '/';
 }
@@ -25,9 +27,9 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> | Gift Vibe</title>
     <meta name="description" content="<?= htmlspecialchars($metaDescription) ?>">
-    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="robots" content="<?= htmlspecialchars($robots) ?>">
     <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl) ?>">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="<?= htmlspecialchars($ogType) ?>">
     <meta property="og:site_name" content="GiftVibe">
     <meta property="og:title" content="<?= htmlspecialchars($title) ?> | Gift Vibe">
     <meta property="og:description" content="<?= htmlspecialchars($metaDescription) ?>">
@@ -46,6 +48,7 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script type="module" src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
 
     <style type="text/tailwindcss">
         <?= file_get_contents(BASE_PATH . '/public/assets/css/global.css') ?>
@@ -55,7 +58,7 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     <?php require BASE_PATH . '/resources/views/components/public/theme-cursor.php'; ?>
     <?php require BASE_PATH . '/resources/views/components/navigation/navbar.php'; ?>
 
-    <main class="flex-1 px-8 py-12 gap-6">
+    <main class="flex flex-1 flex-col gap-4 px-4 sm:px-6 lg:px-8">
         <?= $content ?>
     </main>
 

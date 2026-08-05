@@ -1,0 +1,7 @@
+/storage/*.html
+/storage/*.xml
+/storage/*.txt
+/storage/*.md
+/storage/*.log
+/storage/sessions/sess_*
+!/storage/sessions/.gitkeep

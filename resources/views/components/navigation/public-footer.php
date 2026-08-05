@@ -16,6 +16,8 @@ $description = (string)($settings['site.description'] ?? 'Thoughtful gifts for e
 $quickLinks = json_decode((string)($settings['footer.quick_links'] ?? '[]'), true) ?: [
     ['label' => 'Home', 'href' => '/'],
     ['label' => 'Shop', 'href' => '/shop'],
+    ['label' => 'Services', 'href' => '/services'],
+    ['label' => 'Blog', 'href' => '/blog'],
     ['label' => 'About Us', 'href' => '/about'],
     ['label' => 'Contact', 'href' => '/contact']
 ];
@@ -32,19 +34,19 @@ $address = (string)($settings['site.contact_address'] ?? '');
 $socials = [
     'facebook' => [
         'url' => (string)($settings['social.facebook'] ?? ''),
-        'icon' => '<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/></svg>'
+        'icon' => 'fa6-brands:facebook-f'
     ],
     'instagram' => [
         'url' => (string)($settings['social.instagram'] ?? ''),
-        'icon' => '<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.01 3.74.054 9.21.42 9.77 5.77 9.77 9.77 0 2.43-.01 2.784-.054 3.74-.42 9.21-5.77 9.77-9.77 9.77-2.43 0-2.784-.01-3.74-.054-9.21-.42-9.77-5.77-9.77-9.77 0-2.43.01-2.784.054-3.74.42-9.21 5.77-9.77 9.77-9.77zm.052 2.01c-2.4 0-2.717.01-3.66.053-7.56.344-7.9 5.27-7.9 7.91 0 2.4.01 2.716.053 3.661.344 7.56 5.27 7.9 7.91 7.9 2.4 0 2.716-.01 3.661-.053 7.56-.344 7.9-5.27 7.9-7.91 0-2.4-.01-2.717-.053-3.66-.344-7.56-5.27-7.9-7.91-7.9zM12 5.802a6.197 6.197 0 110 12.394 6.197 6.197 0 010-12.394zm0 2.01a4.186 4.186 0 100 8.372 4.186 4.186 0 000-8.372zm6.404-1.84a1.44 1.44 0 110 2.88 1.44 1.44 0 010-2.88z" clip-rule="evenodd"/></svg>'
+        'icon' => 'fa6-brands:instagram'
     ],
     'youtube' => [
         'url' => (string)($settings['social.youtube'] ?? ''),
-        'icon' => '<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 00-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.518 0-9.388.507a3.003 3.003 0 00-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 002.11 2.11c1.87.507 9.388.507 9.388.507s7.518 0 9.388-.507a3.003 3.003 0 002.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>'
+        'icon' => 'fa6-brands:youtube'
     ],
     'twitter' => [
         'url' => (string)($settings['social.twitter'] ?? ''),
-        'icon' => '<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>'
+        'icon' => 'fa6-brands:x-twitter'
     ]
 ];
 ?>
@@ -57,7 +59,7 @@ $socials = [
                     <img src="<?= htmlspecialchars($logo) ?>" alt="<?= htmlspecialchars($siteName) ?>" class="h-11 w-11 rounded-xl ring-1 ring-white/10 object-contain bg-white/5 p-1">
                     <span class="text-xl font-extrabold tracking-tight"><?= htmlspecialchars($siteName) ?></span>
                 </a>
-                <p class="max-w-sm text-sm leading-relaxed text-slate-400">
+                <p class="max-w-sm break-words text-sm leading-relaxed text-slate-400 [overflow-wrap:anywhere]">
                     <?= htmlspecialchars($description) ?>
                 </p>
                 <!-- Social media icons below description as requested -->
@@ -65,8 +67,8 @@ $socials = [
                     <?php foreach ($socials as $name => $social): 
                         if ($social['url'] === '') continue;
                     ?>
-                        <a href="<?= htmlspecialchars($social['url']) ?>" target="_blank" rel="noopener noreferrer" class="text-slate-400 transition hover:text-white" aria-label="<?= ucfirst($name) ?>">
-                            <?= $social['icon'] ?>
+                        <a href="<?= htmlspecialchars($social['url']) ?>" target="_blank" rel="noopener noreferrer" class="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[.07] text-blue-300 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-white" aria-label="<?= ucfirst($name) ?>">
+                            <iconify-icon icon="<?= htmlspecialchars($social['icon']) ?>" width="19" height="19" aria-hidden="true"></iconify-icon>
                         </a>
                     <?php endforeach; ?>
                 </div>
@@ -106,19 +108,19 @@ $socials = [
                 <div class="space-y-3 text-sm text-slate-400">
                     <?php if ($email !== ''): ?>
                         <div class="flex items-start gap-2.5">
-                            <svg class="h-5 w-5 shrink-0 text-slate-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:letter-bold-duotone" width="20" height="20" aria-hidden="true"></iconify-icon></span>
                             <a href="mailto:<?= htmlspecialchars($email) ?>" class="hover:text-white break-all"><?= htmlspecialchars($email) ?></a>
                         </div>
                     <?php endif; ?>
                     <?php if ($phone !== ''): ?>
                         <div class="flex items-start gap-2.5">
-                            <svg class="h-5 w-5 shrink-0 text-slate-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.802-5.122-4.1-6.924-6.924l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"/></svg>
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:phone-calling-bold-duotone" width="20" height="20" aria-hidden="true"></iconify-icon></span>
                             <span class="hover:text-white"><?= htmlspecialchars($phone) ?></span>
                         </div>
                     <?php endif; ?>
                     <?php if ($address !== ''): ?>
                         <div class="flex items-start gap-2.5">
-                            <svg class="h-5 w-5 shrink-0 text-slate-500 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:map-point-bold-duotone" width="20" height="20" aria-hidden="true"></iconify-icon></span>
                             <address class="not-italic leading-relaxed"><?= nl2br(htmlspecialchars($address)) ?></address>
                         </div>
                     <?php endif; ?>
@@ -136,4 +138,3 @@ $socials = [
         </div>
     </div>
 </footer>
-

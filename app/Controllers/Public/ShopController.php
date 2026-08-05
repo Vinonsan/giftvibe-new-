@@ -25,7 +25,7 @@ class ShopController extends Controller
             if ($product) {
                 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
                 $host = preg_replace('/[^a-zA-Z0-9.:-]/', '', (string) ($_SERVER['HTTP_HOST'] ?? 'localhost')) ?: 'localhost';
-                $siteUrl = rtrim((string) (getenv('APP_URL') ?: $scheme . '://' . $host), '/');
+                $siteUrl = rtrim((string) (getenv('APP_URL') ?: 'https://giftvibelk.lk'), '/');
                 $productPath = '/shop?product=' . rawurlencode($productSlug);
                 $seoImage = (string) ($product['image_path'] ?? '/assets/images/hero_slide_1.jpg');
                 if (str_starts_with($seoImage, 'public/')) $seoImage = '/' . substr($seoImage, 7);
@@ -34,6 +34,14 @@ class ShopController extends Controller
                 $galleryStmt = $pdo->prepare("SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order, id");
                 $galleryStmt->execute([$product['id']]);
                 $gallery = $galleryStmt->fetchAll();
+                $seoImages = [$seoImage];
+                foreach ($gallery as $galleryImage) {
+                    $galleryPath = (string) ($galleryImage['image_path'] ?? '');
+                    if ($galleryPath === '') continue;
+                    if (str_starts_with($galleryPath, 'public/')) $galleryPath = '/' . substr($galleryPath, 7);
+                    if (!str_starts_with($galleryPath, 'http')) $galleryPath = $siteUrl . '/' . ltrim($galleryPath, '/');
+                    if (!in_array($galleryPath, $seoImages, true)) $seoImages[] = $galleryPath;
+                }
                 $videoStmt = $pdo->prepare('SELECT video_url FROM product_videos WHERE product_id=? ORDER BY sort_order,id');
                 $videoStmt->execute([$product['id']]);
                 $productVideos = $videoStmt->fetchAll(\PDO::FETCH_COLUMN);
@@ -54,15 +62,21 @@ class ShopController extends Controller
                 }
 
                 $this->view('layouts/public-layout', [
-                    'title' => $product['name'],
-                    'metaDescription' => $product['short_description'] ?: $product['name'] . ' from GiftVibe.',
+                    'title' => $product['meta_title'] ?: $product['name'],
+                    'metaDescription' => $product['meta_description'] ?: ($product['short_description'] ?: $product['name'] . ' from GiftVibe.'),
                     'canonicalPath' => $productPath,
                     'ogImage' => (string) ($product['image_path'] ?? '/assets/images/hero_slide_1.jpg'),
+                    'ogType' => 'product',
                     'structuredData' => [
-                        '@context' => 'https://schema.org', '@type' => 'Product',
-                        'name' => $product['name'], 'description' => $product['short_description'] ?: $product['description'],
-                        'image' => [$seoImage], 'sku' => $product['sku'], 'productID' => (string) $product['id'],
-                        'offers' => ['@type'=>'Offer','priceCurrency'=>'LKR','price'=>(string)$product['base_price'],'availability'=>(int)$product['stock_quantity']>0?'https://schema.org/InStock':'https://schema.org/OutOfStock','url'=>$siteUrl.$productPath],
+                        '@context' => 'https://schema.org',
+                        '@graph' => [
+                            ['@type' => 'Product', '@id' => $siteUrl . $productPath . '#product', 'name' => $product['name'], 'description' => $product['meta_description'] ?: ($product['short_description'] ?: $product['description']), 'image' => $seoImages, 'sku' => $product['sku'], 'productID' => (string) $product['id'], 'category' => $product['category_names'], 'brand' => ['@type'=>'Brand','name'=>'GiftVibe'], 'url' => $siteUrl . $productPath, 'mainEntityOfPage' => $siteUrl . $productPath, 'offers' => ['@type'=>'Offer','priceCurrency'=>'LKR','price'=>(string)$product['base_price'],'availability'=>(int)$product['stock_quantity']>0?'https://schema.org/InStock':'https://schema.org/OutOfStock','url'=>$siteUrl.$productPath,'seller'=>['@type'=>'Organization','name'=>'GiftVibe']]],
+                            ['@type' => 'BreadcrumbList', 'itemListElement' => [
+                                ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>$siteUrl.'/'],
+                                ['@type'=>'ListItem','position'=>2,'name'=>'Shop','item'=>$siteUrl.'/shop'],
+                                ['@type'=>'ListItem','position'=>3,'name'=>$product['name'],'item'=>$siteUrl.$productPath],
+                            ]],
+                        ],
                     ],
                     'content' => $this->render('public/product/show', compact('product', 'gallery', 'relatedProducts', 'categories', 'productVideos')),
                 ]);
@@ -90,10 +104,20 @@ class ShopController extends Controller
             }
         }
 
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = preg_replace('/[^a-zA-Z0-9.:-]/', '', (string) ($_SERVER['HTTP_HOST'] ?? 'localhost')) ?: 'localhost';
+        $siteUrl = rtrim((string) (getenv('APP_URL') ?: 'https://giftvibelk.lk'), '/');
+        $categoryCanonical = $categorySlug !== '' ? '/shop?category=' . rawurlencode($categorySlug) : '/shop';
+        $itemList = [];
+        foreach ($products as $index => $listedProduct) {
+            $itemList[] = ['@type'=>'ListItem','position'=>$index + 1,'url'=>$siteUrl.'/shop?product='.rawurlencode((string)$listedProduct['slug']),'name'=>$listedProduct['name']];
+        }
+
         $this->view('layouts/public-layout', [
             'title' => $activeName,
-            'metaDescription' => 'Shop thoughtful gifts from GiftVibe.',
-            'canonicalPath' => '/shop',
+            'metaDescription' => $categorySlug !== '' ? 'Shop ' . $activeName . ' online from GiftVibe. Discover thoughtful gifts for meaningful celebrations.' : 'Shop thoughtful gifts, flowers, sweet treats and curated gift boxes online from GiftVibe.',
+            'canonicalPath' => $categoryCanonical,
+            'structuredData' => ['@context'=>'https://schema.org','@type'=>'ItemList','name'=>$activeName,'url'=>$siteUrl.$categoryCanonical,'numberOfItems'=>count($itemList),'itemListElement'=>$itemList],
             'content' => $this->render('public/shop/index', compact('products', 'categories', 'categorySlug', 'activeName')),
         ]);
     }

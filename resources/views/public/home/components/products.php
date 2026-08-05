@@ -3,7 +3,7 @@ $products = array_slice($products ?? [], 0, 4);
 if (!$products) return;
 ?>
 <section class="bg-white ">
-    <div class="mx-auto max-w-7xl ">
+    <div class="mx-auto max-w-7xl">
         <div class="grid items-stretch gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)] lg:gap-7">
             <a href="/shop" class="group relative min-h-[430px] overflow-hidden rounded-3xl bg-secondary md:min-h-full">
                 <img src="/assets/images/product-showcase-giftvibe.png" alt="GiftVibe premium gift collection" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">

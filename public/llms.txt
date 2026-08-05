@@ -1,0 +1,16 @@
+# GiftVibe
+
+GiftVibe is a Sri Lankan online gifting catalog for curated gifts, flowers, sweet treats, gift boxes and celebration combos.
+
+## Primary pages
+
+- [Gift catalog](https://giftvibelk.lk/shop): Browse all active gifts and product categories.
+- [Gift combos](https://giftvibelk.lk/combos): Browse curated multi-product celebration combos.
+- [Gifting services](https://giftvibelk.lk/services): Personal, celebration and corporate gifting services.
+- [Gift ideas blog](https://giftvibelk.lk/blog): Helpful gifting guides and occasion ideas.
+- [Customer reviews](https://giftvibelk.lk/reviews): Read verified customer experiences.
+- [Live machine-readable catalog](https://giftvibelk.lk/catalog.php): Current database products with descriptions, categories, prices and canonical URLs.
+- [About GiftVibe](https://giftvibelk.lk/about): Brand and service information.
+- [Contact GiftVibe](https://giftvibelk.lk/contact): Customer support and gifting enquiries.
+
+Only active products in the live catalog should be treated as currently available.
