@@ -13,18 +13,21 @@ $discountPercentage = $hasSale ? (int) round((($basePrice - $salePrice) / $baseP
 $productHref = isset($productCardHref) ? (string) $productCardHref : '/shop?product=' . rawurlencode((string) ($product['slug'] ?? ''));
 unset($productCardHref);
 $categoryName = (string) ($product['category_names'] ?? 'GiftVibe Collection');
+$itemType = (string) ($product['_type'] ?? 'product');
 
 ?>
 <article class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
     <!-- Image Wrapper -->
     <div class="relative aspect-square overflow-hidden bg-slate-50">
-        <img src="<?= htmlspecialchars($productImage) ?>" alt="<?= htmlspecialchars($productName) ?> - Buy Online from GiftVibe" width="600" height="600" loading="lazy" decoding="async" class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-103">
+        <div class="img-skeleton h-full w-full">
+            <img src="<?= htmlspecialchars($productImage) ?>" alt="<?= htmlspecialchars($productName) ?> - Buy Online from GiftVibe" width="600" height="600" loading="lazy" decoding="async" class="lazy-img h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-103" onload="this.classList.add('loaded'); this.parentElement.classList.remove('img-skeleton');">
+        </div>
         
         <!-- Glassmorphism Quick View Overlay on Hover -->
         <div class="absolute inset-0 z-10 flex items-center justify-center bg-secondary/35 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100">
             <div class="flex translate-y-3 items-center justify-center gap-2 transition duration-300 group-hover:translate-y-0">
-                <button type="button" onclick="giftAddCart(event, '<?=htmlspecialchars(addslashes($productName),ENT_QUOTES)?>')" class="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-bold text-white shadow-lg transition hover:bg-secondary" aria-label="Add <?=htmlspecialchars($productName)?> to cart"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 1.9-1.4L21 8H7M10 20h.01M18 20h.01"/></svg>Add to cart</button>
-                <a href="<?=htmlspecialchars($productHref)?>" class="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-secondary shadow-lg transition hover:text-primary"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"/><circle cx="12" cy="12" r="2.25"/></svg>View</a>
+                <a href="<?=htmlspecialchars($productHref)?>" class="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-secondary shadow-lg transition hover:text-primary"><iconify-icon icon="heroicons:eye-solid" width="16" height="16" aria-hidden="true"></iconify-icon>View</a>
+                <button type="button" data-favorite-slug="<?= htmlspecialchars($itemType . ':' . (string)($product['slug']??'')) ?>" onclick='giftToggleFavorite(event, this, <?= htmlspecialchars(json_encode(['name'=>$productName,'slug'=>(string)($product['slug']??''),'type'=>$itemType,'price'=>$basePrice,'image'=>$productImage,'href'=>$productHref], JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES) ?>)' class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-primary shadow-lg transition hover:bg-accent hover:text-white" aria-label="Save <?=htmlspecialchars($productName)?> to favorites"><iconify-icon icon="heroicons:heart" width="18" height="18" aria-hidden="true"></iconify-icon></button>
             </div>
         </div>
     </div>
@@ -56,19 +59,9 @@ $categoryName = (string) ($product['category_names'] ?? 'GiftVibe Collection');
         </div>
 
         <!-- Button Actions (Apple Clean Style) -->
-        <div class="mt-auto pt-4">
-            <?php
-            $buttonLabel = 'Buy Now';
-            $buttonClass = 'h-11 w-full rounded-xl whitespace-nowrap text-xs font-bold';
-            $buttonOnclick = "giftBuyNow(event, '" . htmlspecialchars($productHref) . "')";
-            $buttonColor = 'primary';
-            $buttonVariant = 'solid';
-            $buttonIcon = null;
-            $buttonIconOnly = false;
-            $buttonHref = null;
-            $buttonAttributes = [];
-            require BASE_PATH . '/resources/views/components/base/button.php';
-            ?>
+        <div class="mt-auto grid grid-cols-2 gap-2 pt-4">
+            <button type="button" onclick='giftAddCart(event, <?= htmlspecialchars(json_encode(['name'=>$productName,'slug'=>(string)($product['slug']??''),'type'=>$itemType,'price'=>$basePrice,'image'=>$productImage], JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES) ?>)' class="h-11 rounded-xl border border-primary bg-white px-2 text-xs font-bold text-primary transition hover:bg-primary hover:text-white">Add to cart</button>
+            <button type="button" onclick="giftBuyNow(event, '<?= htmlspecialchars((string)($product['slug']??''), ENT_QUOTES) ?>', '<?= htmlspecialchars($itemType, ENT_QUOTES) ?>')" class="h-11 rounded-xl bg-primary px-2 text-xs font-bold text-white transition hover:bg-secondary">Buy now</button>
         </div>
     </div>
 </article>
@@ -110,22 +103,35 @@ function showNotification(message) {
     }, 3000);
 }
 
-function giftAddCart(event, name) {
+function giftAddCart(event, product) {
     event.preventDefault();
     event.stopPropagation();
     
     // Local storage mock cart
     let cart = JSON.parse(localStorage.getItem('giftvibe_cart') || '[]');
-    cart.push({ name: name, qty: 1 });
+    let existing = cart.find(item => item.slug === product.slug && (item.type || 'product') === (product.type || 'product'));
+    if (existing) existing.qty = (Number(existing.qty) || 1) + 1;
+    else cart.push({...product, qty: 1});
     localStorage.setItem('giftvibe_cart', JSON.stringify(cart));
+    if (window.updateCartUI) window.updateCartUI();
     
-    showNotification(`"${name}" added to cart!`);
+    showNotification(`"${product.name}" added to cart!`);
 }
 
-function giftBuyNow(event, href) {
+function giftBuyNow(event, slug, type) {
     event.preventDefault();
     event.stopPropagation();
-    window.location.href = href;
+    window.giftRequireAuth('/checkout?' + (type === 'combo' ? 'combo' : 'product') + '=' + encodeURIComponent(slug));
 }
+function giftToggleFavorite(event, button, product) {
+    event.preventDefault();event.stopPropagation();
+    let favorites=[];try{favorites=JSON.parse(localStorage.getItem('giftvibe_favorites')||'[]');if(!Array.isArray(favorites))favorites=[];}catch(error){}
+    const index=favorites.findIndex(item=>item.slug===product.slug&&(item.type||'product')===(product.type||'product'));
+    if(index>=0){favorites.splice(index,1);showNotification(`"${product.name}" removed from favorites.`);}else{favorites.push(product);showNotification(`"${product.name}" saved to favorites!`);}
+    localStorage.setItem('giftvibe_favorites',JSON.stringify(favorites));
+    updateFavoriteButtons();if(window.updateWishlistUI)window.updateWishlistUI();
+}
+function updateFavoriteButtons(){let favorites=[];try{favorites=JSON.parse(localStorage.getItem('giftvibe_favorites')||'[]');}catch(error){}document.querySelectorAll('[data-favorite-slug]').forEach(function(button){const active=favorites.some(item=>(item.type||'product')+':'+item.slug===button.dataset.favoriteSlug);button.classList.toggle('bg-accent',active);button.classList.toggle('text-white',active);button.classList.toggle('bg-white',!active);button.classList.toggle('text-primary',!active);button.querySelector('iconify-icon').setAttribute('icon',active?'heroicons:heart-solid':'heroicons:heart');});}
+document.addEventListener('DOMContentLoaded',updateFavoriteButtons);
 </script>
 <?php endif; ?>

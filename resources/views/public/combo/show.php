@@ -5,6 +5,7 @@ declare(strict_types=1);
 $product = [
     'id' => $combo['id'],
     'name' => $combo['name'],
+    'slug' => $combo['slug'],
     'sku' => 'COMBO-' . $combo['id'],
     'base_price' => $combo['price'],
     'sale_price' => null,
@@ -14,6 +15,7 @@ $product = [
     'short_description' => $combo['description'],
     'description' => '',
     'video_url' => '',
+    '_type' => 'combo',
 ];
 $productVideos = $comboVideos;
 $relatedProducts = $comboProducts;

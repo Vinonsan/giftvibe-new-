@@ -45,7 +45,33 @@ CREATE TABLE `admin_notifications` (
   KEY `idx_admin_notifications_status` (`status`),
   KEY `idx_admin_notifications_entity` (`entity_type`,`entity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `customer_notifications`;
+CREATE TABLE `customer_notifications` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `order_id` bigint(20) unsigned DEFAULT NULL,
+  `phone` varchar(40) NOT NULL,
+  `message` varchar(500) NOT NULL,
+  `status` enum('queued','sent','failed') NOT NULL DEFAULT 'queued',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_customer_notifications_user` (`user_id`),
+  KEY `idx_customer_notifications_order` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `bank_accounts`;
+CREATE TABLE `bank_accounts` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `bank_name` varchar(120) NOT NULL,
+  `account_name` varchar(190) NOT NULL,
+  `account_number` varchar(100) NOT NULL,
+  `branch` varchar(120) DEFAULT NULL,
+  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 DROP TABLE IF EXISTS `banners`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -55,6 +81,7 @@ CREATE TABLE `banners` (
   `subtitle` varchar(255) DEFAULT NULL,
   `image_path` varchar(255) NOT NULL,
   `link_url` varchar(255) DEFAULT NULL,
+  `background_color` char(7) NOT NULL DEFAULT '#0B1528',
   `placement` varchar(80) NOT NULL DEFAULT 'home_hero',
   `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
@@ -178,6 +205,9 @@ CREATE TABLE `combos` (
   `description` text DEFAULT NULL,
   `price` decimal(12,2) NOT NULL DEFAULT 0.00,
   `status` enum('draft','active') NOT NULL DEFAULT 'draft',
+  `meta_title` varchar(190) DEFAULT NULL,
+  `meta_description` varchar(255) DEFAULT NULL,
+  `search_keywords` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
@@ -829,6 +859,7 @@ CREATE TABLE `products` (
   `status` enum('draft','active','inactive','archived') NOT NULL DEFAULT 'draft',
   `meta_title` varchar(190) DEFAULT NULL,
   `meta_description` varchar(255) DEFAULT NULL,
+  `search_keywords` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `video_url` varchar(255) DEFAULT NULL,
@@ -929,6 +960,39 @@ CREATE TABLE `settings` (
   UNIQUE KEY `setting_key` (`setting_key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `general_settings`;
+CREATE TABLE `general_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `site_name` varchar(190) NOT NULL DEFAULT 'GiftVibe',
+  `site_description` text DEFAULT NULL,
+  `site_logo` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `contact_settings`;
+CREATE TABLE `contact_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `contact_email` varchar(190) DEFAULT NULL,
+  `contact_phone` varchar(40) DEFAULT NULL,
+  `contact_address` text DEFAULT NULL,
+  `social_facebook` varchar(255) DEFAULT NULL,
+  `social_instagram` varchar(255) DEFAULT NULL,
+  `social_youtube` varchar(255) DEFAULT NULL,
+  `social_twitter` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `footer_settings`;
+CREATE TABLE `footer_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `quick_links` text DEFAULT NULL,
+  `products_links` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 DROP TABLE IF EXISTS `uploads`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -946,6 +1010,7 @@ CREATE TABLE `uploads` (
   CONSTRAINT `fk_uploads_user` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `user_addresses`;
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -956,7 +1021,15 @@ CREATE TABLE `users` (
   `last_name` varchar(100) DEFAULT NULL,
   `email` varchar(190) NOT NULL,
   `phone` varchar(40) DEFAULT NULL,
+  `phone_2` varchar(40) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `address_line_1` varchar(255) DEFAULT NULL,
+  `city` varchar(120) DEFAULT NULL,
+  `district` varchar(120) DEFAULT NULL,
+  `avatar` varchar(30) NOT NULL DEFAULT 'avatar_1',
   `password_hash` varchar(255) NOT NULL,
+  `otp_code` varchar(10) DEFAULT NULL,
+  `otp_expires_at` timestamp NULL DEFAULT NULL,
   `status` enum('active','inactive','blocked') NOT NULL DEFAULT 'active',
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `phone_verified_at` timestamp NULL DEFAULT NULL,
@@ -969,6 +1042,21 @@ CREATE TABLE `users` (
   KEY `fk_users_role` (`role_id`),
   CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `user_addresses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `label` varchar(80) NOT NULL DEFAULT 'Delivery address',
+  `address_line_1` varchar(255) NOT NULL,
+  `address_line_2` varchar(255) DEFAULT NULL,
+  `city` varchar(120) NOT NULL,
+  `district` varchar(120) NOT NULL,
+  `is_default` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user_addresses_user` (`user_id`),
+  CONSTRAINT `fk_user_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `wishlists`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

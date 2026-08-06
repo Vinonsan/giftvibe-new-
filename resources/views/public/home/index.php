@@ -12,17 +12,34 @@ declare(strict_types=1);
 ?>
 
 <div class="flex flex-col gap-4">
-<?php require BASE_PATH . '/resources/views/public/home/components/categories.php'; ?>
- 
-<?php require BASE_PATH . '/resources/views/public/home/components/hero.php'; ?>
+     
+    <?php require BASE_PATH . '/resources/views/public/home/components/hero.php'; ?>
+    
+    <div class="scroll-reveal">
+        <?php require BASE_PATH . '/resources/views/public/home/components/categories.php'; ?>
+    </div>
 
-<?php require BASE_PATH . '/resources/views/public/home/components/products.php'; ?>
-
-<?php require BASE_PATH . '/resources/views/public/home/components/combos.php'; ?>
-<?php $cta = $homepageCtas['home_after_categories'] ?? null; require BASE_PATH . '/resources/views/components/public/cta-banner.php'; ?>
-
-<?php require BASE_PATH . '/resources/views/public/home/components/testimonials.php'; ?>
-
-<?php require BASE_PATH . '/resources/views/public/home/components/faqs.php'; ?>
-<?php $cta = $homepageCtas['home_between_products_combos'] ?? null; require BASE_PATH . '/resources/views/components/public/cta-banner.php'; ?>
+    <div class="scroll-reveal">
+        <?php require BASE_PATH . '/resources/views/public/home/components/products.php'; ?>
+    </div>
+    
+    <div class="scroll-reveal">
+        <?php require BASE_PATH . '/resources/views/public/home/components/combos.php'; ?>
+    </div>
+    
+    <div class="scroll-reveal">
+        <?php $cta = $homepageCtas['home_after_categories'] ?? null; require BASE_PATH . '/resources/views/components/public/cta-banner.php'; ?>
+    </div>
+    
+    <div class="scroll-reveal">
+        <?php require BASE_PATH . '/resources/views/public/home/components/testimonials.php'; ?>
+    </div>
+    
+    <div class="scroll-reveal">
+        <?php require BASE_PATH . '/resources/views/public/home/components/faqs.php'; ?>
+    </div>
+    
+    <div class="scroll-reveal">
+        <?php $cta = $homepageCtas['home_between_products_combos'] ?? null; require BASE_PATH . '/resources/views/components/public/cta-banner.php'; ?>
+    </div>
 </div>

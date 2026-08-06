@@ -14,6 +14,7 @@ $inStock=(int)$product['stock_quantity']>0;
 $detailBackUrl=(string)($detailBackUrl??'/shop');
 $relatedHeading=(string)($relatedHeading??'You may also like');
 $relatedDescription=(string)($relatedDescription??'');
+$itemType=(string)($product['_type']??'product');
 $videos=[];
 foreach(($productVideos??[]) as $videoUrl){$videoUrl=trim((string)$videoUrl);if($videoUrl==='')continue;$youtubeId='';if(preg_match('~(?:youtu\.be/|youtube(?:-nocookie)?\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{6,})~i',$videoUrl,$videoMatch))$youtubeId=$videoMatch[1];$videos[]=['url'=>$videoUrl,'youtube_id'=>$youtubeId];}
 ?>
@@ -41,8 +42,8 @@ foreach(($productVideos??[]) as $videoUrl){$videoUrl=trim((string)$videoUrl);if(
             <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div class="flex flex-col gap-3 sm:flex-row">
                     <div class="flex h-12 items-center justify-between rounded-xl border border-slate-200 bg-white px-2 sm:w-36"><button type="button" onclick="adjustQuantity(-1)" class="h-9 w-9 rounded-lg text-xl text-slate-500 hover:bg-slate-100">−</button><input id="product-quantity" value="1" readonly class="w-10 border-0 bg-transparent text-center font-bold text-secondary outline-none"><button type="button" onclick="adjustQuantity(1)" class="h-9 w-9 rounded-lg text-xl text-slate-500 hover:bg-slate-100">+</button></div>
-                    <button type="button" onclick="detailAddCart('<?=htmlspecialchars(addslashes($productName),ENT_QUOTES)?>')" <?=$inStock?'':'disabled'?> class="h-12 flex-1 rounded-xl border border-primary bg-white px-5 text-sm font-bold text-primary transition hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40">Add to cart</button>
-                    <button type="button" onclick="detailBuyNow('<?=htmlspecialchars(addslashes($productName),ENT_QUOTES)?>')" <?=$inStock?'':'disabled'?> class="h-12 flex-1 rounded-xl bg-primary px-5 text-sm font-bold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40">Buy now</button>
+                    <button type="button" onclick='detailAddCart(<?= htmlspecialchars(json_encode(['name'=>$productName,'slug'=>(string)$product['slug'],'type'=>$itemType,'price'=>$currentPrice,'image'=>$primaryImage], JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT), ENT_QUOTES) ?>)' <?=$inStock?'':'disabled'?> class="h-12 flex-1 rounded-xl border border-primary bg-white px-5 text-sm font-bold text-primary transition hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-40">Add to cart</button>
+                    <button type="button" onclick="detailBuyNow('<?=htmlspecialchars((string)$product['slug'],ENT_QUOTES)?>','<?=htmlspecialchars($itemType,ENT_QUOTES)?>')" <?=$inStock?'':'disabled'?> class="h-12 flex-1 rounded-xl bg-primary px-5 text-sm font-bold text-white transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40">Buy now</button>
                 </div>
             </div>
 
@@ -78,7 +79,7 @@ function closeLightbox(){var box=document.getElementById('product-lightbox');box
 function moveLightbox(step){currentGalleryIndex=(currentGalleryIndex+step+productGalleryImages.length)%productGalleryImages.length;updateLightbox();}
 document.addEventListener('keydown',function(event){var box=document.getElementById('product-lightbox');if(box.getAttribute('aria-hidden')==='true')return;if(event.key==='Escape')closeLightbox();if(event.key==='ArrowLeft')moveLightbox(-1);if(event.key==='ArrowRight')moveLightbox(1);});
 function adjustQuantity(change){var input=document.getElementById('product-quantity');input.value=Math.max(1,Math.min(10,(parseInt(input.value,10)||1)+change));}
-function saveToCart(name){var quantity=parseInt(document.getElementById('product-quantity').value,10)||1;var cart=JSON.parse(localStorage.getItem('giftvibe_cart')||'[]');cart.push({name:name,qty:quantity});localStorage.setItem('giftvibe_cart',JSON.stringify(cart));return quantity;}
-function detailAddCart(name){var quantity=saveToCart(name);alert(quantity+' × '+name+' added to cart.');}
-function detailBuyNow(name){saveToCart(name);window.location.href='/shop';}
+function saveToCart(product){var quantity=parseInt(document.getElementById('product-quantity').value,10)||1;var cart=JSON.parse(localStorage.getItem('giftvibe_cart')||'[]');var existing=cart.find(function(item){return item.slug===product.slug&&(item.type||'product')===(product.type||'product');});if(existing)existing.qty=(Number(existing.qty)||1)+quantity;else cart.push(Object.assign({},product,{qty:quantity}));localStorage.setItem('giftvibe_cart',JSON.stringify(cart));if(window.updateCartUI)window.updateCartUI();return quantity;}
+function detailAddCart(product){var quantity=saveToCart(product);window.GiftVibeToast.show(quantity+' × '+product.name+' added to cart.');}
+function detailBuyNow(slug,type){var quantity=parseInt(document.getElementById('product-quantity').value,10)||1;window.giftRequireAuth('/checkout?'+(type==='combo'?'combo':'product')+'='+encodeURIComponent(slug)+'&qty='+quantity);}
 </script>

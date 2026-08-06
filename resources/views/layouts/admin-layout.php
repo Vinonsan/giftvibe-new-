@@ -132,6 +132,7 @@ $adminUser = $adminUser ?? [
     </script>
 </head>
 <body class="bg-white font-sans text-slate-800 antialiased">
+    <?php require BASE_PATH . '/resources/views/components/base/feedback.php'; ?>
     <?php require BASE_PATH . '/resources/views/components/navigation/admin-sidebar.php'; ?>
 
     <div class="flex min-h-screen min-w-0 flex-col lg:pl-72" data-admin-content>

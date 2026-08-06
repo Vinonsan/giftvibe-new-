@@ -4,16 +4,18 @@ declare(strict_types=1);
 use App\Core\Database;
 
 $pdo = Database::connection();
-$settings = $pdo->query("SELECT setting_key, setting_value FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+$general = $pdo->query("SELECT * FROM general_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+$contact = $pdo->query("SELECT * FROM contact_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+$footer = $pdo->query("SELECT * FROM footer_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
 
-$logo = (string)($settings['site.logo'] ?? '/assets/images/giftvibe-mark.svg');
+$logo = (string)($general['site_logo'] ?? '/assets/images/logo.svg');
 if (str_starts_with($logo, 'public/')) {
     $logo = '/' . substr($logo, 7);
 }
-$siteName = (string)($settings['site.name'] ?? 'GiftVibe');
-$description = (string)($settings['site.description'] ?? 'Thoughtful gifts for every person, moment and celebration—all in one place.');
+$siteName = (string)($general['site_name'] ?? 'GiftVibe');
+$description = (string)($general['site_description'] ?? 'Thoughtful gifts for every person, moment and celebration—all in one place.');
 
-$quickLinks = json_decode((string)($settings['footer.quick_links'] ?? '[]'), true) ?: [
+$quickLinks = json_decode((string)($footer['quick_links'] ?? '[]'), true) ?: [
     ['label' => 'Home', 'href' => '/'],
     ['label' => 'Shop', 'href' => '/shop'],
     ['label' => 'Services', 'href' => '/services'],
@@ -22,30 +24,30 @@ $quickLinks = json_decode((string)($settings['footer.quick_links'] ?? '[]'), tru
     ['label' => 'Contact', 'href' => '/contact']
 ];
 
-$productsLinks = json_decode((string)($settings['footer.products_links'] ?? '[]'), true) ?: [
+$productsLinks = json_decode((string)($footer['products_links'] ?? '[]'), true) ?: [
     ['label' => 'All Combos', 'href' => '/combos'],
     ['label' => 'Best Sellers', 'href' => '/shop?sort=popular']
 ];
 
-$email = (string)($settings['site.contact_email'] ?? '');
-$phone = (string)($settings['site.contact_phone'] ?? '');
-$address = (string)($settings['site.contact_address'] ?? '');
+$email = (string)($contact['contact_email'] ?? '');
+$phone = (string)($contact['contact_phone'] ?? '');
+$address = (string)($contact['contact_address'] ?? '');
 
 $socials = [
     'facebook' => [
-        'url' => (string)($settings['social.facebook'] ?? ''),
+        'url' => (string)($contact['social_facebook'] ?? ''),
         'icon' => 'fa6-brands:facebook-f'
     ],
     'instagram' => [
-        'url' => (string)($settings['social.instagram'] ?? ''),
+        'url' => (string)($contact['social_instagram'] ?? ''),
         'icon' => 'fa6-brands:instagram'
     ],
     'youtube' => [
-        'url' => (string)($settings['social.youtube'] ?? ''),
+        'url' => (string)($contact['social_youtube'] ?? ''),
         'icon' => 'fa6-brands:youtube'
     ],
     'twitter' => [
-        'url' => (string)($settings['social.twitter'] ?? ''),
+        'url' => (string)($contact['social_twitter'] ?? ''),
         'icon' => 'fa6-brands:x-twitter'
     ]
 ];
@@ -108,19 +110,19 @@ $socials = [
                 <div class="space-y-3 text-sm text-slate-400">
                     <?php if ($email !== ''): ?>
                         <div class="flex items-start gap-2.5">
-                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:letter-bold-duotone" width="20" height="20" aria-hidden="true"></iconify-icon></span>
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:letter-bold" width="20" height="20" aria-hidden="true"></iconify-icon></span>
                             <a href="mailto:<?= htmlspecialchars($email) ?>" class="hover:text-white break-all"><?= htmlspecialchars($email) ?></a>
                         </div>
                     <?php endif; ?>
                     <?php if ($phone !== ''): ?>
                         <div class="flex items-start gap-2.5">
-                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:phone-calling-bold-duotone" width="20" height="20" aria-hidden="true"></iconify-icon></span>
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:phone-calling-bold" width="20" height="20" aria-hidden="true"></iconify-icon></span>
                             <span class="hover:text-white"><?= htmlspecialchars($phone) ?></span>
                         </div>
                     <?php endif; ?>
                     <?php if ($address !== ''): ?>
                         <div class="flex items-start gap-2.5">
-                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:map-point-bold-duotone" width="20" height="20" aria-hidden="true"></iconify-icon></span>
+                            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-sm"><iconify-icon icon="solar:map-point-bold" width="20" height="20" aria-hidden="true"></iconify-icon></span>
                             <address class="not-italic leading-relaxed"><?= nl2br(htmlspecialchars($address)) ?></address>
                         </div>
                     <?php endif; ?>

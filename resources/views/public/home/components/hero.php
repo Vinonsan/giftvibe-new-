@@ -9,11 +9,13 @@ declare(strict_types=1);
  */
 
 $heroSlides = $heroSlides ?? [];
+$initialBackground = (string) ($heroSlides[0]['background_color'] ?? '#0B1528');
+$initialBackground = preg_match('/^#[0-9A-Fa-f]{6}$/', $initialBackground) ? $initialBackground : '#0B1528';
 ?>
 
 <div id="hero-slider-container" 
-     class="relative mx-auto w-full max-w-7xl overflow-hidden rounded-3xl bg-[#0B1528] px-4 transition-colors duration-1000 ease-in-out"
-     style="min-height: 520px;">
+     class="relative mx-auto w-full max-w-7xl overflow-hidden rounded-3xl px-4 transition-colors duration-1000 ease-in-out"
+     style="min-height: 520px; background-color: <?= htmlspecialchars($initialBackground) ?>;">
 
     <!-- Background overlays for smooth color blending -->
     <div class="absolute inset-0 bg-linear-to-t from-black/20 to-transparent pointer-events-none"></div>
@@ -27,13 +29,14 @@ $heroSlides = $heroSlides ?? [];
             $subText = $parts[1] ?? '';
             $price = $parts[2] ?? '';
             $btnText = $parts[3] ?? 'SHOP NOW';
-            $bgColor = $parts[4] ?? 'bg-[#0B1528]';
+            $bgColor = (string) ($slide['background_color'] ?? '#0B1528');
+            $bgColor = preg_match('/^#[0-9A-Fa-f]{6}$/', $bgColor) ? $bgColor : '#0B1528';
             
             $isActive = $index === 0;
         ?>
             <!-- Single Slide Panel -->
             <div data-hero-slide="<?= $index ?>" 
-                 data-bg-class="<?= htmlspecialchars($bgColor) ?>"
+                 data-bg-color="<?= htmlspecialchars($bgColor) ?>"
                  class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full transition-all duration-700 absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 <?= $isActive ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 z-0' ?>">
                 
                 <!-- Left: Text Content (Slides UP when active) -->
@@ -153,8 +156,8 @@ $heroSlides = $heroSlides ?? [];
         });
 
         /* Background color swap */
-        var bgClass = nextSlide.getAttribute('data-bg-class');
-        container.className = container.className.replace(/bg-\[[^\]]+\]/g, bgClass);
+        var bgColor = nextSlide.getAttribute('data-bg-color');
+        if (/^#[0-9A-Fa-f]{6}$/.test(bgColor)) container.style.backgroundColor = bgColor;
 
         /* Update dot highlights */
         dots[current].className = 'h-2.5 w-2.5 bg-white/40 hover:bg-white/70 rounded-full transition-all duration-300 cursor-pointer focus:outline-none';

@@ -12,6 +12,7 @@ $product = [
     'base_price' => $combo['price'] ?? 0,
     'sale_price' => null,
     'category_names' => (int) ($combo['product_count'] ?? 0) . ' products included',
+    '_type' => 'combo',
     'is_featured' => 0,
 ];
 require BASE_PATH . '/resources/views/components/base/product-card.php';

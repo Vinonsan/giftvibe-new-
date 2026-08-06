@@ -10,7 +10,7 @@ $fallbackImages = [
     <div class="mx-auto max-w-7xl">
    
         <?php if ($categories): ?>
-            <div data-category-wrap class="mt-9">
+            <div data-category-wrap class="py-8">
                 <div data-category-slider class="flex cursor-grab snap-x snap-mandatory gap-4 overflow-x-auto py-1 select-none active:cursor-grabbing [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <?php foreach ($categories as $index => $category):
                     $name = (string) ($category['name'] ?? $category['title'] ?? 'Gift collection');
@@ -24,7 +24,9 @@ $fallbackImages = [
                     $href = trim((string) ($category['link_url'] ?? '')) ?: ($slug !== '' ? '/shop?category=' . rawurlencode($slug) : '/shop');
                 ?>
                     <a href="<?= htmlspecialchars($href) ?>" aria-label="<?= htmlspecialchars($name) ?>" class="group h-44 w-[46%] shrink-0 snap-start overflow-hidden rounded-xl border-2 border-secondary bg-white p-1.5 transition hover:border-primary sm:w-[30%] md:h-36 md:w-[calc((100%_-_7rem)/8)]">
-                        <img src="<?= htmlspecialchars($image) ?>" alt="Shop <?= htmlspecialchars($name) ?> at GiftVibe" width="320" height="240" loading="lazy" decoding="async" class="h-full w-full rounded-lg object-cover transition duration-500 group-hover:scale-[1.02]">
+                        <div class="img-skeleton h-full w-full rounded-lg">
+                            <img src="<?= htmlspecialchars($image) ?>" alt="Shop <?= htmlspecialchars($name) ?> at GiftVibe" width="320" height="240" loading="lazy" decoding="async" class="lazy-img h-full w-full rounded-lg object-cover transition duration-500 group-hover:scale-[1.02]" onload="this.classList.add('loaded'); this.parentElement.classList.remove('img-skeleton');">
+                        </div>
                     </a>
                 <?php endforeach; ?>
                 </div>

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Core\Database;
+
 $sidebarMenu = $sidebarMenu ?? [];
 $currentPath = $currentPath ?? ($_SERVER['REQUEST_URI'] ?? '/admin');
 $currentPath = rtrim((string) parse_url($currentPath, PHP_URL_PATH), '/') ?: '/';
@@ -9,6 +11,11 @@ $footerMenu = array_values(array_filter(
     $sidebarMenu,
     static fn (array $item): bool => ($item['placement'] ?? '') === 'footer'
 ));
+
+$pdo = Database::connection();
+$general = $pdo->query("SELECT * FROM general_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+$logo = (string)($general['site_logo'] ?? '/assets/images/logo.svg');
+$siteName = (string)($general['site_name'] ?? 'GiftVibe');
 ?>
 
 <style>
@@ -41,11 +48,11 @@ $footerMenu = array_values(array_filter(
     <div class="shrink-0 border-b border-slate-100 p-3">
         <div class="flex h-14 items-center justify-between  px-3.5">
             <a href="/admin" class="flex min-w-0 items-center gap-3">
-                <img src="/assets/images/giftvibe-mark.svg"
-                     alt="GiftVibe"
-                     class="h-9 w-9 shrink-0 rounded-lg shadow-sm">
+                <img src="<?= htmlspecialchars($logo) ?>"
+                     alt="<?= htmlspecialchars($siteName) ?>"
+                     class="h-9 w-9 shrink-0 rounded-lg shadow-sm object-contain border border-slate-100">
                 <span class="truncate text-lg font-extrabold tracking-tight text-secondary" data-sidebar-logo-text>
-                    Gift<span class="text-primary">Vibe</span>
+                    <?= htmlspecialchars($siteName) ?>
                 </span>
             </a>
 

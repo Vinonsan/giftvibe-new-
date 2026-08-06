@@ -6,7 +6,9 @@ if (!$combos) return;
     <div class="mx-auto max-w-7xl py-12">
         <div class="grid items-stretch gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)] lg:gap-7">
             <a href="/combos" class="group relative min-h-[430px] overflow-hidden rounded-3xl bg-secondary md:min-h-full">
-                <img src="/assets/images/combo-showcase-giftvibe.png" alt="GiftVibe curated gift combos" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                <div class="img-skeleton absolute inset-0 h-full w-full">
+                    <img src="/assets/images/combo-showcase-giftvibe.jpg" alt="GiftVibe curated gift combos" class="lazy-img absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" onload="this.classList.add('loaded'); this.parentElement.classList.remove('img-skeleton');" loading="lazy" decoding="async">
+                </div>
                 <div class="absolute inset-0 bg-black/30"></div>
                 <div class="absolute inset-0 bg-linear-to-b from-secondary/90 via-secondary/45 to-black/65"></div>
                 <div class="relative flex h-full min-h-[430px] flex-col items-start p-7 text-white sm:p-9 md:min-h-full lg:p-10">

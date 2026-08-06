@@ -4,11 +4,13 @@ if (!$products) return;
 ?>
 <section class="bg-white ">
     <div class="mx-auto max-w-7xl">
-        <div class="grid items-stretch gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)] lg:gap-7">
+        <div class="grid items-stretch gap-5 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)] lg:gap-6">
             <a href="/shop" class="group relative min-h-[430px] overflow-hidden rounded-3xl bg-secondary md:min-h-full">
-                <img src="/assets/images/product-showcase-giftvibe.png" alt="GiftVibe premium gift collection" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+                <div class="img-skeleton absolute inset-0 h-full w-full">
+                    <img src="/assets/images/product-showcase-giftvibe.jpg" alt="GiftVibe premium gift collection" class="lazy-img absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" onload="this.classList.add('loaded'); this.parentElement.classList.remove('img-skeleton');" loading="lazy" decoding="async">
+                </div>
                 <div class="absolute inset-0 bg-black/30"></div>
-                <div class="absolute inset-0 bg-gradient-to-b from-secondary/90 via-secondary/45 to-black/65"></div>
+                <div class="absolute inset-0 bg-linear-to-b from-secondary/90 via-secondary/45 to-black/65"></div>
                 <div class="relative flex h-full min-h-[430px] flex-col items-start p-7 text-white sm:p-9 md:min-h-full lg:p-10">
                     <span class="inline-flex rounded-md bg-rose-600 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white shadow-lg shadow-black/15">Made to delight</span>
                     <h2 class="mt-4 max-w-sm text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Popular gifts for every special moment</h2>
@@ -17,7 +19,7 @@ if (!$products) return;
                 </div>
             </a>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <?php foreach ($products as $product) require BASE_PATH . '/resources/views/components/base/product-card.php'; ?>
             </div>
         </div>

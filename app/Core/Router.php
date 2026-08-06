@@ -36,6 +36,13 @@ class Router
     {
         $path = rtrim(parse_url($uri, PHP_URL_PATH) ?: '/', '/') ?: '/';
 
+        // Protect admin pages, while allowing every step of the login flow.
+        $publicAdminRoutes = ['/admin/login', '/admin/login/verify', '/admin/logout'];
+        if (str_starts_with($path, '/admin') && !in_array($path, $publicAdminRoutes, true)) {
+            $middleware = new \App\Middleware\AdminAuthMiddleware();
+            $middleware->handle();
+        }
+
         $handler = $this->routes[$method][$path] ?? null;
 
         if ($handler === null) {

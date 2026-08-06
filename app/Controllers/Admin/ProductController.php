@@ -11,6 +11,13 @@ class ProductController extends Controller
     public function index(): void
     {
         $pdo = Database::connection();
+        
+        // Ensure search_keywords column exists
+        $columns = $pdo->query("DESCRIBE `products`")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('search_keywords', $columns, true)) {
+            $pdo->exec("ALTER TABLE `products` ADD `search_keywords` TEXT NULL DEFAULT NULL");
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') $this->handlePost($pdo);
         $products = $pdo->query("SELECT p.*,pi.image_path,GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') category_names FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN product_categories pc ON pc.product_id=p.id LEFT JOIN categories c ON c.id=pc.category_id GROUP BY p.id ORDER BY p.id DESC")->fetchAll();
         $categories = $pdo->query("SELECT id,name FROM categories WHERE status='active' ORDER BY sort_order,id")->fetchAll();
@@ -80,14 +87,16 @@ class ProductController extends Controller
         
         $metaTitle = trim((string) ($_POST['meta_title'] ?? '')) ?: $name;
         $metaDescription = trim((string) ($_POST['meta_description'] ?? '')) ?: trim((string) ($_POST['short_description'] ?? ''));
-        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,max(0,(int)($_POST['stock_quantity'] ?? 0)),isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl,$metaTitle,$metaDescription];
+        $searchKeywords = trim((string) ($_POST['search_keywords'] ?? ''));
+        
+        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,max(0,(int)($_POST['stock_quantity'] ?? 0)),isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl,$metaTitle,$metaDescription,$searchKeywords];
         $pdo->beginTransaction();
         try {
             if ($id) { 
-                $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,description=?,base_price=?,cost_price=?,sale_price=NULL,stock_quantity=?,is_featured=?,status=?,video_url=?,meta_title=?,meta_description=? WHERE id=?')->execute([...$data,$id]); 
+                $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,description=?,base_price=?,cost_price=?,sale_price=NULL,stock_quantity=?,is_featured=?,status=?,video_url=?,meta_title=?,meta_description=?,search_keywords=? WHERE id=?')->execute([...$data,$id]); 
             }
             else { 
-                $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,description,base_price,cost_price,sale_price,stock_quantity,is_featured,status,video_url,meta_title,meta_description) VALUES (?,?,?,?,?,?,?,NULL,?,?,?,?,?,?)')->execute($data); 
+                $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,description,base_price,cost_price,sale_price,stock_quantity,is_featured,status,video_url,meta_title,meta_description,search_keywords) VALUES (?,?,?,?,?,?,?,NULL,?,?,?,?,?,?,?)')->execute($data); 
                 $id=(int)$pdo->lastInsertId(); 
             }
             

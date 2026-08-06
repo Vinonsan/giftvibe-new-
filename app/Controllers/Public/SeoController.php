@@ -30,37 +30,44 @@ final class SeoController
     {
         header('Content-Type: application/xml; charset=UTF-8');
         $siteUrl = $this->siteUrl();
+        
+        // Define priority order: Home (1.0), Shop (0.9), About (0.8), Services (0.7), Contact (0.6), Blog (0.5)
         $urls = [
-            ['path' => '/', 'modified' => null],
-            ['path' => '/shop', 'modified' => null],
-            ['path' => '/combos', 'modified' => null],
-            ['path' => '/services', 'modified' => null],
-            ['path' => '/blog', 'modified' => null],
-            ['path' => '/reviews', 'modified' => null],
-            ['path' => '/about', 'modified' => null],
-            ['path' => '/contact', 'modified' => null],
-            ['path' => '/privacy', 'modified' => null],
-            ['path' => '/terms', 'modified' => null],
+            ['path' => '/', 'priority' => '1.0', 'changefreq' => 'daily', 'modified' => null],
+            ['path' => '/shop', 'priority' => '0.9', 'changefreq' => 'daily', 'modified' => null],
+            ['path' => '/about', 'priority' => '0.8', 'changefreq' => 'weekly', 'modified' => null],
+            ['path' => '/services', 'priority' => '0.7', 'changefreq' => 'weekly', 'modified' => null],
+            ['path' => '/contact', 'priority' => '0.6', 'changefreq' => 'monthly', 'modified' => null],
+            ['path' => '/blog', 'priority' => '0.5', 'changefreq' => 'daily', 'modified' => null],
+            ['path' => '/combos', 'priority' => '0.4', 'changefreq' => 'daily', 'modified' => null],
+            ['path' => '/reviews', 'priority' => '0.4', 'changefreq' => 'daily', 'modified' => null],
+            ['path' => '/privacy', 'priority' => '0.3', 'changefreq' => 'yearly', 'modified' => null],
+            ['path' => '/terms', 'priority' => '0.3', 'changefreq' => 'yearly', 'modified' => null],
         ];
 
         $pdo = Database::connection();
         foreach ($pdo->query("SELECT slug, updated_at FROM categories WHERE status='active' ORDER BY id")->fetchAll() as $row) {
-            $urls[] = ['path' => '/shop?category=' . rawurlencode((string) $row['slug']), 'modified' => $row['updated_at']];
+            $urls[] = ['path' => '/shop?category=' . rawurlencode((string) $row['slug']), 'priority' => '0.4', 'changefreq' => 'weekly', 'modified' => $row['updated_at']];
         }
         foreach ($pdo->query("SELECT slug, updated_at FROM products WHERE status='active' ORDER BY id")->fetchAll() as $row) {
-            $urls[] = ['path' => '/shop?product=' . rawurlencode((string) $row['slug']), 'modified' => $row['updated_at']];
+            $urls[] = ['path' => '/shop?product=' . rawurlencode((string) $row['slug']), 'priority' => '0.4', 'changefreq' => 'weekly', 'modified' => $row['updated_at']];
         }
         foreach ($pdo->query("SELECT slug, updated_at FROM combos WHERE status='active' ORDER BY id")->fetchAll() as $row) {
-            $urls[] = ['path' => '/combos?combo=' . rawurlencode((string) $row['slug']), 'modified' => $row['updated_at']];
+            $urls[] = ['path' => '/combos?combo=' . rawurlencode((string) $row['slug']), 'priority' => '0.4', 'changefreq' => 'weekly', 'modified' => $row['updated_at']];
         }
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         echo "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
         foreach ($urls as $url) {
             $location = htmlspecialchars($siteUrl . $url['path'], ENT_XML1 | ENT_QUOTES, 'UTF-8');
-            echo "  <url><loc>{$location}</loc>";
-            if (!empty($url['modified'])) echo '<lastmod>' . htmlspecialchars(date('c', strtotime((string) $url['modified'])), ENT_XML1) . '</lastmod>';
-            echo "</url>\n";
+            echo "  <url>\n";
+            echo "    <loc>{$location}</loc>\n";
+            if (!empty($url['modified'])) {
+                echo '    <lastmod>' . htmlspecialchars(date('c', strtotime((string) $url['modified'])), ENT_XML1) . "</lastmod>\n";
+            }
+            echo "    <changefreq>" . $url['changefreq'] . "</changefreq>\n";
+            echo "    <priority>" . $url['priority'] . "</priority>\n";
+            echo "  </url>\n";
         }
         echo "</urlset>\n";
     }

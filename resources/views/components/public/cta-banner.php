@@ -5,7 +5,7 @@ $image=trim((string)($cta['image_path']??''));
 $background=preg_match('/^#[0-9A-Fa-f]{6}$/',(string)($cta['background_color']??''))?$cta['background_color']:'#0B182E';
 $spray=[[8,18,4,.55],[15,72,2,.4],[28,12,3,.7],[38,82,4,.35],[47,22,2,.6],[58,68,3,.45],[66,15,2,.7],[73,88,4,.4],[84,28,3,.6],[92,73,2,.5],[52,45,2,.35],[33,55,3,.5]];
 ?>
-<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+<div class="mx-auto max-w-7xl py-8 sm:py-10 lg:py-12">
 <section class="relative isolate overflow-hidden rounded-2xl text-white" style="background-color:<?=htmlspecialchars($background)?>">
     <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden opacity-70">
         <div class="absolute -left-24 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-blue-400/15 blur-3xl"></div>
@@ -20,7 +20,13 @@ $spray=[[8,18,4,.55],[15,72,2,.4],[28,12,3,.7],[38,82,4,.35],[47,22,2,.6],[58,68
                 <?php if(trim((string)($cta['button_label']??''))!==''&&trim((string)($cta['link_url']??''))!==''){$buttonLabel=(string)$cta['button_label'];$buttonVariant='solid';$buttonColor='primary';$buttonSize='lg';$buttonType='button';$buttonHref=(string)$cta['link_url'];$buttonName='';$buttonValue='';$buttonId='';$buttonIcon='';$buttonIconTrailing='<span aria-hidden="true">&rarr;</span>';$buttonIconOnly=false;$buttonFullWidth=false;$buttonDisabled=false;$buttonLoading=false;$buttonOnclick='';$buttonClass='mt-7 uppercase tracking-wide';$buttonAttributes=[];require BASE_PATH.'/resources/views/components/base/button.php';}?>
             </div>
         </div>
-        <?php if($image!==''):?><div class="min-h-64 overflow-hidden md:min-h-full"><img src="<?=htmlspecialchars($image)?>" alt="<?=htmlspecialchars($cta['title'])?>" class="h-full min-h-64 w-full object-cover" loading="lazy"></div><?php endif;?>
+        <?php if($image!==''):?>
+            <div class="min-h-64 overflow-hidden md:min-h-full">
+                <div class="img-skeleton h-full w-full">
+                    <img src="<?=htmlspecialchars($image)?>" alt="<?=htmlspecialchars($cta['title'])?>" class="lazy-img h-full min-h-64 w-full object-cover" onload="this.classList.add('loaded'); this.parentElement.classList.remove('img-skeleton');" loading="lazy" decoding="async">
+                </div>
+            </div>
+        <?php endif;?>
     </div>
 </section>
 </div>

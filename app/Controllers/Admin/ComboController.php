@@ -10,6 +10,19 @@ class ComboController extends Controller
     public function index(): void
     {
         $pdo=Database::connection();
+        
+        // Ensure SEO columns exist in combos table
+        $columns = $pdo->query("DESCRIBE `combos`")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('meta_title', $columns, true)) {
+            $pdo->exec("ALTER TABLE `combos` ADD `meta_title` VARCHAR(190) NULL DEFAULT NULL");
+        }
+        if (!in_array('meta_description', $columns, true)) {
+            $pdo->exec("ALTER TABLE `combos` ADD `meta_description` VARCHAR(255) NULL DEFAULT NULL");
+        }
+        if (!in_array('search_keywords', $columns, true)) {
+            $pdo->exec("ALTER TABLE `combos` ADD `search_keywords` TEXT NULL DEFAULT NULL");
+        }
+
         if($_SERVER['REQUEST_METHOD']==='POST')$this->handlePost($pdo);
         $combos=$pdo->query("SELECT c.*,ci.image_path,COUNT(DISTINCT cp.product_id) product_count FROM combos c LEFT JOIN combo_images ci ON ci.combo_id=c.id AND ci.is_primary=1 LEFT JOIN combo_products cp ON cp.combo_id=c.id GROUP BY c.id ORDER BY c.id DESC")->fetchAll();
         $products=$pdo->query("SELECT id,name,sku FROM products WHERE status='active' ORDER BY name")->fetchAll();
@@ -40,10 +53,15 @@ class ComboController extends Controller
         try{$files=$_FILES['combo_images']??null;if($files&&is_array($files['name']??null))foreach(array_keys($files['name']) as $index){if(($files['error'][$index]??UPLOAD_ERR_NO_FILE)===UPLOAD_ERR_NO_FILE)continue;$newImages[]=$this->upload(['tmp_name'=>$files['tmp_name'][$index]??'','error'=>$files['error'][$index],'size'=>$files['size'][$index]??0]);}}
         catch(\RuntimeException $e){$this->redirect($e->getMessage(),'error',$id);}
         if(!array_diff($existing,$deleteIds)&&!$newImages)$this->redirect('Upload at least one combo image.','error',$id);
+        
+        $metaTitle = trim((string) ($_POST['meta_title'] ?? '')) ?: $name;
+        $metaDescription = trim((string) ($_POST['meta_description'] ?? '')) ?: $description;
+        $searchKeywords = trim((string) ($_POST['search_keywords'] ?? ''));
+
         $pdo->beginTransaction();
         try{
-            if($id)$pdo->prepare('UPDATE combos SET name=?,slug=?,description=?,price=?,status=? WHERE id=?')->execute([$name,$slug,$description,$price,isset($_POST['status'])?'active':'draft',$id]);
-            else{$pdo->prepare('INSERT INTO combos(name,slug,description,price,status) VALUES(?,?,?,?,?)')->execute([$name,$slug,$description,$price,isset($_POST['status'])?'active':'draft']);$id=(int)$pdo->lastInsertId();}
+            if($id)$pdo->prepare('UPDATE combos SET name=?,slug=?,description=?,price=?,status=?,meta_title=?,meta_description=?,search_keywords=? WHERE id=?')->execute([$name,$slug,$description,$price,isset($_POST['status'])?'active':'draft',$metaTitle,$metaDescription,$searchKeywords,$id]);
+            else{$pdo->prepare('INSERT INTO combos(name,slug,description,price,status,meta_title,meta_description,search_keywords) VALUES(?,?,?,?,?,?,?,?)')->execute([$name,$slug,$description,$price,isset($_POST['status'])?'active':'draft',$metaTitle,$metaDescription,$searchKeywords]);$id=(int)$pdo->lastInsertId();}
             $pdo->prepare('DELETE FROM combo_products WHERE combo_id=?')->execute([$id]);$insert=$pdo->prepare('INSERT INTO combo_products(combo_id,product_id,sort_order) VALUES(?,?,?)');foreach($productIds as $order=>$productId)$insert->execute([$id,$productId,$order]);
             if($deleteIds){$marks=implode(',',array_fill(0,count($deleteIds),'?'));$pdo->prepare("DELETE FROM combo_images WHERE id IN ($marks) AND combo_id=?")->execute([...$deleteIds,$id]);}
             $sort=(int)$pdo->query('SELECT COALESCE(MAX(sort_order),0) FROM combo_images WHERE combo_id='.(int)$id)->fetchColumn();$insertImage=$pdo->prepare('INSERT INTO combo_images(combo_id,image_path,alt_text,sort_order,is_primary) VALUES(?,?,?,?,0)');foreach($newImages as $index=>$path)$insertImage->execute([$id,$path,$name.' '.($index+1),++$sort]);

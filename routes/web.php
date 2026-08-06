@@ -12,8 +12,10 @@ $router->get('/robots.txt', 'Public\SeoController@robots');
 $router->get('/sitemap.xml', 'Public\SeoController@sitemap');
 $router->get('/base', 'Public\BaseController@index');
 $router->get('/shop', 'Public\ShopController@index');
+$router->get('/api/shop/products', 'Public\ShopController@products');
 $router->get('/categories', 'Public\ShopController@index');
 $router->get('/cart', 'Public\CartController@index');
+$router->get('/favorites', 'Public\CartController@favorites');
 $router->get('/reviews', 'Public\ReviewController@index');
 $router->post('/reviews', 'Public\ReviewController@submit');
 $router->get('/combos', 'Public\ComboController@index');
@@ -24,6 +26,25 @@ $router->get('/contact', 'Public\PageController@contact');
 $router->get('/privacy', 'Public\PageController@privacy');
 $router->get('/terms', 'Public\PageController@terms');
 $router->post('/reviews/submit', 'Public\ReviewController@submit');
+
+// Authentication routes
+$router->get('/login', 'Public\AuthController@form');
+$router->post('/api/auth/login', 'Public\AuthController@login');
+$router->post('/api/auth/register', 'Public\AuthController@register');
+$router->get('/api/auth/logout', 'Public\AuthController@logout');
+$router->get('/api/auth/status', 'Public\AuthController@status');
+$router->post('/api/auth/avatar', 'Public\AuthController@updateAvatar');
+$router->get('/checkout', 'Public\CheckoutController@index');
+$router->post('/checkout', 'Public\CheckoutController@index');
+$router->get('/checkout/success', 'Public\CheckoutController@success');
+
+// Admin Authentication routes
+$router->get('/admin/login', 'Admin\AuthController@login');
+$router->post('/admin/login', 'Admin\AuthController@requestOtp');
+$router->get('/admin/login/verify', 'Admin\AuthController@verifyForm');
+$router->post('/admin/login/verify', 'Admin\AuthController@verifyOtp');
+$router->get('/admin/logout', 'Admin\AuthController@logout');
+
 $router->get('/admin', 'Admin\DashboardController@index');
 $router->get('/admin/hero', 'Admin\HeroController@index');
 $router->post('/admin/hero', 'Admin\HeroController@index');
@@ -39,7 +60,8 @@ $router->get('/admin/reviews', 'Admin\ReviewController@index');
 $router->post('/admin/reviews', 'Admin\ReviewController@index');
 $router->get('/admin/faqs', 'Admin\FaqController@index');
 $router->post('/admin/faqs', 'Admin\FaqController@index');
-$router->get('/admin/orders', 'Admin\PlaceholderController@orders');
+$router->get('/admin/orders', 'Admin\OrderController@index');
+$router->post('/admin/orders', 'Admin\OrderController@index');
 $router->get('/admin/customers', 'Admin\PlaceholderController@customers');
 $router->get('/admin/messages', 'Admin\PlaceholderController@messages');
 $router->get('/admin/settings', 'Admin\SettingController@index');

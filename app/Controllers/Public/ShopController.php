@@ -85,17 +85,10 @@ class ShopController extends Controller
         }
         
         // Fallback: Product Listing Grid
-        $categorySlug = trim((string) ($_GET['category'] ?? ''));
-        $sql = "SELECT p.*, pi.image_path, GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') AS category_names FROM products p LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1 LEFT JOIN product_categories pc ON pc.product_id = p.id LEFT JOIN categories c ON c.id = pc.category_id WHERE p.status = 'active'";
-        $params = [];
-        if ($categorySlug !== '') {
-            $sql .= ' AND EXISTS (SELECT 1 FROM product_categories pcf JOIN categories cf ON cf.id=pcf.category_id WHERE pcf.product_id=p.id AND cf.slug=?)';
-            $params[] = $categorySlug;
-        }
-        $sql .= ' GROUP BY p.id ORDER BY p.is_featured DESC, p.id DESC';
-        $statement = $pdo->prepare($sql);
-        $statement->execute($params);
-        $products = $statement->fetchAll();
+        $filters = $this->filters();
+        $categorySlug = $filters['category'];
+        [$products, $totalProducts] = $this->filteredProducts($pdo, $filters, 0, 20);
+        $priceBounds = $pdo->query("SELECT COALESCE(MIN(base_price),0) min_price,COALESCE(MAX(base_price),0) max_price FROM products WHERE status='active'")->fetch();
         
         $activeName = 'All gifts';
         foreach ($categories as $category) {
@@ -118,7 +111,37 @@ class ShopController extends Controller
             'metaDescription' => $categorySlug !== '' ? 'Shop ' . $activeName . ' online from GiftVibe. Discover thoughtful gifts for meaningful celebrations.' : 'Shop thoughtful gifts, flowers, sweet treats and curated gift boxes online from GiftVibe.',
             'canonicalPath' => $categoryCanonical,
             'structuredData' => ['@context'=>'https://schema.org','@type'=>'ItemList','name'=>$activeName,'url'=>$siteUrl.$categoryCanonical,'numberOfItems'=>count($itemList),'itemListElement'=>$itemList],
-            'content' => $this->render('public/shop/index', compact('products', 'categories', 'categorySlug', 'activeName')),
+            'content' => $this->render('public/shop/index', compact('products', 'categories', 'categorySlug', 'activeName', 'filters', 'totalProducts', 'priceBounds')),
         ]);
+    }
+
+    public function products(): void
+    {
+        header('Content-Type: application/json');
+        $pdo = Database::connection();
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        [$products, $total] = $this->filteredProducts($pdo, $this->filters(), ($page - 1) * 20, 20);
+        if (!defined('PRODUCT_CARD_JS_DEFINED')) define('PRODUCT_CARD_JS_DEFINED', true);
+        $html = '';
+        foreach ($products as $product) $html .= $this->render('components/base/product-card', compact('product'));
+        echo json_encode(['html'=>$html,'count'=>count($products),'total'=>$total,'has_more'=>$page*20<$total], JSON_UNESCAPED_SLASHES);
+    }
+
+    private function filters(): array
+    {
+        return ['category'=>trim((string)($_GET['category']??'')),'search'=>trim((string)($_GET['search']??'')),'min_price'=>max(0,(float)($_GET['min_price']??0)),'max_price'=>max(0,(float)($_GET['max_price']??0))];
+    }
+
+    private function filteredProducts(\PDO $pdo, array $filters, int $offset, int $limit): array
+    {
+        $where = ["p.status='active'"]; $params = [];
+        if ($filters['category'] !== '') { $where[]='EXISTS (SELECT 1 FROM product_categories pcf JOIN categories cf ON cf.id=pcf.category_id WHERE pcf.product_id=p.id AND cf.slug=?)'; $params[]=$filters['category']; }
+        if ($filters['search'] !== '') { $where[]='(p.name LIKE ? OR p.sku LIKE ? OR p.short_description LIKE ?)'; $term='%'.$filters['search'].'%'; array_push($params,$term,$term,$term); }
+        if ($filters['min_price'] > 0) { $where[]='p.base_price>=?'; $params[]=$filters['min_price']; }
+        if ($filters['max_price'] > 0) { $where[]='p.base_price<=?'; $params[]=$filters['max_price']; }
+        $whereSql=implode(' AND ',$where);
+        $count=$pdo->prepare("SELECT COUNT(*) FROM products p WHERE {$whereSql}");$count->execute($params);$total=(int)$count->fetchColumn();
+        $sql="SELECT p.*,pi.image_path,GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') category_names FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN product_categories pc ON pc.product_id=p.id LEFT JOIN categories c ON c.id=pc.category_id WHERE {$whereSql} GROUP BY p.id ORDER BY p.is_featured DESC,p.id DESC LIMIT ".max(1,$limit).' OFFSET '.max(0,$offset);
+        $stmt=$pdo->prepare($sql);$stmt->execute($params);return [$stmt->fetchAll(),$total];
     }
 }

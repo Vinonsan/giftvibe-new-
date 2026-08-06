@@ -5,10 +5,8 @@ declare(strict_types=1);
 $slides = $slides ?? [];
 $editSlide = $editSlide ?? null;
 $parts = explode('|', (string) ($editSlide['subtitle'] ?? ''));
-$background = '#0B1528';
-if (preg_match('/bg-\[(#[0-9A-Fa-f]{6})\]/', $parts[4] ?? '', $matches)) {
-    $background = strtoupper($matches[1]);
-}
+$background = strtoupper((string) ($editSlide['background_color'] ?? '#0B1528'));
+$background = preg_match('/^#[0-9A-F]{6}$/', $background) ? $background : '#0B1528';
 
 $fieldClass = 'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-secondary outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10';
 $tableRows = [];
