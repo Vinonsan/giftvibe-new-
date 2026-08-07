@@ -1,36 +1,190 @@
-# GiftVibe LK deployment
+# GiftVibe LK — cPanel Deployment Guide
 
-This project is designed for a copy, configure, import workflow. It does not require Composer, Node.js, or a frontend build command.
+Copy-paste ready steps for **giftvibelk.lk** on cPanel hosting.
+
+No Composer, Node.js, or build step required.
+
+---
 
 ## Server requirements
 
-- PHP 8.2 or newer with PDO MySQL, mbstring, fileinfo and GD enabled
+- PHP **8.2+** with PDO MySQL, mbstring, fileinfo, GD
 - MySQL 8+ or MariaDB 10.4+
-- Apache with `mod_rewrite` and `mod_headers`
-- HTTPS enabled for `giftvibelk.lk`
+- Apache `mod_rewrite` + `mod_headers`
+- HTTPS enabled
 
-## Deploy
+---
 
-1. Copy the complete project to the hosting account.
-2. Point the domain document root to the project's `public` directory.
-3. Create an empty production database.
-4. Import the root `schema.sql` file once. It contains all tables and starter homepage/footer content.
-5. Edit the database values in `config.php`, or configure `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `APP_URL` through the hosting panel.
-6. Ensure `storage/sessions`, `public/assets/uploads`, and their child folders are writable by PHP.
-7. Open `/`, `/admin`, `/sitemap.php`, `/robots.txt`, and one product page to verify the deployment.
+## Step 1 — Upload files
 
-## Production values
+1. Open **cPanel → File Manager**
+2. Go to your account home (e.g. `/home/riversid/`)
+3. Upload **`giftvibelk-deployment.zip`**
+4. **Extract** the zip
+5. You should see folders: `app`, `public`, `resources`, `routes`, `storage`, plus `config.php`, `schema.sql`, `.htaccess`
 
-- Application URL: `https://giftvibelk.lk`
-- Dynamic sitemap: `https://giftvibelk.lk/sitemap.php`
+> Keep the project **outside** `public_html` if possible, and point the domain to `public/` (recommended).  
+> If you must use `public_html`, upload so that `public_html/index.php` is the app front controller (see Step 2 option B).
+
+---
+
+## Step 2 — Point domain to `public/`
+
+### Option A — Recommended (subfolder install)
+
+1. cPanel → **Domains** → **Domains** or **Addon Domains**
+2. Set document root for `giftvibelk.lk` to:
+   ```
+   /home/riversid/giftvibe-new-/public
+   ```
+   (adjust path to where you extracted the zip)
+
+### Option B — Everything inside `public_html`
+
+1. Copy **contents of `public/`** into `public_html/`
+2. Edit `public_html/index.php` line 20 — change:
+   ```php
+   define('BASE_PATH', dirname(__DIR__));
+   ```
+   to:
+   ```php
+   define('BASE_PATH', dirname(__DIR__) . '/giftvibe-new-');
+   ```
+   (path to folder containing `app/`, `config.php`, etc.)
+
+---
+
+## Step 3 — Database (already configured)
+
+Database values are pre-set in **`config.php`**:
+
+| Setting | Value |
+|---------|-------|
+| Host | `localhost` |
+| Database | `riversid_giftvibelk_db` |
+| User | `riversid_giftvibelk_db` |
+| Password | *(already in config.php)* |
+
+If cPanel shows different names, edit `config.php` only — no code changes needed.
+
+### Import schema
+
+1. cPanel → **phpMyAdmin**
+2. Select database **`riversid_giftvibelk_db`**
+3. **Import** → choose **`schema.sql`** from project root
+4. Click **Go** (wait until success — all tables + starter content)
+
+> **Fresh install only.** Importing on a live DB with orders will wipe data.
+
+---
+
+## Step 4 — Folder permissions
+
+In File Manager, set folders to **755** and files to **644**.
+
+These must be **writable** by PHP (755 or 775):
+
+```
+storage/sessions/
+public/assets/uploads/
+public/assets/uploads/products/
+public/assets/uploads/combos/
+public/assets/uploads/categories/
+public/assets/uploads/hero/
+public/assets/uploads/cta/
+public/assets/uploads/testimonials/
+public/assets/uploads/settings/
+public/assets/uploads/receipts/
+```
+
+cPanel → **Select folder → Change Permissions → Write** for Owner (and Group if needed).
+
+---
+
+## Step 5 — PHP version
+
+1. cPanel → **Select PHP Version** (or MultiPHP Manager)
+2. Choose **PHP 8.2** or **8.3**
+3. Enable extensions: `pdo_mysql`, `mbstring`, `fileinfo`, `gd`, `json`, `session`
+
+---
+
+## Step 6 — Verify
+
+Open these URLs:
+
+| URL | Expected |
+|-----|----------|
+| `https://giftvibelk.lk/` | Homepage loads |
+| `https://giftvibelk.lk/shop` | Shop page |
+| `https://giftvibelk.lk/admin` | Admin login |
+| `https://giftvibelk.lk/sitemap.php` | XML sitemap |
+| `https://giftvibelk.lk/robots.txt` | Robots file |
+
+### Admin login
+
+First visit to `/admin` auto-creates admin user if none exists:
+
+- Email: `admin@giftvibe.lk`
+- Password: `admin123`
+
+**Change this password immediately after first login.**
+
+---
+
+## Step 7 — Post-launch
+
+1. Submit sitemap in Google Search Console:  
+   `https://giftvibelk.lk/sitemap.php`
+2. Admin → Settings — update phone, address, logo, social links
+3. Remove sample products/testimonials if not needed
+4. Enable SSL (AutoSSL / Let's Encrypt) if not already active
+
+---
+
+## Security checklist
+
+- [ ] Document root points to `public/` only
+- [ ] `config.php` and `schema.sql` blocked by root `.htaccess` (included)
+- [ ] Admin password changed from default
+- [ ] HTTPS forced in cPanel
+- [ ] Database user limited to this database only
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| 500 error | Check PHP error log in cPanel; verify PHP 8.2+ |
+| Blank page | Enable `display_errors` temporarily; check `storage/sessions` writable |
+| CSS/images missing | Document root must be `public/` |
+| DB connection failed | Re-check `config.php` names match cPanel MySQL |
+| Upload fails | Fix permissions on `public/assets/uploads/` |
+| `/admin` 404 | Enable `mod_rewrite`; check `.htaccess` in `public/` |
+
+---
+
+## Files included in zip
+
+```
+giftvibelk-deployment.zip
+├── app/              PHP application code
+├── public/           Web root (point domain here)
+├── resources/        Views & assets
+├── routes/           URL routes
+├── storage/          Sessions (writable)
+├── config.php        DB + app URL (production values)
+├── schema.sql        Full DB schema + seed data
+├── .htaccess         Root security + rewrite
+└── DEPLOYMENT.md     This guide
+```
+
+---
+
+## Production URLs
+
+- Site: `https://giftvibelk.lk`
+- Admin: `https://giftvibelk.lk/admin`
+- Sitemap: `https://giftvibelk.lk/sitemap.php`
 - AI catalog: `https://giftvibelk.lk/catalog.php`
-- AI guidance: `https://giftvibelk.lk/llms.txt`
-
-Submit `https://giftvibelk.lk/sitemap.php` in Google Search Console after DNS and HTTPS are active.
-
-## Security
-
-- Keep the domain document root on `public`; do not expose the project root.
-- Replace the sample database credentials in `config.php` before launch.
-- Use a strong database password and restrict the database user to this database.
-- Remove sample products/testimonials from Admin if they should not be public.

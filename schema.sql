@@ -1,3 +1,11 @@
+﻿-- GiftVibe LK — full database schema (generated from local dev DB)
+-- Import once on cPanel phpMyAdmin.
+
+-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+--
+-- Host: localhost    Database: giftvibe_dev
+-- ------------------------------------------------------
+-- Server version	10.4.32-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -9,6 +17,11 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `activity_logs`
+--
+
 DROP TABLE IF EXISTS `activity_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -28,6 +41,11 @@ CREATE TABLE `activity_logs` (
   CONSTRAINT `fk_activity_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `admin_notifications`
+--
+
 DROP TABLE IF EXISTS `admin_notifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -44,22 +62,16 @@ CREATE TABLE `admin_notifications` (
   PRIMARY KEY (`id`),
   KEY `idx_admin_notifications_status` (`status`),
   KEY `idx_admin_notifications_entity` (`entity_type`,`entity_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-DROP TABLE IF EXISTS `customer_notifications`;
-CREATE TABLE `customer_notifications` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` bigint(20) unsigned NOT NULL,
-  `order_id` bigint(20) unsigned DEFAULT NULL,
-  `phone` varchar(40) NOT NULL,
-  `message` varchar(500) NOT NULL,
-  `status` enum('queued','sent','failed') NOT NULL DEFAULT 'queued',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_customer_notifications_user` (`user_id`),
-  KEY `idx_customer_notifications_order` (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `bank_accounts`
+--
+
 DROP TABLE IF EXISTS `bank_accounts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `bank_accounts` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `bank_name` varchar(120) NOT NULL,
@@ -68,10 +80,16 @@ CREATE TABLE `bank_accounts` (
   `branch` varchar(120) DEFAULT NULL,
   `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `banners`
+--
+
 DROP TABLE IF EXISTS `banners`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -91,6 +109,11 @@ CREATE TABLE `banners` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `cart_items`
+--
+
 DROP TABLE IF EXISTS `cart_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -114,6 +137,11 @@ CREATE TABLE `cart_items` (
   CONSTRAINT `fk_cart_items_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `carts`
+--
+
 DROP TABLE IF EXISTS `carts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -130,6 +158,11 @@ CREATE TABLE `carts` (
   CONSTRAINT `fk_carts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `categories`
+--
+
 DROP TABLE IF EXISTS `categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -151,8 +184,13 @@ CREATE TABLE `categories` (
   UNIQUE KEY `slug` (`slug`),
   KEY `fk_categories_parent` (`parent_id`),
   CONSTRAINT `fk_categories_parent` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `combo_images`
+--
+
 DROP TABLE IF EXISTS `combo_images`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -167,8 +205,13 @@ CREATE TABLE `combo_images` (
   PRIMARY KEY (`id`),
   KEY `idx_combo_images_combo` (`combo_id`),
   CONSTRAINT `fk_combo_images_combo` FOREIGN KEY (`combo_id`) REFERENCES `combos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `combo_products`
+--
+
 DROP TABLE IF EXISTS `combo_products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -182,6 +225,11 @@ CREATE TABLE `combo_products` (
   CONSTRAINT `fk_combo_products_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `combo_videos`
+--
+
 DROP TABLE IF EXISTS `combo_videos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -196,6 +244,11 @@ CREATE TABLE `combo_videos` (
   CONSTRAINT `fk_combo_videos_combo` FOREIGN KEY (`combo_id`) REFERENCES `combos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `combos`
+--
+
 DROP TABLE IF EXISTS `combos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -205,17 +258,23 @@ CREATE TABLE `combos` (
   `slug` varchar(190) NOT NULL,
   `description` text DEFAULT NULL,
   `price` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `other_cost` decimal(10,2) NOT NULL DEFAULT 0.00,
   `status` enum('draft','active') NOT NULL DEFAULT 'draft',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `meta_title` varchar(190) DEFAULT NULL,
   `meta_description` varchar(255) DEFAULT NULL,
   `search_keywords` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_combos_slug` (`slug`),
   KEY `idx_combos_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `contact_messages`
+--
+
 DROP TABLE IF EXISTS `contact_messages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -232,6 +291,33 @@ CREATE TABLE `contact_messages` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `contact_settings`
+--
+
+DROP TABLE IF EXISTS `contact_settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `contact_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `contact_email` varchar(190) DEFAULT NULL,
+  `contact_phone` varchar(40) DEFAULT NULL,
+  `contact_address` text DEFAULT NULL,
+  `social_facebook` varchar(255) DEFAULT NULL,
+  `social_instagram` varchar(255) DEFAULT NULL,
+  `social_youtube` varchar(255) DEFAULT NULL,
+  `social_twitter` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `coupons`
+--
+
 DROP TABLE IF EXISTS `coupons`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -252,6 +338,11 @@ CREATE TABLE `coupons` (
   UNIQUE KEY `code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `custom_gift_request_images`
+--
+
 DROP TABLE IF EXISTS `custom_gift_request_images`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -267,6 +358,11 @@ CREATE TABLE `custom_gift_request_images` (
   CONSTRAINT `fk_custom_gift_request_images_request` FOREIGN KEY (`request_id`) REFERENCES `custom_gift_requests` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `custom_gift_requests`
+--
+
 DROP TABLE IF EXISTS `custom_gift_requests`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -293,6 +389,11 @@ CREATE TABLE `custom_gift_requests` (
   CONSTRAINT `fk_custom_gift_requests_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `customer_addresses`
+--
+
 DROP TABLE IF EXISTS `customer_addresses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -316,6 +417,32 @@ CREATE TABLE `customer_addresses` (
   CONSTRAINT `fk_customer_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `customer_notifications`
+--
+
+DROP TABLE IF EXISTS `customer_notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `customer_notifications` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `order_id` bigint(20) unsigned DEFAULT NULL,
+  `phone` varchar(40) NOT NULL,
+  `message` varchar(500) NOT NULL,
+  `status` enum('queued','sent','failed') NOT NULL DEFAULT 'queued',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_customer_notifications_user` (`user_id`),
+  KEY `idx_customer_notifications_order` (`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `customer_profiles`
+--
+
 DROP TABLE IF EXISTS `customer_profiles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -332,6 +459,11 @@ CREATE TABLE `customer_profiles` (
   CONSTRAINT `fk_customer_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `deliveries`
+--
+
 DROP TABLE IF EXISTS `deliveries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -360,8 +492,13 @@ CREATE TABLE `deliveries` (
   KEY `fk_deliveries_staff` (`assigned_staff_id`),
   CONSTRAINT `fk_deliveries_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_deliveries_staff` FOREIGN KEY (`assigned_staff_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `delivery_reminders`
+--
+
 DROP TABLE IF EXISTS `delivery_reminders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -386,6 +523,11 @@ CREATE TABLE `delivery_reminders` (
   CONSTRAINT `fk_delivery_reminders_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `delivery_status_history`
+--
+
 DROP TABLE IF EXISTS `delivery_status_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -406,6 +548,11 @@ CREATE TABLE `delivery_status_history` (
   CONSTRAINT `fk_delivery_status_history_user` FOREIGN KEY (`changed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `delivery_time_slots`
+--
+
 DROP TABLE IF EXISTS `delivery_time_slots`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -421,6 +568,11 @@ CREATE TABLE `delivery_time_slots` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `delivery_zones`
+--
+
 DROP TABLE IF EXISTS `delivery_zones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -437,6 +589,11 @@ CREATE TABLE `delivery_zones` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `expenses`
+--
+
 DROP TABLE IF EXISTS `expenses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -444,6 +601,8 @@ CREATE TABLE `expenses` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `admin_id` bigint(20) unsigned DEFAULT NULL,
   `order_id` bigint(20) unsigned DEFAULT NULL,
+  `inventory_item_id` bigint(20) unsigned DEFAULT NULL,
+  `stock_quantity` int(10) unsigned DEFAULT NULL,
   `paid_source` varchar(30) NOT NULL DEFAULT 'company_cash',
   `paid_by_admin_id` bigint(20) unsigned DEFAULT NULL,
   `reimbursement_status` varchar(30) DEFAULT NULL,
@@ -469,6 +628,11 @@ CREATE TABLE `expenses` (
   CONSTRAINT `fk_expenses_paid_by_admin` FOREIGN KEY (`paid_by_admin_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `faqs`
+--
+
 DROP TABLE IF EXISTS `faqs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -482,8 +646,70 @@ CREATE TABLE `faqs` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `financial_transactions`
+--
+
+DROP TABLE IF EXISTS `financial_transactions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `financial_transactions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `type` enum('income','expense') NOT NULL DEFAULT 'income',
+  `category` varchar(160) NOT NULL,
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `description` text DEFAULT NULL,
+  `date` date NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_financial_transactions_date` (`date`),
+  KEY `idx_financial_transactions_type` (`type`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `footer_settings`
+--
+
+DROP TABLE IF EXISTS `footer_settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `footer_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `quick_links` text DEFAULT NULL,
+  `products_links` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `general_settings`
+--
+
+DROP TABLE IF EXISTS `general_settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `general_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `site_name` varchar(190) NOT NULL DEFAULT 'GiftVibe',
+  `site_description` text DEFAULT NULL,
+  `site_logo` varchar(255) DEFAULT NULL,
+  `google_review_url` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `gift_reminders`
+--
+
 DROP TABLE IF EXISTS `gift_reminders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -503,6 +729,11 @@ CREATE TABLE `gift_reminders` (
   CONSTRAINT `fk_gift_reminders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `homepage_ctas`
+--
+
 DROP TABLE IF EXISTS `homepage_ctas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -524,8 +755,58 @@ CREATE TABLE `homepage_ctas` (
   PRIMARY KEY (`id`),
   KEY `idx_homepage_ctas_status` (`status`),
   KEY `idx_homepage_ctas_placement` (`placement`,`status`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `inventory_items`
+--
+
+DROP TABLE IF EXISTS `inventory_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inventory_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint(20) unsigned DEFAULT NULL,
+  `name` varchar(190) NOT NULL,
+  `sku` varchar(80) DEFAULT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 0,
+  `unit` varchar(40) DEFAULT 'pcs',
+  `cost_price` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `low_stock_threshold` int(11) NOT NULL DEFAULT 5,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_inventory_product` (`product_id`),
+  KEY `idx_inventory_name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `inventory_movements`
+--
+
+DROP TABLE IF EXISTS `inventory_movements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inventory_movements` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `inventory_item_id` bigint(20) unsigned NOT NULL,
+  `change_qty` int(11) NOT NULL,
+  `movement_type` enum('purchase','adjustment','sale','expense') NOT NULL DEFAULT 'purchase',
+  `expense_id` bigint(20) unsigned DEFAULT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_inventory_movements_item` (`inventory_item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `message_replies`
+--
+
 DROP TABLE IF EXISTS `message_replies`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -544,6 +825,11 @@ CREATE TABLE `message_replies` (
   CONSTRAINT `fk_message_replies_user` FOREIGN KEY (`sender_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `newsletter_subscribers`
+--
+
 DROP TABLE IF EXISTS `newsletter_subscribers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -557,6 +843,11 @@ CREATE TABLE `newsletter_subscribers` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `occasions`
+--
+
 DROP TABLE IF EXISTS `occasions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -574,6 +865,11 @@ CREATE TABLE `occasions` (
   UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `order_items`
+--
+
 DROP TABLE IF EXISTS `order_items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -597,8 +893,13 @@ CREATE TABLE `order_items` (
   CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_order_items_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `order_status_history`
+--
+
 DROP TABLE IF EXISTS `order_status_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -614,8 +915,13 @@ CREATE TABLE `order_status_history` (
   KEY `fk_order_status_history_user` (`changed_by`),
   CONSTRAINT `fk_order_status_history_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_order_status_history_user` FOREIGN KEY (`changed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `orders`
+--
+
 DROP TABLE IF EXISTS `orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -658,8 +964,13 @@ CREATE TABLE `orders` (
   CONSTRAINT `fk_orders_coupon` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_orders_delivery_slot` FOREIGN KEY (`delivery_time_slot_id`) REFERENCES `delivery_time_slots` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `pages`
+--
+
 DROP TABLE IF EXISTS `pages`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -677,6 +988,11 @@ CREATE TABLE `pages` (
   UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `password_resets`
+--
+
 DROP TABLE IF EXISTS `password_resets`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -693,6 +1009,11 @@ CREATE TABLE `password_resets` (
   CONSTRAINT `fk_password_resets_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `payments`
+--
+
 DROP TABLE IF EXISTS `payments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -719,8 +1040,13 @@ CREATE TABLE `payments` (
   KEY `fk_payments_verified_by` (`verified_by`),
   CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_payments_verified_by` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_categories`
+--
+
 DROP TABLE IF EXISTS `product_categories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -733,6 +1059,11 @@ CREATE TABLE `product_categories` (
   CONSTRAINT `fk_product_categories_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_images`
+--
+
 DROP TABLE IF EXISTS `product_images`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -747,8 +1078,13 @@ CREATE TABLE `product_images` (
   PRIMARY KEY (`id`),
   KEY `fk_product_images_product` (`product_id`),
   CONSTRAINT `fk_product_images_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_occasions`
+--
+
 DROP TABLE IF EXISTS `product_occasions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -761,6 +1097,11 @@ CREATE TABLE `product_occasions` (
   CONSTRAINT `fk_product_occasions_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_option_values`
+--
+
 DROP TABLE IF EXISTS `product_option_values`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -775,6 +1116,11 @@ CREATE TABLE `product_option_values` (
   CONSTRAINT `fk_product_option_values_option` FOREIGN KEY (`option_id`) REFERENCES `product_options` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_options`
+--
+
 DROP TABLE IF EXISTS `product_options`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -790,6 +1136,11 @@ CREATE TABLE `product_options` (
   CONSTRAINT `fk_product_options_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_recipients`
+--
+
 DROP TABLE IF EXISTS `product_recipients`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -802,6 +1153,32 @@ CREATE TABLE `product_recipients` (
   CONSTRAINT `fk_product_recipients_recipient` FOREIGN KEY (`recipient_id`) REFERENCES `recipients` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_social_links`
+--
+
+DROP TABLE IF EXISTS `product_social_links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `product_social_links` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `platform` enum('instagram','tiktok','facebook','youtube','whatsapp','website','other') NOT NULL DEFAULT 'other',
+  `label` varchar(100) DEFAULT NULL,
+  `url` varchar(500) NOT NULL,
+  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_product_social_product` (`product_id`),
+  CONSTRAINT `fk_product_social_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_variants`
+--
+
 DROP TABLE IF EXISTS `product_variants`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -824,6 +1201,11 @@ CREATE TABLE `product_variants` (
   CONSTRAINT `fk_product_variants_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_videos`
+--
+
 DROP TABLE IF EXISTS `product_videos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -840,26 +1222,8 @@ CREATE TABLE `product_videos` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table: product_social_links
--- Stores social media / external links associated with a product.
--- platform: instagram | tiktok | facebook | youtube | website | whatsapp | other
+-- Table structure for table `products`
 --
-DROP TABLE IF EXISTS `product_social_links`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `product_social_links` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `product_id` bigint(20) unsigned NOT NULL,
-  `platform` enum('instagram','tiktok','facebook','youtube','whatsapp','website','other') NOT NULL DEFAULT 'other',
-  `label` varchar(100) DEFAULT NULL COMMENT 'Custom display label (optional)',
-  `url` varchar(500) NOT NULL,
-  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_product_social_product` (`product_id`),
-  CONSTRAINT `fk_product_social_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 DROP TABLE IF EXISTS `products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -883,18 +1247,22 @@ CREATE TABLE `products` (
   `status` enum('draft','active','inactive','archived') NOT NULL DEFAULT 'draft',
   `meta_title` varchar(190) DEFAULT NULL,
   `meta_description` varchar(255) DEFAULT NULL,
-  `search_keywords` text DEFAULT NULL,
-  `alt_text` varchar(255) DEFAULT NULL COMMENT 'Primary image alt text for SEO',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `video_url` varchar(255) DEFAULT NULL,
+  `search_keywords` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `sku` (`sku`),
   UNIQUE KEY `slug` (`slug`),
   KEY `idx_products_status` (`status`),
   KEY `idx_products_featured` (`is_featured`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `recipients`
+--
+
 DROP TABLE IF EXISTS `recipients`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -912,6 +1280,11 @@ CREATE TABLE `recipients` (
   UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `reviews`
+--
+
 DROP TABLE IF EXISTS `reviews`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -936,6 +1309,48 @@ CREATE TABLE `reviews` (
   CONSTRAINT `chk_reviews_rating` CHECK (`rating` between 1 and 5)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `roles` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(80) NOT NULL,
+  `slug` varchar(80) NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `settings`
+--
+
+DROP TABLE IF EXISTS `settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `setting_key` varchar(120) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `setting_group` varchar(80) NOT NULL DEFAULT 'general',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `setting_key` (`setting_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `testimonials`
+--
+
 DROP TABLE IF EXISTS `testimonials`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -956,68 +1371,13 @@ CREATE TABLE `testimonials` (
   PRIMARY KEY (`id`),
   KEY `idx_testimonials_status` (`status`,`sort_order`,`id`),
   CONSTRAINT `chk_testimonials_rating` CHECK (`rating` between 1 and 5)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `roles`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `roles` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(80) NOT NULL,
-  `slug` varchar(80) NOT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `slug` (`slug`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `settings`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `setting_key` varchar(120) NOT NULL,
-  `setting_value` text DEFAULT NULL,
-  `setting_group` varchar(80) NOT NULL DEFAULT 'general',
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `setting_key` (`setting_key`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-DROP TABLE IF EXISTS `general_settings`;
-CREATE TABLE `general_settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `site_name` varchar(190) NOT NULL DEFAULT 'GiftVibe',
-  `site_description` text DEFAULT NULL,
-  `site_logo` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-DROP TABLE IF EXISTS `contact_settings`;
-CREATE TABLE `contact_settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `contact_email` varchar(190) DEFAULT NULL,
-  `contact_phone` varchar(40) DEFAULT NULL,
-  `contact_address` text DEFAULT NULL,
-  `social_facebook` varchar(255) DEFAULT NULL,
-  `social_instagram` varchar(255) DEFAULT NULL,
-  `social_youtube` varchar(255) DEFAULT NULL,
-  `social_twitter` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-DROP TABLE IF EXISTS `footer_settings`;
-CREATE TABLE `footer_settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `quick_links` text DEFAULT NULL,
-  `products_links` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Table structure for table `uploads`
+--
+
 DROP TABLE IF EXISTS `uploads`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1035,7 +1395,35 @@ CREATE TABLE `uploads` (
   CONSTRAINT `fk_uploads_user` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `user_addresses`
+--
+
 DROP TABLE IF EXISTS `user_addresses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `user_addresses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `label` varchar(80) NOT NULL DEFAULT 'Delivery address',
+  `address_line_1` varchar(255) NOT NULL,
+  `address_line_2` varchar(255) DEFAULT NULL,
+  `city` varchar(120) NOT NULL,
+  `district` varchar(120) NOT NULL,
+  `is_default` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_user_addresses_user` (`user_id`),
+  CONSTRAINT `fk_user_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `users`
+--
+
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1053,36 +1441,26 @@ CREATE TABLE `users` (
   `district` varchar(120) DEFAULT NULL,
   `avatar` varchar(30) NOT NULL DEFAULT 'avatar_1',
   `password_hash` varchar(255) NOT NULL,
-  `otp_code` varchar(10) DEFAULT NULL,
-  `otp_expires_at` timestamp NULL DEFAULT NULL,
   `status` enum('active','inactive','blocked') NOT NULL DEFAULT 'active',
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `phone_verified_at` timestamp NULL DEFAULT NULL,
   `last_login_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `otp_code` varchar(10) DEFAULT NULL,
+  `otp_expires_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `phone` (`phone`),
   KEY `fk_users_role` (`role_id`),
   CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-CREATE TABLE `user_addresses` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` bigint(20) unsigned NOT NULL,
-  `label` varchar(80) NOT NULL DEFAULT 'Delivery address',
-  `address_line_1` varchar(255) NOT NULL,
-  `address_line_2` varchar(255) DEFAULT NULL,
-  `city` varchar(120) NOT NULL,
-  `district` varchar(120) NOT NULL,
-  `is_default` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_user_addresses_user` (`user_id`),
-  CONSTRAINT `fk_user_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `wishlists`
+--
+
 DROP TABLE IF EXISTS `wishlists`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -1098,15 +1476,6 @@ CREATE TABLE `wishlists` (
   CONSTRAINT `fk_wishlists_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- -----------------------------------------------------------------------------
 -- GiftVibe LK deployment seed data
@@ -1132,7 +1501,7 @@ INSERT INTO products (id, sku, name, slug, short_description, description, base_
   (1, 'GV-BOX-001', 'Celebration Gift Box', 'celebration-gift-box', 'A cheerful selection of treats and keepsakes.', 'A ready-to-gift celebration box curated for birthdays and joyful milestones.', 6500.00, 5900.00, 'box', 25, 1, 'active'),
   (2, 'GV-FLR-001', 'Blush Rose Bouquet', 'blush-rose-bouquet', 'An elegant bouquet of soft blush roses.', 'Fresh roses arranged by hand and wrapped for a beautiful presentation.', 4800.00, NULL, 'bouquet', 18, 1, 'active'),
   (3, 'GV-SWT-001', 'Chocolate Indulgence Box', 'chocolate-indulgence-box', 'Premium chocolates for a sweet celebration.', 'A rich assortment of chocolates, presented in a premium keepsake box.', 5200.00, 4750.00, 'box', 30, 1, 'active'),
-  (4, 'GV-HMP-001', 'Golden Moments Hamper', 'golden-moments-hamper', 'A luxurious hamper for lifeâ€™s special moments.', 'A generous hamper combining gourmet treats and thoughtful celebration pieces.', 8900.00, 8250.00, 'hamper', 12, 1, 'active')
+  (4, 'GV-HMP-001', 'Golden Moments Hamper', 'golden-moments-hamper', 'A luxurious hamper for lifeÃ¢â‚¬â„¢s special moments.', 'A generous hamper combining gourmet treats and thoughtful celebration pieces.', 8900.00, 8250.00, 'hamper', 12, 1, 'active')
 ON DUPLICATE KEY UPDATE name=VALUES(name), short_description=VALUES(short_description), description=VALUES(description), base_price=VALUES(base_price), sale_price=VALUES(sale_price), stock_quantity=VALUES(stock_quantity), is_featured=VALUES(is_featured), status=VALUES(status);
 
 INSERT INTO product_images (product_id, image_path, alt_text, sort_order, is_primary) VALUES
@@ -1195,3 +1564,4 @@ INSERT INTO settings (setting_key, setting_value, setting_group) VALUES
 ('footer.quick_links', '[{"label":"Home","href":"/"},{"label":"Shop","href":"/shop"},{"label":"Services","href":"/services"},{"label":"Blog","href":"/blog"},{"label":"About Us","href":"/about"},{"label":"Contact","href":"/contact"}]', 'footer'),
 ('footer.products_links', '[{"label":"All Gifts","href":"/shop"},{"label":"Gift Combos","href":"/combos"},{"label":"Birthday Gifts","href":"/shop?category=birthday-gifts"},{"label":"Flowers","href":"/shop?category=flowers"},{"label":"Sweet Treats","href":"/shop?category=sweet-treats"}]', 'footer')
 ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), setting_group=VALUES(setting_group);
+

@@ -1,0 +1,167 @@
+/* Fallback admin styles when Tailwind CDN is blocked or slow (cPanel / production). */
+:root {
+    --gv-primary: #102E50;
+    --gv-secondary: #1A3D64;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+}
+
+img, svg, video { max-width: 100%; height: auto; }
+
+.hidden { display: none !important; }
+
+/* ---- Layout ---- */
+.flex { display: flex; }
+.grid { display: grid; }
+.min-h-screen { min-height: 100vh; }
+.fixed { position: fixed; }
+.absolute { position: absolute; }
+.inset-0 { inset: 0; }
+.inset-y-0 { top: 0; bottom: 0; }
+.right-0 { right: 0; }
+.left-0 { left: 0; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1 1 0%; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-5 > * + * { margin-top: 1.25rem; }
+.space-y-6 > * + * { margin-top: 1.5rem; }
+.w-full { width: 100%; }
+.max-w-full { max-width: 100%; }
+.overflow-y-auto { overflow-y: auto; }
+.overflow-hidden { overflow: hidden; }
+.pointer-events-none { pointer-events: none; }
+.pointer-events-auto { pointer-events: auto; }
+.opacity-0 { opacity: 0; }
+.opacity-100 { opacity: 1; }
+
+#admin-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    width: 18rem;
+    background: #fff;
+    border-right: 1px solid rgba(16, 46, 80, 0.1);
+}
+
+#admin-sidebar img[data-sidebar-logo] {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    max-width: 2.25rem !important;
+    object-fit: contain;
+}
+
+[data-admin-content] {
+    min-height: 100vh;
+    padding-left: 18rem;
+}
+
+[data-admin-main] {
+    padding: 1rem 1.5rem;
+    min-width: 0;
+}
+
+/* ---- Drawers (closed by default via aria-hidden) ---- */
+[data-drawer] {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    transition: opacity 0.3s ease;
+}
+
+[data-drawer][aria-hidden="true"] {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+[data-drawer][aria-hidden="false"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+[data-drawer-overlay] {
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 61, 100, 0.5);
+}
+
+[data-drawer] aside {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    width: min(36rem, 100vw);
+    max-width: 100%;
+    background: #fff;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+}
+
+[data-drawer][data-side="right"] aside { right: 0; }
+[data-drawer][data-side="left"] aside { left: 0; }
+
+[data-drawer][aria-hidden="true"][data-side="right"] aside { transform: translateX(100%); }
+[data-drawer][aria-hidden="true"][data-side="left"] aside { transform: translateX(-100%); }
+[data-drawer][aria-hidden="false"] aside { transform: translateX(0); }
+
+[data-drawer] aside img,
+[data-file-preview] {
+    max-height: 11rem;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 0.75rem;
+}
+
+/* ---- Confirm modal ---- */
+#giftvibe-confirm {
+    display: none !important;
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(26, 61, 100, 0.4);
+}
+
+#giftvibe-confirm.is-open {
+    display: flex !important;
+}
+
+#giftvibe-toast-region {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 100;
+}
+
+@media (max-width: 1023px) {
+    #admin-sidebar { transform: translateX(-100%); }
+    [data-admin-content] { padding-left: 0; }
+}
+
+@media (min-width: 640px) {
+    .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sm\:flex-row { flex-direction: row; }
+}

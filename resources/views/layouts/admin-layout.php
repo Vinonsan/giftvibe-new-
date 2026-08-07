@@ -5,6 +5,10 @@ declare(strict_types=1);
 $pageTitle = $pageTitle ?? ($title ?? 'Dashboard');
 
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/admin', PHP_URL_PATH) ?: '/admin';
+$basePath = app_base_path();
+if ($basePath !== '' && str_starts_with($currentPath, $basePath)) {
+    $currentPath = substr($currentPath, strlen($basePath)) ?: '/';
+}
 
 $sidebarMenu = [
     [
@@ -50,6 +54,7 @@ $sidebarMenu = [
         'children' => [
             ['label' => 'Financial Reports', 'href' => '/admin/finance'],
             ['label' => 'Expenses',      'href' => '/admin/expenses'],
+            ['label' => 'Inventory',     'href' => '/admin/inventory'],
             ['label' => 'Payments',      'href' => '/admin/payments'],
         ],
     ],
@@ -74,20 +79,18 @@ $adminUser = $adminUser ?? [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> | Admin &mdash; Gift Vibe</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon_io/favicon-16x16.png">
-    <link rel="shortcut icon" href="/favicon_io/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= app_url('/favicon_io/apple-touch-icon.png') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= app_url('/favicon_io/favicon-32x32.png') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= app_url('/favicon_io/favicon-16x16.png') ?>">
+    <link rel="shortcut icon" href="<?= app_url('/favicon_io/favicon.ico') ?>" type="image/x-icon">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
+    <?php require BASE_PATH . '/resources/views/components/admin/tailwind-head.php'; ?>
+    <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
     <style type="text/tailwindcss">
-        <?= file_get_contents(BASE_PATH . '/public/assets/css/global.css') ?>
-
         #admin-sidebar {
             transition: transform 0.3s ease-in-out, width 0.3s ease-in-out !important;
         }

@@ -17,7 +17,7 @@ class AdminAuthMiddleware
 
         if (!$adminUser || !$authToken) {
             $_SESSION['admin_login_error'] = 'Access denied. Please log in first.';
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
     }

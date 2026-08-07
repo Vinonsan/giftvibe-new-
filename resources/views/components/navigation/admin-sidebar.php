@@ -7,6 +7,16 @@ use App\Core\Database;
 $sidebarMenu = $sidebarMenu ?? [];
 $currentPath = $currentPath ?? ($_SERVER['REQUEST_URI'] ?? '/admin');
 $currentPath = rtrim((string) parse_url($currentPath, PHP_URL_PATH), '/') ?: '/';
+$sidebarBase = app_base_path();
+if ($sidebarBase !== '' && str_starts_with($currentPath, $sidebarBase)) {
+    $currentPath = rtrim(substr($currentPath, strlen($sidebarBase)) ?: '/', '/') ?: '/';
+}
+$sidebarHref = static function (string $href): string {
+    if ($href === '' || $href === '#') {
+        return '#';
+    }
+    return app_url($href);
+};
 $footerMenu = array_values(array_filter(
     $sidebarMenu,
     static fn (array $item): bool => ($item['placement'] ?? '') === 'footer'
@@ -15,6 +25,7 @@ $footerMenu = array_values(array_filter(
 $pdo = Database::connection();
 $general = $pdo->query("SELECT * FROM general_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
 $logo = (string)($general['site_logo'] ?? '/assets/images/logo.svg');
+$logoUrl = str_starts_with($logo, 'http') ? $logo : app_url($logo);
 $siteName = (string)($general['site_name'] ?? 'GiftVibe');
 ?>
 
@@ -47,9 +58,12 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
 
     <div class="shrink-0 border-b border-primary/10 p-3">
         <div class="flex h-14 items-center justify-between px-3.5">
-            <a href="/admin" class="flex min-w-0 items-center gap-3">
-                <img src="<?= htmlspecialchars($logo) ?>"
+            <a href="<?= htmlspecialchars($sidebarHref('/admin')) ?>" class="flex min-w-0 items-center gap-3">
+                <img src="<?= htmlspecialchars($logoUrl) ?>"
                      alt="<?= htmlspecialchars($siteName) ?>"
+                     data-sidebar-logo
+                     width="36" height="36"
+                     style="width:2.25rem;height:2.25rem;max-width:2.25rem;object-fit:contain"
                      class="h-9 w-9 shrink-0 rounded-lg shadow-sm object-contain border border-primary/10">
                 <span class="truncate text-lg font-extrabold tracking-tight text-secondary" data-sidebar-logo-text>
                     <?= htmlspecialchars($siteName) ?>
@@ -115,7 +129,7 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
                             $childHref = rtrim((string) ($child['href'] ?? ''), '/') ?: '/';
                             $isChildActive = ($child['active'] ?? false) || $childHref === $currentPath;
                         ?>
-                            <a href="<?= htmlspecialchars($child['href'] ?? '#') ?>"
+                            <a href="<?= htmlspecialchars($sidebarHref((string) ($child['href'] ?? '#'))) ?>"
                                class="block rounded-lg px-3 py-1.5 text-[13px] font-medium leading-5 transition duration-150
                                       <?= $isChildActive
                                           ? 'bg-primary/10 text-primary font-semibold'
@@ -127,7 +141,7 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
                 </div>
             </div>
         <?php else: ?>
-            <a href="<?= htmlspecialchars($item['href'] ?? '#') ?>"
+            <a href="<?= htmlspecialchars($sidebarHref((string) ($item['href'] ?? '#'))) ?>"
                class="flex min-h-10.5 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition duration-150
                       <?= $isActive ? 'bg-primary text-white shadow-sm shadow-primary/15' : 'text-slate-600 hover:bg-primary/5 hover:text-primary' ?>">
                 <?php if (!empty($item['icon'])): ?>
@@ -145,7 +159,7 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
                 $itemHref = rtrim((string) ($item['href'] ?? ''), '/') ?: '/';
                 $isActive = ($item['active'] ?? false) || $itemHref === $currentPath;
             ?>
-                <a href="<?= htmlspecialchars((string) ($item['href'] ?? '#')) ?>"
+                <a href="<?= htmlspecialchars($sidebarHref((string) ($item['href'] ?? '#'))) ?>"
                    class="flex min-h-10.5 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-medium transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20
                           <?= $isActive
                               ? 'border-primary bg-primary text-white shadow-sm shadow-primary/15'

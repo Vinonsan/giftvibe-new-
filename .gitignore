@@ -5,3 +5,9 @@
 /storage/*.log
 /storage/sessions/sess_*
 !/storage/sessions/.gitkeep
+/config.local.php
+
+# Deployment artifacts & local scratch
+/*.zip
+/scratch/
+/giftvibe_deploy/

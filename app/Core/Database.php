@@ -17,8 +17,8 @@ final class Database
             $config = is_file($configFile) ? (array) require $configFile : [];
             $database = (array) ($config['database'] ?? []);
             $host = getenv('DB_HOST') ?: (string) ($database['host'] ?? 'localhost');
-            $name = getenv('DB_NAME') ?: (string) ($database['name'] ?? 'dbof-giftvibelk');
-            $user = getenv('DB_USER') ?: (string) ($database['user'] ?? 'root');
+            $name = getenv('DB_NAME') ?: (string) ($database['name'] ?? 'riversid_giftvibelk_db');
+            $user = getenv('DB_USER') ?: (string) ($database['user'] ?? 'riversid_giftvibelk_db');
             $password = getenv('DB_PASSWORD') !== false ? (string) getenv('DB_PASSWORD') : (string) ($database['password'] ?? '');
 
             self::$connection = new PDO(

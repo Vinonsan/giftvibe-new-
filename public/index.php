@@ -19,8 +19,18 @@ if (PHP_SAPI === 'cli-server') {
 
 define('BASE_PATH', dirname(__DIR__));
 
+require BASE_PATH . '/app/Helpers/url.php';
+
+$scriptDir = str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php')));
+define('APP_BASE_PATH', str_ends_with($scriptDir, '/public')
+    ? (rtrim(substr($scriptDir, 0, -7), '/') === '/' ? '' : rtrim(substr($scriptDir, 0, -7), '/'))
+    : (rtrim($scriptDir, '/') === '/' ? '' : rtrim($scriptDir, '/')));
+
 /* Bust OPcache for recently edited admin controllers (XAMPP dev). */
 if (function_exists('opcache_invalidate')) {
+    opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/OrderController.php', true);
+    opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/CustomerController.php', true);
+    opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/FinanceController.php', true);
     opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/OrderController.php', true);
 }
 
@@ -62,7 +72,15 @@ $router = new App\Core\Router();
 
 require BASE_PATH . '/routes/web.php';
 
+$requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+$requestPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+$basePath = app_base_path();
+
+if ($basePath !== '' && str_starts_with($requestPath, $basePath)) {
+    $requestPath = substr($requestPath, strlen($basePath)) ?: '/';
+}
+
 $router->dispatch(
     $_SERVER['REQUEST_METHOD'] ?? 'GET',
-    $_SERVER['REQUEST_URI'] ?? '/',
+    $requestPath . (str_contains($requestUri, '?') ? '?' . (parse_url($requestUri, PHP_URL_QUERY) ?? '') : ''),
 );

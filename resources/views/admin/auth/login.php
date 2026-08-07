@@ -16,11 +16,8 @@ $siteName = $siteName ?? 'GiftVibe';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
-    <style type="text/tailwindcss">
-        <?= file_get_contents(BASE_PATH . '/public/assets/css/global.css') ?>
-    </style>
+    <?php require BASE_PATH . '/resources/views/components/admin/tailwind-head.php'; ?>
 </head>
 <body class="flex min-h-full flex-col justify-center bg-primary/5 px-4 py-12 font-sans text-secondary antialiased sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">

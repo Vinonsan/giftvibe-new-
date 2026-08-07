@@ -21,7 +21,7 @@ class AuthController extends Controller
 
         // If already logged in, redirect to admin dashboard
         if (isset($_SESSION['admin_user']) && isset($_SESSION['admin_auth_token'])) {
-            header('Location: /admin', true, 303);
+            header('Location: ' . app_url('/admin'), true, 303);
             exit;
         }
 
@@ -55,7 +55,7 @@ class AuthController extends Controller
 
         if ($phone === '') {
             $_SESSION['admin_login_error'] = 'Please enter your phone number.';
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
 
@@ -69,20 +69,20 @@ class AuthController extends Controller
 
         if (!$user) {
             $_SESSION['admin_login_error'] = 'Phone number not registered or access denied.';
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
 
         // Ensure user has administrative rights
         if (!in_array($user['role_slug'], ['admin', 'staff'], true)) {
             $_SESSION['admin_login_error'] = 'Access denied. You do not have admin permissions.';
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
 
         if ($user['status'] !== 'active') {
             $_SESSION['admin_login_error'] = 'Your account is currently disabled.';
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
 
@@ -96,7 +96,7 @@ class AuthController extends Controller
         // Keep phone in session to verify in the next screen
         $_SESSION['otp_phone'] = $phone;
 
-        header('Location: /admin/login/verify', true, 303);
+        header('Location: ' . app_url('/admin/login/verify'), true, 303);
         exit;
     }
 
@@ -108,7 +108,7 @@ class AuthController extends Controller
 
         // Ensure we have requested OTP first
         if (!isset($_SESSION['otp_phone'])) {
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
 
@@ -141,7 +141,7 @@ class AuthController extends Controller
 
         $phone = $_SESSION['otp_phone'] ?? '';
         if ($phone === '') {
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
 
@@ -151,7 +151,7 @@ class AuthController extends Controller
 
         if (strlen($enteredOtp) !== 6) {
             $_SESSION['admin_login_error'] = 'Please enter a complete 6-digit OTP code.';
-            header('Location: /admin/login/verify', true, 303);
+            header('Location: ' . app_url('/admin/login/verify'), true, 303);
             exit;
         }
 
@@ -163,7 +163,7 @@ class AuthController extends Controller
         if (!$user) {
             $_SESSION['admin_login_error'] = 'Authentication failed. Please request a new OTP.';
             unset($_SESSION['otp_phone']);
-            header('Location: /admin/login', true, 303);
+            header('Location: ' . app_url('/admin/login'), true, 303);
             exit;
         }
 
@@ -173,7 +173,7 @@ class AuthController extends Controller
 
         if ($dbOtp === '' || $enteredOtp !== $dbOtp || time() > $dbExpires) {
             $_SESSION['admin_login_error'] = 'Invalid or expired OTP code.';
-            header('Location: /admin/login/verify', true, 303);
+            header('Location: ' . app_url('/admin/login/verify'), true, 303);
             exit;
         }
 
@@ -194,7 +194,7 @@ class AuthController extends Controller
 
         unset($_SESSION['otp_phone']);
 
-        header('Location: /admin', true, 303);
+        header('Location: ' . app_url('/admin'), true, 303);
         exit;
     }
 
@@ -207,7 +207,7 @@ class AuthController extends Controller
         unset($_SESSION['admin_auth_token']);
         unset($_SESSION['otp_phone']);
         $_SESSION['admin_login_error'] = 'You have logged out successfully.';
-        header('Location: /admin/login', true, 303);
+        header('Location: ' . app_url('/admin/login'), true, 303);
         exit;
     }
 

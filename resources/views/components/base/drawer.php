@@ -128,6 +128,7 @@ if ($drawerTrigger === '') {
     data-close-esc="<?= $drawerCloseOnEsc ? '1' : '0' ?>"
     aria-hidden="true"
     class="pointer-events-none fixed inset-0 z-50 opacity-0 transition-opacity duration-300"
+    style="opacity:0;visibility:hidden;pointer-events:none"
 >
     <?php if ($drawerOverlay): ?>
         <div data-drawer-overlay class="absolute inset-0 bg-secondary/50"></div>
@@ -135,6 +136,7 @@ if ($drawerTrigger === '') {
 
     <aside
         class="absolute inset-y-0 <?= $isRight ? 'right-0' : 'left-0' ?> flex <?= $drawerSizes[$drawerSize] ?? $drawerSizes['md'] ?> max-w-full flex-col bg-white shadow-2xl transition-drawer <?= $slideClosed ?>"
+        style="<?= $isRight ? 'right:0;transform:translateX(100%)' : 'left:0;transform:translateX(-100%)' ?>"
         role="dialog"
         aria-modal="true"
         aria-labelledby="<?= htmlspecialchars($drawerId) ?>-title"
@@ -201,25 +203,39 @@ if ($drawerTrigger === '') {
         var aside = el.querySelector('aside');
         el.classList.remove('pointer-events-none', 'opacity-0');
         el.classList.add('pointer-events-auto', 'opacity-100');
-        if (aside) { aside.classList.remove('translate-x-full', '-translate-x-full'); }
         el.setAttribute('aria-hidden', 'false');
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+        el.style.pointerEvents = 'auto';
+        if (aside) {
+            aside.classList.remove('translate-x-full', '-translate-x-full');
+            aside.style.transform = 'translateX(0)';
+        }
         lockScroll();
         var closeBtn = el.querySelector('[data-drawer-close]');
         if (closeBtn) { closeBtn.focus(); }
+        openDrawer = el;
     }
 
     function close(el) {
         var aside = el.querySelector('aside');
         var side = el.getAttribute('data-side') || 'right';
-        if (aside) { aside.classList.add(side === 'right' ? 'translate-x-full' : '-translate-x-full'); }
+        if (aside) {
+            aside.classList.add(side === 'right' ? 'translate-x-full' : '-translate-x-full');
+            aside.style.transform = side === 'right' ? 'translateX(100%)' : 'translateX(-100%)';
+        }
         el.classList.add('pointer-events-none', 'opacity-0');
         el.classList.remove('pointer-events-auto', 'opacity-100');
         el.setAttribute('aria-hidden', 'true');
+        el.style.opacity = '0';
+        el.style.visibility = 'hidden';
+        el.style.pointerEvents = 'none';
         unlockScroll();
         if (lastOpener) {
             lastOpener.focus();
             lastOpener = null;
         }
+        if (openDrawer === el) { openDrawer = null; }
     }
 
     document.addEventListener('click', function (e) {

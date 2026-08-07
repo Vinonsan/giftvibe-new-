@@ -6,6 +6,7 @@ namespace App\Controllers\Public;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Services\OrderPlacementService;
 use App\Services\SmsService;
 use PDO;
 use Throwable;
@@ -28,7 +29,7 @@ final class CheckoutController extends Controller
             $comboSlug = trim((string) ($_GET['combo'] ?? ''));
             $selection = $comboSlug !== '' ? 'c~' . $comboSlug . ':' . max(1, min(10, (int) ($_GET['qty'] ?? 1))) : ($slug !== '' ? 'p~' . $slug . ':' . max(1, min(10, (int) ($_GET['qty'] ?? 1))) : '');
         }
-        $orderItems = $this->products($pdo, $selection);
+        $orderItems = OrderPlacementService::resolveFromSelection($pdo, $selection);
         if (!$orderItems) {
             http_response_code(404);
             echo 'Product not found.';
@@ -124,117 +125,52 @@ final class CheckoutController extends Controller
             $saveAddress->execute([(int)$_SESSION['user']['id'],trim((string)($_POST['address_label']??'Delivery address')),$addressLine1,$addressLine2,$city,$district,0]);
         }
 
-        $total = round(array_sum(array_column($orderItems, 'line_total')), 2);
         $method = (string) ($_POST['payment_method'] ?? 'cod');
         if (!in_array($method, ['cod', 'bank_deposit'], true)) {
             $this->checkoutError('Select a valid payment method.', $selection);
         }
-        $option = $method === 'cod' ? 'advance' : 'full';
-        $amount = $method === 'cod' ? min(500.00, $total) : $total;
         $bankId = (int) ($_POST['bank_account_id'] ?? 0);
-        $bankAccount = null;
         if ($bankId > 0) {
             $bankStmt = $pdo->prepare("SELECT id,bank_name,account_name,account_number,branch FROM bank_accounts WHERE id=? AND status='active' LIMIT 1");
             $bankStmt->execute([$bankId]);
-            $bankAccount = $bankStmt->fetch(PDO::FETCH_ASSOC);
-            if (!$bankAccount) $this->checkoutError('Select a valid deposit account.', $selection);
-        }
-        $receipt = $this->storeReceipt($_FILES['receipt'] ?? [], $selection);
-
-        try {
-            $pdo->beginTransaction();
-            $orderNumber = 'GV-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
-            $order = $pdo->prepare('INSERT INTO orders (order_number,user_id,customer_name,customer_email,customer_phone,recipient_name,recipient_phone,delivery_address_line_1,delivery_address_line_2,delivery_city,delivery_district,delivery_postal_code,subtotal,grand_total,payment_status,order_status,customer_notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-            $order->execute([$orderNumber, (int) $_SESSION['user']['id'], trim($_POST['customer_name']), trim($_POST['customer_email']), trim($_POST['customer_phone']), $recipientName, $recipientPhone, $addressLine1, $addressLine2, $city, $district, '', $total, $total, 'pending', 'pending', trim((string) ($_POST['customer_notes'] ?? ''))]);
-            $orderId = (int) $pdo->lastInsertId();
-            $item = $pdo->prepare('INSERT INTO order_items (order_id,product_id,product_name,sku,quantity,unit_price,total_price) VALUES (?,?,?,?,?,?,?)');
-            foreach ($orderItems as $product) {
-                $item->execute([$orderId, $product['product_id'], $product['name'], $product['sku'], $product['quantity'], $product['base_price'], $product['line_total']]);
+            if (!$bankStmt->fetch(PDO::FETCH_ASSOC)) {
+                $this->checkoutError('Select a valid deposit account.', $selection);
             }
-            $payment = $pdo->prepare('INSERT INTO payments (order_id,provider,method,transaction_reference,amount,status,receipt_path,raw_response_json) VALUES (?,?,?,?,?,?,?,?)');
-            $payment->execute([$orderId, $method === 'cod' ? 'cash_on_delivery' : 'bank', $method, $orderNumber . '-PAY', $amount, 'pending', $receipt, json_encode(['payment_option' => $option, 'balance_due' => max(0, $total - $amount), 'bank_account_id'=>$bankId ?: null, 'bank_name'=>$bankAccount['bank_name'] ?? null, 'account_number'=>$bankAccount['account_number'] ?? null])]);
-            $notice = $pdo->prepare("INSERT INTO admin_notifications (type,title,message,entity_type,entity_id,status) VALUES ('new_order','New order awaiting verification',?,'order',?,'unread')");
-            $notice->execute(["{$orderNumber}: {$method}, LKR " . number_format($amount, 2) . ' receipt uploaded.', $orderId]);
-            $pdo->commit();
+        }
+        try {
+            $receipt = OrderPlacementService::storeReceipt($_FILES['receipt'] ?? [], true);
+            $orderId = OrderPlacementService::create($pdo, $orderItems, [
+                'user_id' => (int) $_SESSION['user']['id'],
+                'customer_name' => trim((string) $_POST['customer_name']),
+                'customer_email' => trim((string) $_POST['customer_email']),
+                'customer_phone' => trim((string) $_POST['customer_phone']),
+                'recipient_name' => $recipientName,
+                'recipient_phone' => $recipientPhone,
+                'delivery_address_line_1' => $addressLine1,
+                'delivery_address_line_2' => $addressLine2,
+                'delivery_city' => $city,
+                'delivery_district' => $district,
+                'customer_notes' => trim((string) ($_POST['customer_notes'] ?? '')),
+                'payment_method' => $method,
+                'bank_account_id' => $bankId,
+                'receipt_path' => $receipt,
+                'order_status' => 'pending',
+                'payment_status' => 'pending',
+                'created_by_admin' => false,
+                'notify_admin' => true,
+            ]);
 
-            SmsService::send((string) getenv('ADMIN_SMS_PHONE'), "New GiftVibe order {$orderNumber} requires verification.");
-            $_SESSION['placed_order'] = $orderNumber;
+            SmsService::send((string) getenv('ADMIN_SMS_PHONE'), 'New GiftVibe order requires verification.');
+            $orderNumberStmt = $pdo->prepare('SELECT order_number FROM orders WHERE id = ? LIMIT 1');
+            $orderNumberStmt->execute([$orderId]);
+            $_SESSION['placed_order'] = (string) $orderNumberStmt->fetchColumn();
             header('Location: /checkout/success', true, 303);
             exit;
+        } catch (\InvalidArgumentException $exception) {
+            $this->checkoutError($exception->getMessage(), $selection);
         } catch (Throwable $exception) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
             $this->checkoutError('The order could not be placed. Please try again.', $selection);
         }
-    }
-
-    private function storeReceipt(array $file, string $selection): string
-    {
-        $errCode = $file['error'] ?? UPLOAD_ERR_NO_FILE;
-        if ($errCode !== UPLOAD_ERR_OK) {
-            $uploadErrors = [
-                UPLOAD_ERR_INI_SIZE   => 'The uploaded file exceeds the upload_max_filesize directive in php.ini.',
-                UPLOAD_ERR_FORM_SIZE  => 'The uploaded file exceeds the MAX_FILE_SIZE directive specified in the HTML form.',
-                UPLOAD_ERR_PARTIAL    => 'The uploaded file was only partially uploaded.',
-                UPLOAD_ERR_NO_FILE     => 'No file was uploaded.',
-                UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder in PHP configuration.',
-                UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
-                UPLOAD_ERR_EXTENSION  => 'A PHP extension stopped the file upload.'
-            ];
-            $detail = $uploadErrors[$errCode] ?? 'Unknown upload error code: ' . $errCode;
-            $this->checkoutError('Upload your bank payment receipt failed: ' . $detail, $selection);
-        }
-
-        $size = (int) ($file['size'] ?? 0);
-        if ($size < 1 || $size > 5 * 1024 * 1024) {
-            $this->checkoutError('Receipt must be a non-empty file no larger than 5 MB. Uploaded size: ' . number_format($size / 1024, 1) . ' KB', $selection);
-        }
-
-        $temporaryPath = (string) ($file['tmp_name'] ?? '');
-        $mime = $this->receiptMimeType($file);
-        $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'application/pdf' => 'pdf'];
-        if (!isset($extensions[$mime])) {
-            $this->checkoutError('Receipt must be JPG, PNG, WebP, or PDF. Detected type: ' . htmlspecialchars($mime), $selection);
-        }
-
-        $directory = BASE_PATH . '/public/assets/uploads/receipts';
-        if (!is_dir($directory)) {
-            @mkdir($directory, 0775, true);
-        }
-        if (!is_writable($directory)) {
-            $this->checkoutError('Upload directory is not writable by web server: ' . $directory, $selection);
-        }
-
-        $name = 'receipt_' . bin2hex(random_bytes(12)) . '.' . $extensions[$mime];
-        if (!move_uploaded_file((string) $file['tmp_name'], $directory . '/' . $name)) {
-            $this->checkoutError('Failed to move uploaded receipt to destination directory.', $selection);
-        }
-        return '/assets/uploads/receipts/' . $name;
-    }
-
-    private function receiptMimeType(array $file): string
-    {
-        $path = (string) ($file['tmp_name'] ?? '');
-        if ($path === '' || !is_file($path)) return '';
-
-        if (class_exists(\finfo::class) && defined('FILEINFO_MIME_TYPE')) {
-            $detector = new \finfo(FILEINFO_MIME_TYPE);
-            $mime = $detector->file($path);
-            if (is_string($mime) && $mime !== '') return $mime;
-        }
-
-        $image = @getimagesize($path);
-        if (is_array($image) && isset($image['mime']) && in_array($image['mime'], ['image/jpeg', 'image/png', 'image/webp'], true)) {
-            return (string) $image['mime'];
-        }
-
-        $handle = @fopen($path, 'rb');
-        if ($handle !== false) {
-            $signature = (string) fread($handle, 5);
-            fclose($handle);
-            if ($signature === '%PDF-') return 'application/pdf';
-        }
-
-        return (string) ($file['type'] ?? '');
     }
 
     private function checkoutError(string $message, string $selection): never
@@ -242,33 +178,6 @@ final class CheckoutController extends Controller
         $_SESSION['checkout_error'] = $message;
         header('Location: /checkout?items=' . rawurlencode($selection), true, 303);
         exit;
-    }
-
-    private function products(PDO $pdo, string $selection): array
-    {
-        $requested = [];
-        foreach (array_slice(explode(',', $selection), 0, 20) as $entry) {
-            [$typedSlug, $quantity] = array_pad(explode(':', $entry, 2), 2, '1');
-            [$type, $slug] = str_contains($typedSlug, '~') ? array_pad(explode('~', $typedSlug, 2), 2, '') : ['p', $typedSlug];
-            if (in_array($type, ['p','c'], true) && preg_match('/^[a-z0-9-]+$/', $slug)) $requested[$type . '~' . $slug] = max(1, min(10, (int) $quantity));
-        }
-        if (!$requested) return [];
-        $products = [];
-        $productStmt = $pdo->prepare("SELECT id,name,slug,sku,base_price,stock_quantity FROM products WHERE slug=? AND status='active' LIMIT 1");
-        $comboStmt = $pdo->prepare("SELECT id,name,slug,CONCAT('COMBO-',id) sku,price base_price,1 stock_quantity FROM combos WHERE slug=? AND status='active' LIMIT 1");
-        foreach ($requested as $typedSlug => $quantity) {
-            [$type, $slug] = explode('~', $typedSlug, 2);
-            $stmt = $type === 'c' ? $comboStmt : $productStmt;
-            $stmt->execute([$slug]);
-            $product = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$product) continue;
-            $product['product_id'] = $type === 'c' ? null : (int) $product['id'];
-            $product['source_type'] = $type === 'c' ? 'combo' : 'product';
-            $product['quantity'] = $quantity;
-            $product['line_total'] = round((float) $product['base_price'] * $product['quantity'], 2);
-            $products[] = $product;
-        }
-        return $products;
     }
 
     private function ensureCheckoutTables(PDO $pdo): void

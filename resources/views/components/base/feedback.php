@@ -1,6 +1,6 @@
 <div id="giftvibe-toast-region" class="pointer-events-none fixed right-4 top-4 z-[100] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2" aria-live="polite"></div>
 
-<div id="giftvibe-confirm" class="fixed inset-0 z-[110] hidden items-center justify-center bg-secondary/40 p-4" role="dialog" aria-modal="true" aria-labelledby="giftvibe-confirm-title">
+<div id="giftvibe-confirm" class="fixed inset-0 z-[110] hidden items-center justify-center bg-secondary/40 p-4" style="display:none" role="dialog" aria-modal="true" aria-labelledby="giftvibe-confirm-title" aria-hidden="true">
     <div class="w-full max-w-md rounded-2xl border border-primary/10 bg-white p-6 shadow-xl">
         <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <iconify-icon icon="heroicons:question-mark-circle" width="24" height="24"></iconify-icon>
@@ -41,14 +41,19 @@
     var pending = null;
     function close(result) {
         modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        modal.classList.remove('flex', 'is-open');
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
         var callback = pending; pending = null;
         if (result && callback) callback();
     }
     window.GiftVibeConfirm = function (message, callback) {
         messageNode.textContent = message || 'Do you want to continue?';
         pending = callback;
-        modal.classList.remove('hidden'); modal.classList.add('flex');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex', 'is-open');
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
         cancel.focus();
     };
     accept.addEventListener('click', function () { close(true); });

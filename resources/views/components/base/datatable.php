@@ -137,7 +137,15 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white">
                 <?php foreach ($tableRows as $row): ?>
-                    <tr class="group hover:bg-slate-50/50 transition-colors" data-row>
+                    <?php
+                    $rowDataAttrs = '';
+                    if (!empty($row['_attrs']) && is_array($row['_attrs'])) {
+                        foreach ($row['_attrs'] as $attrKey => $attrValue) {
+                            $rowDataAttrs .= ' data-' . htmlspecialchars((string) $attrKey, ENT_QUOTES) . '="' . htmlspecialchars((string) $attrValue, ENT_QUOTES) . '"';
+                        }
+                    }
+                    ?>
+                    <tr class="group hover:bg-slate-50/50 transition-colors" data-row<?= $rowDataAttrs ?>>
                         <?php foreach ($tableColumns as $column): ?>
                             <?php
                             $colKey = $column['key'] ?? '';
@@ -338,6 +346,11 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
 
             renderPagination(pages);
             renderSortIndicators();
+
+            root.dispatchEvent(new CustomEvent('datatable:render', {
+                bubbles: true,
+                detail: { filtered: list, total: total, state: Object.assign({}, state) }
+            }));
         }
 
         function pageList(current, pages) {
@@ -427,7 +440,23 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                 state.filters = {};
                 state.page = 1;
                 if (searchInput) searchInput.value = '';
-                filterInputs.forEach(function (input) { input.value = ''; });
+                filterInputs.forEach(function (input) {
+                    var wrap = input.closest('[data-custom-select]');
+                    if (wrap) {
+                        wrap.querySelectorAll('[data-select-option]').forEach(function (opt) {
+                            opt.setAttribute('data-selected', 'false');
+                        });
+                        var display = wrap.querySelector('[data-select-display-text]');
+                        if (display) {
+                            display.textContent = wrap.getAttribute('data-placeholder') || 'Choose option...';
+                            display.classList.add('text-slate-400');
+                        }
+                        var hiddenContainer = wrap.querySelector('[data-select-hidden-container]');
+                        if (hiddenContainer) hiddenContainer.innerHTML = '';
+                    } else {
+                        input.value = '';
+                    }
+                });
                 render();
             });
         }
