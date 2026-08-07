@@ -73,7 +73,11 @@ final class CheckoutController extends Controller
             header('Location: /shop', true, 303);
             exit;
         }
-        $content = $this->render('public/checkout/success', compact('orderNumber'));
+        $pdo = Database::connection();
+        $general = $pdo->query("SELECT google_review_url FROM general_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+        $googleReviewUrl = $general['google_review_url'] ?? '';
+
+        $content = $this->render('public/checkout/success', compact('orderNumber', 'googleReviewUrl'));
         $this->view('layouts/public-layout', ['title' => 'Order Received', 'robots' => 'noindex, nofollow', 'content' => $content]);
     }
 
@@ -243,5 +247,60 @@ final class CheckoutController extends Controller
         $pdo->exec("CREATE TABLE IF NOT EXISTS customer_notifications (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,user_id BIGINT UNSIGNED NOT NULL,order_id BIGINT UNSIGNED NULL,phone VARCHAR(40) NOT NULL,message VARCHAR(500) NOT NULL,status ENUM('queued','sent','failed') NOT NULL DEFAULT 'queued',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,KEY idx_customer_notifications_user(user_id),KEY idx_customer_notifications_order(order_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $pdo->exec("CREATE TABLE IF NOT EXISTS bank_accounts (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,bank_name VARCHAR(120) NOT NULL,account_name VARCHAR(190) NOT NULL,account_number VARCHAR(100) NOT NULL,branch VARCHAR(120) NULL,sort_order INT UNSIGNED NOT NULL DEFAULT 0,status ENUM('active','inactive') NOT NULL DEFAULT 'active',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $pdo->exec("CREATE TABLE IF NOT EXISTS user_addresses (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,user_id BIGINT UNSIGNED NOT NULL,label VARCHAR(80) NOT NULL DEFAULT 'Delivery address',address_line_1 VARCHAR(255) NOT NULL,address_line_2 VARCHAR(255) NULL,city VARCHAR(120) NOT NULL,district VARCHAR(120) NOT NULL,is_default TINYINT(1) NOT NULL DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,KEY idx_user_addresses_user(user_id),CONSTRAINT fk_user_addresses_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    public function submitReview(): void
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method Not Allowed']);
+            exit;
+        }
+
+        $customer = $_SESSION['user'] ?? null;
+        if (!$customer) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'You must be signed in to submit a review.']);
+            exit;
+        }
+
+        $rating = max(1, min(5, (int) ($_POST['rating'] ?? 5)));
+        $comments = trim((string) ($_POST['comments'] ?? ''));
+
+        if ($comments === '') {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Feedback comment is required.']);
+            exit;
+        }
+
+        $name = trim((string) (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')));
+        $email = $customer['email'] ?? '';
+        $avatarKey = $customer['avatar'] ?? 'avatar_1';
+        $avatarPaths = [
+            'avatar_1' => '/assets/images/avatars/avatar-1.svg',
+            'avatar_2' => '/assets/images/avatars/avatar-2.svg',
+            'avatar_3' => '/assets/images/avatars/avatar-3.svg',
+            'avatar_4' => '/assets/images/avatars/avatar-4.svg',
+            'avatar_5' => '/assets/images/avatars/avatar-5.svg',
+            'avatar_6' => '/assets/images/avatars/avatar-6.svg'
+        ];
+        $avatarPath = $avatarPaths[$avatarKey] ?? '/assets/images/avatars/avatar-1.svg';
+
+        $pdo = Database::connection();
+        $stmt = $pdo->prepare("INSERT INTO testimonials (reviewer_name, reviewer_email, reviewer_role, avatar_path, title, review_text, rating, source, status, sort_order) VALUES (?, ?, 'Customer', ?, 'Order Feedback', ?, ?, 'public', 'pending', 0)");
+        $stmt->execute([$name, $email, $avatarPath, $comments, $rating]);
+
+        // Fetch Google review URL to redirect
+        $general = $pdo->query("SELECT google_review_url FROM general_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+        $googleReviewUrl = $general['google_review_url'] ?? '';
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Thank you for your feedback!',
+            'google_review_url' => $googleReviewUrl
+        ]);
+        exit;
     }
 }

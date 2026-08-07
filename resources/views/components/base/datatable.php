@@ -96,6 +96,10 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
      data-id="<?= htmlspecialchars($tableId) ?>"
      data-per-page="<?= $tablePerPage ?>"
      data-sortable="<?= $tableSortable ? '1' : '0' ?>"
+     data-datatable
+     data-id="<?= htmlspecialchars($tableId) ?>"
+     data-per-page="<?= $tablePerPage ?>"
+     data-sortable="<?= $tableSortable ? '1' : '0' ?>"
      data-default-key="<?= htmlspecialchars($defaultKey) ?>"
      data-default-dir="<?= $defaultDir ?>">
 
@@ -111,7 +115,7 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                         $width   = $column['width'] ?? '';
                         $sortable = $tableSortable && ($column['sortable'] ?? true) && $colKey !== '';
                         $sortType = $column['type'] ?? 'string';
-                        $thClass = trim('px-6 py-4 text-xs font-bold uppercase tracking-wider text-primary/60 ' . $align . ' ' . $width);
+                        $thClass = trim('px-6 py-4 text-xs font-bold uppercase tracking-wider text-primary/60 ' . $align . ' ' . $width . ' ' . ($column['class'] ?? ''));
                         ?>
                         <th scope="col" class="<?= $thClass ?>" <?= $sortable ? 'data-sort-key="' . htmlspecialchars($colKey) . '" data-sort-type="' . htmlspecialchars($sortType) . '"' : '' ?>>
                             <?php if ($sortable): ?>
@@ -133,7 +137,7 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
             </thead>
             <tbody class="divide-y divide-slate-100 bg-white">
                 <?php foreach ($tableRows as $row): ?>
-                    <tr data-row class="group transition-colors duration-150 hover:bg-primary/[0.03] <?= $tableZebra ? 'odd:bg-primary/[0.01]' : '' ?>">
+                    <tr class="group hover:bg-slate-50/50 transition-colors" data-row>
                         <?php foreach ($tableColumns as $column): ?>
                             <?php
                             $colKey = $column['key'] ?? '';
@@ -143,6 +147,7 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                             if (isset($column['render']) && is_callable($column['render'])) {
                                 $cellValue = (string) $column['render']($row);
                                 $escape = false;
+
                             } elseif (isset($column['format']) && is_callable($column['format'])) {
                                 $cellValue = (string) $column['format']($row[$colKey] ?? '', $row);
                                 $escape = !($column['html'] ?? false);
@@ -155,7 +160,7 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                                 $escape = true;
                             }
                             ?>
-                            <td class="px-6 py-4 text-sm text-slate-600 group-hover:text-secondary <?= $align ?>" <?= $colKey !== '' ? 'data-key="' . htmlspecialchars($colKey) . '"' : '' ?>>
+                            <td class="px-6 py-4 text-sm text-slate-600 group-hover:text-secondary <?= $align ?> <?= htmlspecialchars($column['class'] ?? '') ?>" <?= $colKey !== '' ? 'data-key="' . htmlspecialchars($colKey) . '"' : '' ?>>
                                 <?= $escape ? htmlspecialchars($cellValue) : $cellValue ?>
                             </td>
                         <?php endforeach; ?>
@@ -177,6 +182,22 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
     <div data-table-empty class="hidden px-6 py-16 text-center">
         <p class="text-sm text-slate-400"><?= htmlspecialchars($tableEmptyMessage) ?></p>
     </div>
+
+    <?php if ($tablePaginated): ?>
+        <div data-table-pagination-wrap data-datatable-target="<?= htmlspecialchars($tableId) ?>" class="flex flex-col gap-4 border-t border-primary/10 bg-slate-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+                <label for="<?= htmlspecialchars($tableId) ?>-per-page" class="text-xs font-semibold text-slate-500">Rows per page</label>
+                <select id="<?= htmlspecialchars($tableId) ?>-per-page" data-table-perpage data-datatable-target="<?= htmlspecialchars($tableId) ?>" class="rounded-lg border border-primary/10 bg-white px-2.5 py-1.5 text-xs font-bold text-secondary outline-none focus:border-primary">
+                    <option value="5" <?= $tablePerPage === 5 ? 'selected' : '' ?>>5</option>
+                    <option value="10" <?= $tablePerPage === 10 ? 'selected' : '' ?>>10</option>
+                    <option value="25" <?= $tablePerPage === 25 ? 'selected' : '' ?>>25</option>
+                    <option value="50" <?= $tablePerPage === 50 ? 'selected' : '' ?>>50</option>
+                </select>
+            </div>
+            <p data-table-summary data-datatable-target="<?= htmlspecialchars($tableId) ?>" class="text-xs font-semibold text-slate-500"></p>
+            <nav data-table-pagination data-datatable-target="<?= htmlspecialchars($tableId) ?>" class="flex flex-wrap items-center justify-end gap-1" aria-label="Table pagination"></nav>
+        </div>
+    <?php endif; ?>
 
 </div>
 
@@ -200,9 +221,17 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         var perPage = parseInt(root.getAttribute('data-per-page'), 10) || 10;
         var sortable = root.getAttribute('data-sortable') === '1';
 
+        var initialFilters = {};
+        filterInputs.forEach(function (input) {
+            var val = input.value;
+            if (val) {
+                initialFilters[input.getAttribute('data-filter-key')] = val.toLowerCase();
+            }
+        });
+
         var state = {
             query: '',
-            filters: {},
+            filters: initialFilters,
             sortKey: root.getAttribute('data-default-key') || '',
             sortDir: root.getAttribute('data-default-dir') || 'asc',
             page: 1
@@ -233,7 +262,17 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
                 if (!value) return;
                 list = list.filter(function (row) {
                     var cell = row.querySelector('td[data-key="' + key + '"]');
-                    return cell && cell.textContent.trim().toLowerCase() === value;
+                    if (!cell) return false;
+                    var text = cell.textContent.trim().toLowerCase();
+                    var matchEl = cell.querySelector('[data-filter-match]');
+                    if (matchEl) {
+                        var matches = matchEl.getAttribute('data-filter-match').toLowerCase().split(',');
+                        return matches.indexOf(value) !== -1;
+                    }
+                    if (key === 'year' || key === 'month' || key === 'date') {
+                        return text.indexOf(value) !== -1;
+                    }
+                    return text === value;
                 });
             });
             if (state.sortKey) {
@@ -321,9 +360,9 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = label;
-            btn.className = 'h-9 min-w-9 rounded-xl px-2.5 text-sm transition-all duration-200 flex items-center justify-center cursor-pointer font-medium ' +
-                (disabled ? 'cursor-not-allowed text-slate-300 bg-slate-50 border border-slate-100' :
-                 (active ? 'bg-primary font-bold text-white border border-primary shadow-sm shadow-primary/20' : 'text-slate-600 border border-slate-200 bg-white hover:border-primary hover:text-primary hover:bg-primary/5'));
+            btn.className = 'h-9 min-w-9 rounded-xl px-2.5 text-sm transition-all duration-200 flex items-center justify-center cursor-pointer font-bold ' +
+                (disabled ? 'cursor-not-allowed text-slate-300 bg-transparent' :
+                 (active ? 'bg-primary/10 text-primary' : 'text-slate-500 bg-transparent hover:bg-slate-100 hover:text-secondary'));
             if (disabled) { btn.disabled = true; }
             btn.addEventListener('click', function () { state.page = page; render(); });
             return btn;
@@ -332,8 +371,8 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         function renderPagination(pages) {
             if (!paginationEl || !paginationWrap) return;
             paginationEl.innerHTML = '';
-            paginationWrap.classList.toggle('hidden', pages <= 1);
-            if (pages <= 1) { return; }
+            paginationWrap.classList.remove('hidden');
+            
             paginationEl.appendChild(pageButton('\u2039', state.page - 1, false, state.page === 1));
             pageList(state.page, pages).forEach(function (p) {
                 if (p === '…') {
@@ -357,11 +396,21 @@ $defaultDir  = ($defaultSort['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         }
 
         filterInputs.forEach(function (input) {
-            input.addEventListener('change', function () {
-                state.filters[input.getAttribute('data-filter-key')] = input.value.toLowerCase();
-                state.page = 1;
-                render();
-            });
+            var customSelect = input.closest('[data-custom-select]');
+            if (customSelect) {
+                customSelect.addEventListener('select:change', function (e) {
+                    var val = e.detail.values[0] || '';
+                    state.filters[input.getAttribute('data-filter-key')] = val.toLowerCase();
+                    state.page = 1;
+                    render();
+                });
+            } else {
+                input.addEventListener('change', function () {
+                    state.filters[input.getAttribute('data-filter-key')] = input.value.toLowerCase();
+                    state.page = 1;
+                    render();
+                });
+            }
         });
 
         if (perPageSelect) {

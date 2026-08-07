@@ -6,5 +6,7 @@ class PlaceholderController extends Controller{
  public function customers():void{$this->show('Customers','Customer management is not configured yet.');}
  public function messages():void{$this->show('Messages','Message management is not configured yet.');}
  public function settings():void{$this->show('Settings','Site settings are not configured yet.');}
+ public function expenses():void{$this->show('Expenses','Expense tracking is not configured yet.');}
+ public function payments():void{$this->show('Payments','Payment verification is not configured yet.');}
  private function show(string $title,string $description):void{$this->view('layouts/admin-layout',['title'=>$title,'showPageTitle'=>false,'content'=>$this->render('admin/placeholder/index',compact('title','description'))]);}
 }

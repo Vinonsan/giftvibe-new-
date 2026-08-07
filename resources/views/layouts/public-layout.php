@@ -26,6 +26,10 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> | Gift Vibe</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon_io/favicon-16x16.png">
+    <link rel="shortcut icon" href="/favicon_io/favicon.ico" type="image/x-icon">
     <meta name="description" content="<?= htmlspecialchars($metaDescription) ?>">
     <meta name="robots" content="<?= htmlspecialchars($robots) ?>">
     <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl) ?>">
@@ -40,7 +44,15 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     <meta name="twitter:description" content="<?= htmlspecialchars($metaDescription) ?>">
     <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl) ?>">
     <?php if (is_array($structuredData)): ?>
-        <script type="application/ld+json"><?= json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+        <?php if (isset($structuredData['@context']) || isset($structuredData['@type'])): ?>
+            <script type="application/ld+json"><?= json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+        <?php else: ?>
+            <?php foreach ($structuredData as $sd): ?>
+                <?php if (is_array($sd)): ?>
+                    <script type="application/ld+json"><?= json_encode($sd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        <?php endif; ?>
     <?php endif; ?>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">

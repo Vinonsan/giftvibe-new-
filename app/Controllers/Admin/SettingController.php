@@ -77,9 +77,10 @@ class SettingController extends Controller
 
             $siteName = trim((string) ($_POST['site_name'] ?? 'GiftVibe'));
             $siteDescription = trim((string) ($_POST['site_description'] ?? ''));
+            $googleReviewUrl = trim((string) ($_POST['google_review_url'] ?? ''));
 
-            $stmt = $pdo->prepare("UPDATE general_settings SET site_name = ?, site_description = ?, site_logo = ? WHERE id = 1");
-            $stmt->execute([$siteName, $siteDescription, $logoPath]);
+            $stmt = $pdo->prepare("UPDATE general_settings SET site_name = ?, site_description = ?, site_logo = ?, google_review_url = ? WHERE id = 1");
+            $stmt->execute([$siteName, $siteDescription, $logoPath, $googleReviewUrl]);
 
         } elseif ($tab === 'contact') {
             $email = trim((string) ($_POST['site_contact_email'] ?? ''));
@@ -205,14 +206,24 @@ class SettingController extends Controller
     private function ensureTablesExist(PDO $pdo): void
     {
         $pdo->exec("
-            CREATE TABLE IF NOT EXISTS `general_settings` (
+             CREATE TABLE IF NOT EXISTS `general_settings` (
               `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
               `site_name` varchar(190) NOT NULL DEFAULT 'GiftVibe',
               `site_description` text DEFAULT NULL,
               `site_logo` varchar(255) DEFAULT NULL,
+              `google_review_url` varchar(255) DEFAULT NULL,
               `created_at` timestamp NULL DEFAULT current_timestamp(),
               `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+            /* Add google_review_url column if it does not exist in active databases */
+            SELECT 1;
+        ");
+        try {
+            $pdo->exec("ALTER TABLE general_settings ADD COLUMN google_review_url VARCHAR(255) DEFAULT NULL AFTER site_logo");
+        } catch (\PDOException $e) {}
+
+        $pdo->exec("
 
             CREATE TABLE IF NOT EXISTS `contact_settings` (
               `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,

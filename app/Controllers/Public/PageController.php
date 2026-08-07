@@ -15,11 +15,54 @@ class PageController extends Controller
     private function show(string $page, string $title, string $intro): void
     {
         $cta = null;
-        try { $s=Database::connection()->prepare("SELECT * FROM homepage_ctas WHERE placement=? AND status='active' ORDER BY sort_order,id DESC LIMIT 1");$s->execute([$page]);$cta=$s->fetch()?:null; } catch (\Throwable) {}
-        $content=$this->render('public/pages/'.$page, compact('title','intro','cta'));
-        $siteUrl=rtrim((string)(getenv('APP_URL')?:'https://giftvibelk.lk'),'/');
-        $schema=['@context'=>'https://schema.org','@type'=>$page==='contact'?'ContactPage':($page==='about'?'AboutPage':($page==='blog'?'Blog':'WebPage')),'name'=>$title,'description'=>$intro,'url'=>$siteUrl.'/'.$page,'isPartOf'=>['@type'=>'WebSite','name'=>'GiftVibe LK','url'=>$siteUrl.'/']];
-        $this->view('layouts/public-layout',['title'=>$title,'metaDescription'=>$intro,'canonicalPath'=>'/'.$page,'structuredData'=>$schema,'content'=>$content]);
+        $faqs = [];
+        try {
+            $pdo = Database::connection();
+            $s = $pdo->prepare("SELECT * FROM homepage_ctas WHERE placement=? AND status='active' ORDER BY sort_order,id DESC LIMIT 1");
+            $s->execute([$page]);
+            $cta = $s->fetch() ?: null;
+
+            $s = $pdo->prepare("SELECT * FROM faqs WHERE status='active' AND category=? ORDER BY sort_order,id LIMIT 10");
+            $s->execute([$page]);
+            $faqs = $s->fetchAll();
+        } catch (\Throwable $e) {}
+
+        $viewPath = $page === 'about' ? 'public/about/index' : 'public/pages/' . $page;
+        $content = $this->render($viewPath, compact('title','intro','cta','faqs'));
+        $siteUrl = rtrim((string)(getenv('APP_URL')?:'https://giftvibelk.lk'),'/');
+        
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => $page === 'contact' ? 'ContactPage' : ($page === 'about' ? 'AboutPage' : ($page === 'blog' ? 'Blog' : 'WebPage')),
+            'name' => $title,
+            'description' => $intro,
+            'url' => $siteUrl.'/'.$page,
+            'isPartOf' => ['@type' => 'WebSite', 'name' => 'GiftVibe LK', 'url' => $siteUrl.'/']
+        ];
+
+        $structuredData = [$schema];
+        if (!empty($faqs)) {
+            $structuredData[] = [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => array_map(fn($faq) => [
+                    '@type' => 'Question',
+                    'name' => $faq['question'],
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => $faq['answer']
+                    ]
+                ], $faqs)
+            ];
+        }
+
+        $this->view('layouts/public-layout', [
+            'title' => $title,
+            'metaDescription' => $intro,
+            'canonicalPath' => '/'.$page,
+            'structuredData' => $structuredData,
+            'content' => $content
+        ]);
     }
     private function legal(string $title,string $page,string $intro):void
     {

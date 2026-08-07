@@ -35,7 +35,7 @@ class HomeController extends Controller
                 $homepageCtas[$ctaRow['placement']] = $ctaRow;
             }
             $testimonials = $pdo->query("SELECT * FROM testimonials WHERE status='approved' ORDER BY sort_order,id DESC LIMIT 6")->fetchAll();
-            $faqs = $pdo->query("SELECT * FROM faqs WHERE status='active' ORDER BY sort_order,id LIMIT 10")->fetchAll();
+            $faqs = $pdo->query("SELECT * FROM faqs WHERE status='active' AND category='home' ORDER BY sort_order,id LIMIT 10")->fetchAll();
         } catch (\Throwable) {
             $banners = [];
         }

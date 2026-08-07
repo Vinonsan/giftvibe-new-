@@ -31,6 +31,12 @@ $initialBackground = preg_match('/^#[0-9A-Fa-f]{6}$/', $initialBackground) ? $in
             $btnText = $parts[3] ?? 'SHOP NOW';
             $bgColor = (string) ($slide['background_color'] ?? '#0B1528');
             $bgColor = preg_match('/^#[0-9A-Fa-f]{6}$/', $bgColor) ? $bgColor : '#0B1528';
+            $buttonColor = strtoupper((string) ($slide['button_color'] ?? '#102E50'));
+            $buttonColor = preg_match('/^#[0-9A-F]{6}$/', $buttonColor) ? $buttonColor : '#102E50';
+            $red = hexdec(substr($buttonColor, 1, 2));
+            $green = hexdec(substr($buttonColor, 3, 2));
+            $blue = hexdec(substr($buttonColor, 5, 2));
+            $buttonTextColor = (($red * 299 + $green * 587 + $blue * 114) / 1000) > 150 ? '#0B182E' : '#FFFFFF';
             
             $isActive = $index === 0;
         ?>
@@ -69,7 +75,8 @@ $initialBackground = preg_match('/^#[0-9A-Fa-f]{6}$/', $initialBackground) ? $in
                     <div class="pt-2 transform transition-all duration-700 ease-out delay-400 <?= $isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0' ?>"
                          data-slide-el="btn">
                         <a href="<?= htmlspecialchars($slide['link_url'] ?? '/shop') ?>" 
-                           class="inline-block bg-primary text-white text-sm font-bold tracking-wide uppercase px-8 py-3.5 rounded-xl shadow-lg shadow-primary/30 transition duration-300 hover:opacity-90 hover:shadow-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/40">
+                           style="background-color: <?= htmlspecialchars($buttonColor) ?>; color: <?= htmlspecialchars($buttonTextColor) ?>;"
+                           class="inline-block text-sm font-bold tracking-wide uppercase px-8 py-3.5 rounded-xl shadow-lg transition duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/40">
                             <?= htmlspecialchars($btnText) ?>
                         </a>
                     </div>

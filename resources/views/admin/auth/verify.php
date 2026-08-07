@@ -62,7 +62,7 @@ $siteName = $siteName ?? 'GiftVibe';
                     <div class="flex justify-between gap-2" id="otp-digits-container">
                         <?php for ($i = 0; $i < 6; $i++): ?>
                             <input type="text" name="otp_digit[]" maxlength="1" required
-                                   class="h-14 w-11 rounded-2xl border border-primary/20 bg-primary/5 text-center text-xl font-extrabold text-secondary outline-none transition focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                   class="h-14 w-11 rounded-2xl border border-primary/10 bg-primary/5 text-center text-xl font-extrabold text-secondary outline-none transition focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
                                    pattern="[0-9]" inputmode="numeric" autocomplete="one-time-code">
                         <?php endfor; ?>
                     </div>

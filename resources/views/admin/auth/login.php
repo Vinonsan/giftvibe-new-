@@ -63,7 +63,7 @@ $siteName = $siteName ?? 'GiftVibe';
                             <iconify-icon icon="heroicons:phone-solid" width="18" height="18"></iconify-icon>
                         </span>
                         <input id="phone" name="phone" type="tel" required 
-                               class="w-full rounded-2xl border border-primary/20 bg-primary/5 py-3.5 pl-11 pr-4 text-sm text-secondary outline-none transition placeholder:text-secondary/40 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10" 
+                               class="w-full rounded-2xl border border-primary/10 bg-primary/5 py-3.5 pl-11 pr-4 text-sm text-secondary outline-none transition placeholder:text-secondary/40 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10" 
                                placeholder="e.g. 0768306759">
                     </div>
                 </div>

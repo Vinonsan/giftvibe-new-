@@ -12,18 +12,16 @@ class ReviewController extends Controller
     public function index(): void
     {
         $pdo = Database::connection();
-        $reviews = $pdo->query("SELECT * FROM testimonials WHERE status='approved' ORDER BY sort_order, id DESC")->fetchAll();
-        
-        $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
-        $flash = $_SESSION['review_flash'] ?? null;
-        unset($_SESSION['review_flash']);
+        $general = $pdo->query("SELECT google_review_url FROM general_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+        $googleReviewUrl = $general['google_review_url'] ?? '';
 
-        $this->view('layouts/public-layout', [
-            'title' => 'Customer Reviews',
-            'metaDescription' => 'Read reviews and testimonials from GiftVibe customers in Sri Lanka.',
-            'canonicalPath' => '/reviews',
-            'content' => $this->render('public/reviews/index', compact('reviews', 'flash') + ['csrfToken' => $_SESSION['csrf_token']]),
-        ]);
+        if (!empty($googleReviewUrl)) {
+            header('Location: ' . $googleReviewUrl, true, 302);
+            exit;
+        }
+
+        header('Location: /', true, 302);
+        exit;
     }
 
     public function submit(): void

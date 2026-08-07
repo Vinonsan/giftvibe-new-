@@ -1,2 +1,3 @@
-<section class="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 lg:px-12 lg:py-20"><p class="text-xs font-bold uppercase tracking-[.22em] text-primary">Our story</p><h1 class="mt-3 text-4xl font-black text-secondary sm:text-5xl"><?=htmlspecialchars($title)?></h1><p class="mt-5 max-w-2xl text-base leading-8 text-slate-600"><?=htmlspecialchars($intro)?> We curate meaningful products and combinations that turn every celebration into a lasting memory.</p></section>
-<?php require BASE_PATH.'/resources/views/components/public/cta-banner.php'; ?>
+<?php
+// Legacy file - moved to resources/views/public/about/index.php
+?>

@@ -82,6 +82,7 @@ CREATE TABLE `banners` (
   `image_path` varchar(255) NOT NULL,
   `link_url` varchar(255) DEFAULT NULL,
   `background_color` char(7) NOT NULL DEFAULT '#0B1528',
+  `button_color` char(7) NOT NULL DEFAULT '#102E50',
   `placement` varchar(80) NOT NULL DEFAULT 'home_hero',
   `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',

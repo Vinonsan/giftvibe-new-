@@ -1,2 +1,5 @@
-<section class="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 lg:px-12 lg:py-20"><p class="text-xs font-bold uppercase tracking-[.22em] text-primary">Let’s talk</p><h1 class="mt-3 text-4xl font-black text-secondary sm:text-5xl"><?=htmlspecialchars($title)?></h1><p class="mt-5 max-w-2xl text-base leading-8 text-slate-600"><?=htmlspecialchars($intro)?> Tell us about the moment, recipient, and budget—we will help curate something memorable.</p><a href="mailto:hello@giftvibe.lk" class="mt-7 inline-flex rounded-lg bg-secondary px-6 py-3 text-sm font-bold text-white">hello@giftvibe.lk</a></section>
+<section class="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 lg:px-12 lg:py-20"><p class="text-xs font-bold uppercase tracking-[.22em] text-primary">Let’s talk</p><h1 class="mt-3 text-4xl font-black text-secondary sm:text-5xl"><?=htmlspecialchars($title)?></h1><p class="mt-5 max-w-2xl text-base leading-8 text-slate-600"><?=htmlspecialchars($intro)?> Tell us about the moment, recipient, and budget—we will help curate something memorable.</p><a href="mailto:hello@giftvibe.lk" class="mt-7 inline-flex rounded-lg bg-secondary px-6 py-3 text-sm font-bold text-white">hello@giftvibe.lk</a>
+    
+    <?php require BASE_PATH . '/resources/views/public/home/components/faqs.php'; ?>
+</section>
 <?php require BASE_PATH.'/resources/views/components/public/cta-banner.php'; ?>

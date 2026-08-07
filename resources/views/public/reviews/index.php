@@ -23,6 +23,33 @@ $fieldClass = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text
         </div>
     <?php endif; ?>
 
+    <?php if ($flash && $flash['type'] === 'success' && !empty($googleReviewUrl)): ?>
+        <div id="google-review-prompt" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-secondary/40 backdrop-blur-sm transition-all duration-300">
+            <div class="w-full max-w-md transform rounded-3xl bg-white p-6 shadow-2xl transition-all border border-primary/10">
+                <div class="flex items-center justify-center h-12 w-12 rounded-full bg-amber-50 text-amber-500 mx-auto">
+                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-6.887 4.114-4.664 0-8.473-3.85-8.473-8.514 0-4.664 3.809-8.514 8.473-8.514 2.537 0 4.304.99 5.276 1.916l3.192-3.192C18.665 1.488 15.759 0 12.24 0 5.48 0 0 5.48 0 12.24s5.48 12.24 12.24 12.24c7.05 0 11.727-4.959 11.727-11.93 0-.803-.073-1.576-.208-2.28H12.24z"/>
+                    </svg>
+                </div>
+                <div class="mt-4 text-center">
+                    <h3 class="text-lg font-bold text-secondary">One More Quick Favor?</h3>
+                    <p class="mt-2 text-sm text-slate-500 leading-relaxed">
+                        We are so glad to have your review! Would you mind posting it on our Google Business Profile too? It takes less than a minute!
+                    </p>
+                </div>
+                <div class="mt-6 flex flex-col gap-2">
+                    <a href="<?= htmlspecialchars($googleReviewUrl) ?>" target="_blank" onclick="document.getElementById('google-review-prompt').remove();" class="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-secondary transition-all">
+                        <span>Write a Google Review</span>
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                    </a>
+                    <button type="button" onclick="document.getElementById('google-review-prompt').remove();" class="rounded-xl px-4 py-3 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <div class="mt-12 grid grid-cols-1 gap-12 lg:grid-cols-12">
         <!-- Left Column: Submit a Review (4 cols on lg) -->
         <div class="lg:col-span-4 bg-slate-50/50 rounded-3xl border border-slate-100 p-6 lg:p-8 self-start">
