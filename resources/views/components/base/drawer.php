@@ -151,10 +151,10 @@ if ($drawerTrigger === '') {
                     <button
                         type="button"
                         data-drawer-close
-                        class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        class="rounded-xl p-1.5 bg-[#FF5A79] text-white hover:bg-slate-900 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 cursor-pointer"
                         aria-label="Close"
                     >
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>

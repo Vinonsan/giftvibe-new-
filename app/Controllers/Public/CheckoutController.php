@@ -169,22 +169,51 @@ final class CheckoutController extends Controller
 
     private function storeReceipt(array $file, string $selection): string
     {
-        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) $this->checkoutError('Upload your bank payment receipt.', $selection);
+        $errCode = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+        if ($errCode !== UPLOAD_ERR_OK) {
+            $uploadErrors = [
+                UPLOAD_ERR_INI_SIZE   => 'The uploaded file exceeds the upload_max_filesize directive in php.ini.',
+                UPLOAD_ERR_FORM_SIZE  => 'The uploaded file exceeds the MAX_FILE_SIZE directive specified in the HTML form.',
+                UPLOAD_ERR_PARTIAL    => 'The uploaded file was only partially uploaded.',
+                UPLOAD_ERR_NO_FILE     => 'No file was uploaded.',
+                UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder in PHP configuration.',
+                UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
+                UPLOAD_ERR_EXTENSION  => 'A PHP extension stopped the file upload.'
+            ];
+            $detail = $uploadErrors[$errCode] ?? 'Unknown upload error code: ' . $errCode;
+            $this->checkoutError('Upload your bank payment receipt failed: ' . $detail, $selection);
+        }
+
         $size = (int) ($file['size'] ?? 0);
-        if ($size < 1 || $size > 5 * 1024 * 1024) $this->checkoutError('Receipt must be a non-empty file no larger than 5 MB.', $selection);
+        if ($size < 1 || $size > 5 * 1024 * 1024) {
+            $this->checkoutError('Receipt must be a non-empty file no larger than 5 MB. Uploaded size: ' . number_format($size / 1024, 1) . ' KB', $selection);
+        }
+
         $temporaryPath = (string) ($file['tmp_name'] ?? '');
-        $mime = $this->receiptMimeType($temporaryPath);
+        $mime = $this->receiptMimeType($file);
         $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'application/pdf' => 'pdf'];
-        if (!isset($extensions[$mime])) $this->checkoutError('Receipt must be JPG, PNG, WebP, or PDF.', $selection);
+        if (!isset($extensions[$mime])) {
+            $this->checkoutError('Receipt must be JPG, PNG, WebP, or PDF. Detected type: ' . htmlspecialchars($mime), $selection);
+        }
+
         $directory = BASE_PATH . '/public/assets/uploads/receipts';
-        if (!is_dir($directory)) mkdir($directory, 0775, true);
+        if (!is_dir($directory)) {
+            @mkdir($directory, 0775, true);
+        }
+        if (!is_writable($directory)) {
+            $this->checkoutError('Upload directory is not writable by web server: ' . $directory, $selection);
+        }
+
         $name = 'receipt_' . bin2hex(random_bytes(12)) . '.' . $extensions[$mime];
-        if (!move_uploaded_file((string) $file['tmp_name'], $directory . '/' . $name)) $this->checkoutError('Receipt upload failed.', $selection);
+        if (!move_uploaded_file((string) $file['tmp_name'], $directory . '/' . $name)) {
+            $this->checkoutError('Failed to move uploaded receipt to destination directory.', $selection);
+        }
         return '/assets/uploads/receipts/' . $name;
     }
 
-    private function receiptMimeType(string $path): string
+    private function receiptMimeType(array $file): string
     {
+        $path = (string) ($file['tmp_name'] ?? '');
         if ($path === '' || !is_file($path)) return '';
 
         if (class_exists(\finfo::class) && defined('FILEINFO_MIME_TYPE')) {
@@ -205,7 +234,7 @@ final class CheckoutController extends Controller
             if ($signature === '%PDF-') return 'application/pdf';
         }
 
-        return '';
+        return (string) ($file['type'] ?? '');
     }
 
     private function checkoutError(string $message, string $selection): never

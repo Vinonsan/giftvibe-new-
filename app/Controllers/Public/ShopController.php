@@ -106,10 +106,14 @@ class ShopController extends Controller
             $itemList[] = ['@type'=>'ListItem','position'=>$index + 1,'url'=>$siteUrl.'/shop?product='.rawurlencode((string)$listedProduct['slug']),'name'=>$listedProduct['name']];
         }
 
+        $shopTitle = $categorySlug !== '' ? $activeName . ' - Shop Curated Gifts' : 'Shop Premium Gift Hampers & Curated Celebration Boxes';
+        $shopDescription = $categorySlug !== '' ? 'Explore our curated ' . $activeName . ' hampers. Hand-delivered across Sri Lanka, including Jaffna.' : 'Explore our collection of custom gift hampers, birthday treats, flowers, and surprise packages. Handcrafted and delivered across Sri Lanka, including Colombo and Jaffna.';
+
         $this->view('layouts/public-layout', [
-            'title' => $activeName,
-            'metaDescription' => $categorySlug !== '' ? 'Shop ' . $activeName . ' online from GiftVibe. Discover thoughtful gifts for meaningful celebrations.' : 'Shop thoughtful gifts, flowers, sweet treats and curated gift boxes online from GiftVibe.',
+            'title' => $shopTitle,
+            'metaDescription' => $shopDescription,
             'canonicalPath' => $categoryCanonical,
+            'ogImage' => '/assets/images/hero_slide_1.jpg',
             'structuredData' => ['@context'=>'https://schema.org','@type'=>'ItemList','name'=>$activeName,'url'=>$siteUrl.$categoryCanonical,'numberOfItems'=>count($itemList),'itemListElement'=>$itemList],
             'content' => $this->render('public/shop/index', compact('products', 'categories', 'categorySlug', 'activeName', 'filters', 'totalProducts', 'priceBounds')),
         ]);

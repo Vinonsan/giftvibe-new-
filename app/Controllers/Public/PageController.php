@@ -6,10 +6,10 @@ use App\Core\Database;
 
 class PageController extends Controller
 {
-    public function about(): void { $this->show('about', 'About GiftVibe | Curated Gifting Experience in Sri Lanka', 'Learn about GiftVibe, our story, and our passion for bringing people together. Discover how we curate premium gift boxes, flower bouquets, and custom presents.'); }
-    public function services(): void { $this->show('services', 'Our Gifting Services | Gift Delivery in Sri Lanka', 'Explore our premium gifting services including customized gift hampers, corporate gifts, floral arrangements, and fast home delivery across Colombo & Sri Lanka.'); }
-    public function blog(): void { $this->show('blog', 'Gift Ideas & Celebration Guides | GiftVibe Blog', 'Discover thoughtful gift ideas, celebration guides, and tips for choosing the perfect present for birthdays, anniversaries, and holidays in Sri Lanka.'); }
-    public function contact(): void { $this->show('contact', 'Contact GiftVibe | 24/7 Gifting Support Sri Lanka', 'Get in touch with GiftVibe. Contact us for custom gift requests, order tracking, corporate hampers, and general inquiries. We are here to help you.'); }
+    public function about(): void { $this->show('about', 'About', 'Learn about GiftVibe, our story, and our passion for bringing people together. Discover how we curate premium gift boxes, flower bouquets, and custom presents.'); }
+    public function services(): void { $this->show('services', 'Services', 'Explore our premium gifting services including customized gift hampers, corporate gifts, floral arrangements, and fast home delivery across Colombo & Sri Lanka.'); }
+    public function blog(): void { $this->show('blog', 'Blog', 'Discover thoughtful gift ideas, celebration guides, and tips for choosing the perfect present for birthdays, anniversaries, and holidays in Sri Lanka.'); }
+    public function contact(): void { $this->show('contact', 'Contact', 'Get in touch with GiftVibe. Contact us for custom gift requests, order tracking, corporate hampers, and general inquiries. We are here to help you.'); }
     public function privacy(): void { $this->legal('Privacy Policy', 'privacy', 'How GiftVibe collects, uses and protects information shared with us.'); }
     public function terms(): void { $this->legal('Terms & Conditions', 'terms', 'The terms that apply when browsing GiftVibe and arranging an order.'); }
     private function show(string $page, string $title, string $intro): void
@@ -56,10 +56,19 @@ class PageController extends Controller
             ];
         }
 
+        $pageImages = [
+            'about' => '/assets/images/hero_slide_2.jpg',
+            'services' => '/assets/images/product-showcase-giftvibe.jpg',
+            'contact' => '/assets/images/hero_slide_3.jpg',
+            'blog' => '/assets/images/hero_slide_1.jpg'
+        ];
+        $ogImage = $pageImages[$page] ?? '/assets/images/giftvibe-mark.svg';
+
         $this->view('layouts/public-layout', [
             'title' => $title,
             'metaDescription' => $intro,
             'canonicalPath' => '/'.$page,
+            'ogImage' => $ogImage,
             'structuredData' => $structuredData,
             'content' => $content
         ]);

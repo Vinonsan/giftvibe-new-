@@ -8,8 +8,8 @@ $currentPath = $currentPath ?? (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_UR
 $publicNavigation = $publicNavigation ?? [
     ['label' => 'Home', 'href' => '/'],
     ['label' => 'Shop', 'href' => '/shop'],
+    ['label' => 'Combos', 'href' => '/combos'],
     ['label' => 'Services', 'href' => '/services'],
-    ['label' => 'Blog', 'href' => '/blog'],
     ['label' => 'About', 'href' => '/about'],
     ['label' => 'Contact', 'href' => '/contact'],
 ];
@@ -40,7 +40,7 @@ $customerAvatar = (string) ($customer['avatar'] ?? 'avatar_1');
                 $isActive = $currentPath === $href || ($href !== '/' && str_starts_with($currentPath, rtrim($href, '/') . '/'));
             ?>
                 <a href="<?= htmlspecialchars($href) ?>"
-                   class="rounded-full px-4 py-2 text-sm font-medium transition <?= $isActive ? 'bg-white text-primary shadow-sm ring-1 ring-slate-200/70' : 'text-slate-600 hover:text-secondary' ?>"
+                   class="rounded-full px-4 py-2 text-sm font-medium transition <?= $isActive ? 'bg-primary text-white' : 'text-slate-600 hover:text-secondary' ?>"
                    <?= $isActive ? 'aria-current="page"' : '' ?>>
                     <?= htmlspecialchars((string) ($item['label'] ?? '')) ?>
                 </a>
@@ -90,7 +90,7 @@ $customerAvatar = (string) ($customer['avatar'] ?? 'avatar_1');
                 $href = (string) ($item['href'] ?? '#');
                 $isActive = $currentPath === $href || ($href !== '/' && str_starts_with($currentPath, rtrim($href, '/') . '/'));
             ?>
-                <a href="<?= htmlspecialchars($href) ?>" class="rounded-xl px-4 py-3 text-sm font-medium transition <?= $isActive ? 'bg-primary text-primary' : 'text-slate-600 hover:bg-slate-50 hover:text-secondary' ?>" <?= $isActive ? 'aria-current="page"' : '' ?>>
+                <a href="<?= htmlspecialchars($href) ?>" class="rounded-xl px-4 py-3 text-sm font-medium transition <?= $isActive ? 'bg-[#FF5A79] text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-secondary' ?>" <?= $isActive ? 'aria-current="page"' : '' ?>>
                     <?= htmlspecialchars((string) ($item['label'] ?? '')) ?>
                 </a>
             <?php endforeach; ?>

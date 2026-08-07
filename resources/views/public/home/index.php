@@ -11,7 +11,7 @@ declare(strict_types=1);
  */
 ?>
 
-<div class="flex flex-col gap-4">
+<div class="flex flex-col py-8 gap-4">
      
     <?php require BASE_PATH . '/resources/views/public/home/components/hero.php'; ?>
     

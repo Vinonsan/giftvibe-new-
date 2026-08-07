@@ -51,10 +51,10 @@ class HomeController extends Controller
         $averageRating = $testimonials ? round(array_sum(array_map(static fn(array $review): int => (int) $review['rating'], $testimonials)) / count($testimonials), 1) : null;
 
         $this->view('layouts/public-layout', [
-            'title' => (string) $primarySlide['title'],
-            'metaDescription' => $description,
+            'title' => 'Home',
+            'metaDescription' => 'Find the perfect gift for your loved ones at GiftVibe. We deliver premium custom gift hampers, flowers, and sweet treats across Sri Lanka, including Jaffna.',
             'canonicalPath' => '/',
-            'ogImage' => (string) ($primarySlide['image_path'] ?? '/assets/images/hero_slide_1.jpg'),
+            'ogImage' => '/assets/images/product-showcase-giftvibe.jpg',
             'structuredData' => [
                 '@context' => 'https://schema.org',
                 '@graph' => array_values(array_filter([
