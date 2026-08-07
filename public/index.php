@@ -19,6 +19,11 @@ if (PHP_SAPI === 'cli-server') {
 
 define('BASE_PATH', dirname(__DIR__));
 
+/* Bust OPcache for recently edited admin controllers (XAMPP dev). */
+if (function_exists('opcache_invalidate')) {
+    opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/OrderController.php', true);
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     $sessionPath = BASE_PATH . '/storage/sessions';
     if (!is_dir($sessionPath)) {

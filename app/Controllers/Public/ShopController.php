@@ -119,6 +119,80 @@ class ShopController extends Controller
         ]);
     }
 
+    public function category(): void
+    {
+        $slug = trim((string) ($_GET['slug'] ?? $this->param('slug') ?? ''));
+        $pdo  = Database::connection();
+
+        /* Load the category */
+        $catStmt = $pdo->prepare("SELECT * FROM categories WHERE slug = ? AND status = 'active' LIMIT 1");
+        $catStmt->execute([$slug]);
+        $category = $catStmt->fetch();
+
+        /* 404 if slug not found */
+        if (!$category && $slug !== '') {
+            http_response_code(404);
+        }
+
+        /* Load real products for this category */
+        $products = [];
+        if ($category) {
+            $pStmt = $pdo->prepare(
+                "SELECT p.*, pi.image_path,
+                        GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') AS category_names
+                 FROM products p
+                 LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
+                 LEFT JOIN product_categories pc ON pc.product_id = p.id
+                 LEFT JOIN categories c ON c.id = pc.category_id
+                 WHERE pc.category_id = ? AND p.status = 'active'
+                 GROUP BY p.id
+                 ORDER BY p.is_featured DESC, p.id DESC"
+            );
+            $pStmt->execute([(int) $category['id']]);
+            $products = $pStmt->fetchAll();
+        }
+
+        /* Mock products shown when DB has no real data yet */
+        if (empty($products)) {
+            $mockImages = [
+                '/assets/images/hero_slide_1.jpg',
+                '/assets/images/hero_slide_2.jpg',
+                '/assets/images/hero_slide_3.jpg',
+            ];
+            $mockNames = [
+                'Rose Bouquet Premium', 'Birthday Gift Hamper', 'Chocolate Surprise Box',
+                'Flower & Cake Combo', 'Romantic Candle Set', 'Anniversary Luxury Pack',
+            ];
+            foreach ($mockNames as $i => $name) {
+                $products[] = [
+                    'id'             => $i + 1,
+                    'name'           => $name,
+                    'slug'           => 'mock-' . ($i + 1),
+                    'short_description' => 'A beautifully curated gift, hand-delivered across Sri Lanka.',
+                    'base_price'     => 2490 + ($i * 500),
+                    'sale_price'     => null,
+                    'image_path'     => $mockImages[$i % 3],
+                    'stock_quantity' => 10,
+                    'is_featured'    => $i < 2 ? 1 : 0,
+                    'status'         => 'active',
+                    'category_names' => $category['name'] ?? 'Gift',
+                ];
+            }
+        }
+
+        $categoryName = (string) ($category['name'] ?? ucwords(str_replace('-', ' ', $slug)));
+        $siteUrl      = rtrim((string) (getenv('APP_URL') ?: 'https://giftvibelk.lk'), '/');
+        $canonicalPath = '/shop/category/' . rawurlencode($slug);
+
+        $this->view('layouts/public-layout', [
+            'title'           => $categoryName . ' — Curated Gifts | GiftVibe',
+            'metaDescription' => 'Shop ' . $categoryName . ' gifts hand-delivered across Sri Lanka. Find the perfect gift hamper at GiftVibe.',
+            'canonicalPath'   => $canonicalPath,
+            'ogImage'         => (string) ($category['image_path'] ?? '/assets/images/hero_slide_1.jpg'),
+            'content'         => $this->render('public/shop/category', compact('category', 'products', 'categoryName', 'slug')),
+        ]);
+    }
+
     public function products(): void
     {
         header('Content-Type: application/json');

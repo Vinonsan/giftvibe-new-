@@ -21,8 +21,13 @@
         show: function (message, type) {
             if (!message || !region) return;
             var toast = document.createElement('div');
-            toast.className = 'pointer-events-auto flex items-start gap-3 rounded-xl border border-primary/20 bg-white p-4 text-sm font-semibold text-secondary shadow-lg';
-            toast.innerHTML = '<span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><iconify-icon icon="' + (type === 'error' ? 'heroicons:exclamation-circle' : 'heroicons:check-circle') + '" width="18" height="18"></iconify-icon></span><span class="flex-1"></span>';
+            toast.className = 'pointer-events-auto flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold shadow-lg ' +
+                (type === 'error'
+                    ? 'border-rose-200 bg-rose-50 text-rose-800'
+                    : 'border-primary/20 bg-white text-secondary');
+            toast.innerHTML = '<span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ' +
+                (type === 'error' ? 'bg-rose-100 text-rose-600' : 'bg-primary/10 text-primary') +
+                '"><iconify-icon icon="' + (type === 'error' ? 'heroicons:exclamation-circle' : 'heroicons:check-circle') + '" width="18" height="18"></iconify-icon></span><span class="flex-1"></span>';
             toast.querySelector('span.flex-1').textContent = message;
             region.appendChild(toast);
             setTimeout(function () { toast.remove(); }, 3500);

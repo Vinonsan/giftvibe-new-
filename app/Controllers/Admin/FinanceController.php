@@ -44,7 +44,7 @@ final class FinanceController extends Controller
         $orders = $pdo->query("SELECT o.*, 
             COALESCE((SELECT SUM(oi.cost_price * oi.quantity) FROM order_items oi WHERE oi.order_id = o.id), 0) AS total_cost
             FROM orders o 
-            WHERE o.order_status IN ('confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered')
+            WHERE o.order_status = 'delivered'
             ORDER BY o.id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
         $totalSales = 0.0;

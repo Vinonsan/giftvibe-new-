@@ -22,6 +22,7 @@ declare(strict_types=1);
  *   $drawerCloseOnEsc     bool     Close on Escape (default: true).
  *   $drawerShowCloseButton bool    Show the X close button (default: true).
  *   $drawerOverlay        bool     Show the backdrop (default: true).
+ *   $drawerHeaderBottom   string   Optional HTML below the title row, inside the header border.
  *
  *   Trigger (choose one):
  *   $drawerTrigger        string   Raw HTML used as the trigger (overrides all below).
@@ -73,6 +74,7 @@ $drawerStatic          = $drawerStatic          ?? false;
 $drawerCloseOnEsc      = $drawerCloseOnEsc      ?? true;
 $drawerShowCloseButton = $drawerShowCloseButton ?? true;
 $drawerOverlay         = $drawerOverlay         ?? true;
+$drawerHeaderBottom    = $drawerHeaderBottom    ?? '';
 
 $drawerTrigger         = $drawerTrigger         ?? '';
 $drawerTriggerLabel    = $drawerTriggerLabel    ?? 'Open Drawer';
@@ -137,27 +139,34 @@ if ($drawerTrigger === '') {
         aria-modal="true"
         aria-labelledby="<?= htmlspecialchars($drawerId) ?>-title"
     >
-        <?php if ($drawerTitle !== '' || $drawerShowCloseButton): ?>
-            <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4">
-                <div>
-                    <?php if ($drawerTitle !== ''): ?>
-                        <h3 id="<?= htmlspecialchars($drawerId) ?>-title" class="text-lg font-bold text-secondary"><?= htmlspecialchars((string) $drawerTitle) ?></h3>
-                    <?php endif; ?>
-                    <?php if ($drawerDescription !== ''): ?>
-                        <p class="mt-0.5 text-sm text-slate-500"><?= htmlspecialchars((string) $drawerDescription) ?></p>
-                    <?php endif; ?>
-                </div>
-                <?php if ($drawerShowCloseButton): ?>
-                    <button
-                        type="button"
-                        data-drawer-close
-                        class="rounded-xl p-1.5 bg-[#FF5A79] text-white hover:bg-slate-900 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 cursor-pointer"
-                        aria-label="Close"
-                    >
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+        <?php if ($drawerTitle !== '' || $drawerShowCloseButton || $drawerHeaderBottom !== ''): ?>
+            <div class="border-b border-slate-200">
+                <?php if ($drawerTitle !== '' || $drawerShowCloseButton): ?>
+                    <div class="flex items-start justify-between gap-4 px-6 py-4">
+                        <div>
+                            <?php if ($drawerTitle !== ''): ?>
+                                <h3 id="<?= htmlspecialchars($drawerId) ?>-title" class="text-lg font-bold text-secondary"><?= htmlspecialchars((string) $drawerTitle) ?></h3>
+                            <?php endif; ?>
+                            <?php if ($drawerDescription !== ''): ?>
+                                <p class="mt-0.5 text-sm text-slate-500"><?= htmlspecialchars((string) $drawerDescription) ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($drawerShowCloseButton): ?>
+                            <button
+                                type="button"
+                                data-drawer-close
+                                class="rounded-xl p-1.5 bg-[#FF5A79] text-white hover:bg-slate-900 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 cursor-pointer"
+                                aria-label="Close"
+                            >
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($drawerHeaderBottom !== ''): ?>
+                    <?= $drawerHeaderBottom ?>
                 <?php endif; ?>
             </div>
         <?php endif; ?>

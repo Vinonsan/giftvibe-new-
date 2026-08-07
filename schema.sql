@@ -838,6 +838,29 @@ CREATE TABLE `product_videos` (
   CONSTRAINT `fk_product_videos_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table: product_social_links
+-- Stores social media / external links associated with a product.
+-- platform: instagram | tiktok | facebook | youtube | website | whatsapp | other
+--
+DROP TABLE IF EXISTS `product_social_links`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `product_social_links` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `platform` enum('instagram','tiktok','facebook','youtube','whatsapp','website','other') NOT NULL DEFAULT 'other',
+  `label` varchar(100) DEFAULT NULL COMMENT 'Custom display label (optional)',
+  `url` varchar(500) NOT NULL,
+  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_product_social_product` (`product_id`),
+  CONSTRAINT `fk_product_social_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 DROP TABLE IF EXISTS `products`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -861,6 +884,7 @@ CREATE TABLE `products` (
   `meta_title` varchar(190) DEFAULT NULL,
   `meta_description` varchar(255) DEFAULT NULL,
   `search_keywords` text DEFAULT NULL,
+  `alt_text` varchar(255) DEFAULT NULL COMMENT 'Primary image alt text for SEO',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `video_url` varchar(255) DEFAULT NULL,
