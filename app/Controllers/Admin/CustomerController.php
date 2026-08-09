@@ -293,7 +293,7 @@ final class CustomerController extends Controller
     {
         $_SESSION['customers_flash'] = ['type' => $type, 'message' => $message];
         $target = $redirectTo ?: ($customerId ? app_url('/admin/customers/view?id=' . $customerId) : app_url('/admin/customers'));
-        header('Location: ' . $target, true, 303);
+        header('Location: ' . app_url($target), true, 303);
         exit;
     }
 }

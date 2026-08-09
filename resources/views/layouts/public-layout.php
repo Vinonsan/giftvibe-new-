@@ -25,6 +25,7 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="nSOuoGkb5erTu7fben9vmSDCYkZm3XkvUVxsSsw2Eio" />
     <title><?= htmlspecialchars($title) ?> | Gift Vibe</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png">
@@ -73,6 +74,7 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
         <?php require BASE_PATH . '/resources/views/components/public/auth-modal.php'; ?>
     <?php endif; ?>
     <?php require BASE_PATH . '/resources/views/components/base/feedback.php'; ?>
+    <?php require BASE_PATH . '/resources/views/components/public/password-toggle.php'; ?>
 
     <main class="flex flex-1 flex-col gap-4 px-4 sm:px-6 lg:px-8">
         <?= $content ?>

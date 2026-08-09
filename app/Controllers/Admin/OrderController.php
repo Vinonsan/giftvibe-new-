@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Services\OrderPlacementService;
 use App\Services\SmsService;
+use App\Services\InventoryService;
 use PDO;
 
 final class OrderController extends Controller
@@ -16,6 +17,7 @@ final class OrderController extends Controller
     {
         $pdo = Database::connection();
         $this->ensureNotificationSchema($pdo);
+        InventoryService::ensureSchema($pdo);
         $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -48,6 +50,7 @@ final class OrderController extends Controller
     {
         $pdo = Database::connection();
         $this->ensureNotificationSchema($pdo);
+        InventoryService::ensureSchema($pdo);
         $this->ensureOrderSchema($pdo);
         $this->ensureComboCostColumn($pdo);
         $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
@@ -388,6 +391,7 @@ final class OrderController extends Controller
         $pdo = Database::connection();
         $this->ensureNotificationSchema($pdo);
         $this->ensureOrderSchema($pdo);
+        InventoryService::ensureSchema($pdo);
         $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -538,6 +542,10 @@ final class OrderController extends Controller
             };
             $pdo->prepare('UPDATE payments SET status = ? WHERE order_id = ?')->execute([$dbPaymentStatus, $orderId]);
 
+            if (in_array($newOrderStatus, ['confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered'], true)) {
+                InventoryService::deductOrderStock($pdo, $orderId);
+            }
+
             $this->recordOrderStatus($pdo, $orderId, $newOrderStatus, $notes ?: null);
 
             $statusLabels = [
@@ -593,6 +601,7 @@ final class OrderController extends Controller
             }
 
             $pdo->prepare('UPDATE orders SET order_status = ? WHERE id = ?')->execute([$newOrderStatus, $orderId]);
+            InventoryService::deductOrderStock($pdo, $orderId);
             $this->recordOrderStatus($pdo, $orderId, $newOrderStatus, null);
 
             $labels = [
@@ -634,6 +643,7 @@ final class OrderController extends Controller
             }
 
             $this->recordOrderStatus($pdo, $orderId, 'confirmed', $notes ?: 'Order accepted by admin');
+            InventoryService::deductOrderStock($pdo, $orderId);
             $this->ensureDeliveryRow($pdo, $orderId, $deliveryDate);
 
             $message = "Your GiftVibe order {$order['order_number']} is confirmed. Expected delivery is within {$days} day(s), by {$deliveryDate}.";
@@ -661,6 +671,7 @@ final class OrderController extends Controller
 
     private function completeOrder(PDO $pdo, int $orderId, array $order): void
     {
+        InventoryService::deductOrderStock($pdo, $orderId);
         $pdo->prepare("UPDATE orders SET order_status = 'delivered', payment_status = 'paid' WHERE id = ?")->execute([$orderId]);
         $pdo->prepare("UPDATE payments SET status = 'paid', paid_at = COALESCE(paid_at, NOW()), verified_by = COALESCE(verified_by, ?), verified_at = COALESCE(verified_at, NOW()) WHERE order_id = ?")
             ->execute([(int) ($_SESSION['admin_user']['id'] ?? 0), $orderId]);

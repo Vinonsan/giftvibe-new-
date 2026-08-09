@@ -6,6 +6,7 @@ namespace App\Controllers\Public;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Services\SmsService;
 use PDO;
 
 class AuthController extends Controller
@@ -13,7 +14,7 @@ class AuthController extends Controller
     public function form(): void
     {
         if (isset($_SESSION['user']['id'])) {
-            header('Location: ' . $this->safeRedirect((string) ($_GET['redirect'] ?? '/shop')), true, 303);
+            header('Location: ' . app_url($this->safeRedirect((string) ($_GET['redirect'] ?? '/shop'))), true, 303);
             exit;
         }
         $notice = (string) ($_SESSION['auth_notice'] ?? '');
@@ -64,6 +65,7 @@ class AuthController extends Controller
             'district' => $user['district'] ?? '',
             'avatar' => $user['avatar'] ?? 'avatar_1',
         ];
+        $this->persistSessionCookie();
 
         echo json_encode(['success' => true, 'user' => $_SESSION['user']]);
     }
@@ -80,11 +82,10 @@ class AuthController extends Controller
         $city = trim((string) ($input['city'] ?? ''));
         $district = trim((string) ($input['district'] ?? ''));
         $password = (string) ($input['password'] ?? '');
-        $avatar = (string) ($input['avatar'] ?? 'avatar_1');
-        if (!in_array($avatar, ['avatar_1','avatar_2','avatar_3','avatar_4','avatar_5','avatar_6'], true)) $avatar = 'avatar_1';
+        $avatar = $this->validAvatarSeed((string) ($input['avatar'] ?? 'giftvibe-1'));
 
-        if ($name === '' || $email === '' || $phone === '' || $phone2 === '' || $addressLine1 === '' || $city === '' || $district === '' || $password === '') {
-            echo json_encode(['success' => false, 'message' => 'Name, email, both phone numbers, address, city, district, and password are required.']);
+        if ($name === '' || $email === '' || $phone === '' || $addressLine1 === '' || $city === '' || $district === '' || $password === '') {
+            echo json_encode(['success' => false, 'message' => 'Name, email, primary phone number, address, city, district, and password are required.']);
             return;
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -104,7 +105,7 @@ class AuthController extends Controller
         foreach (['phone_2' => 'VARCHAR(40) NULL AFTER phone', 'address_line_1' => 'VARCHAR(255) NULL AFTER address', 'city' => 'VARCHAR(120) NULL AFTER address_line_1', 'district' => 'VARCHAR(120) NULL AFTER city'] as $column => $definition) {
             if (!in_array($column, $columns, true)) $db->exec("ALTER TABLE users ADD {$column} {$definition}");
         }
-        if (!in_array('avatar', $columns, true)) $db->exec("ALTER TABLE users ADD avatar VARCHAR(30) NOT NULL DEFAULT 'avatar_1' AFTER district");
+        if (!in_array('avatar', $columns, true)) $db->exec("ALTER TABLE users ADD avatar VARCHAR(30) NOT NULL DEFAULT 'giftvibe-1' AFTER district");
         $stmt = $db->prepare('SELECT id FROM users WHERE email = ? OR phone = ? LIMIT 1');
         $stmt->execute([$email, $phone]);
         if ($stmt->fetch()) {
@@ -145,6 +146,7 @@ class AuthController extends Controller
             'district' => $district,
             'avatar' => $avatar,
         ];
+        $this->persistSessionCookie();
 
         echo json_encode(['success' => true, 'user' => $_SESSION['user']]);
     }
@@ -152,8 +154,15 @@ class AuthController extends Controller
     public function logout(): void
     {
         unset($_SESSION['user']);
+        setcookie(session_name(), '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
         if (isset($_GET['redirect'])) {
-            header('Location: ' . $_GET['redirect']);
+            header('Location: ' . app_url($this->safeRedirect((string) $_GET['redirect'])));
             exit;
         }
         header('Content-Type: application/json');
@@ -175,13 +184,86 @@ class AuthController extends Controller
         if (!isset($_SESSION['user']['id'])) { http_response_code(401); echo json_encode(['success'=>false,'message'=>'Sign in required.']); return; }
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $avatar = (string) ($input['avatar'] ?? '');
-        if (!in_array($avatar, ['avatar_1','avatar_2','avatar_3','avatar_4','avatar_5','avatar_6'], true)) { http_response_code(422); echo json_encode(['success'=>false,'message'=>'Invalid avatar.']); return; }
+        $avatar = $this->validAvatarSeed($avatar);
         $db = Database::connection();
         $columns = $db->query('DESCRIBE users')->fetchAll(PDO::FETCH_COLUMN);
-        if (!in_array('avatar', $columns, true)) $db->exec("ALTER TABLE users ADD avatar VARCHAR(30) NOT NULL DEFAULT 'avatar_1' AFTER district");
+        if (!in_array('avatar', $columns, true)) $db->exec("ALTER TABLE users ADD avatar VARCHAR(30) NOT NULL DEFAULT 'giftvibe-1' AFTER district");
         $db->prepare('UPDATE users SET avatar=? WHERE id=?')->execute([$avatar,(int)$_SESSION['user']['id']]);
         $_SESSION['user']['avatar']=$avatar;
         echo json_encode(['success'=>true,'avatar'=>$avatar]);
+    }
+
+    public function requestPasswordReset(): void
+    {
+        header('Content-Type: application/json');
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $identifier = trim((string) ($input['identifier'] ?? ''));
+        $channel = ($input['channel'] ?? 'email') === 'sms' ? 'sms' : 'email';
+        if ($identifier === '') { http_response_code(422); echo json_encode(['success'=>false,'message'=>'Enter your email or phone number.']); return; }
+        if ((int) ($_SESSION['password_reset_last_request'] ?? 0) > time() - 60) { http_response_code(429); echo json_encode(['success'=>false,'message'=>'Please wait one minute before requesting another code.']); return; }
+
+        $db = Database::connection();
+        $statement = $db->prepare('SELECT id,email,phone FROM users WHERE email=? OR phone=? LIMIT 1');
+        $statement->execute([$identifier, $identifier]);
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+        $generic = 'If the account exists, a verification code has been sent.';
+        if (!$user) { echo json_encode(['success'=>true,'message'=>$generic]); return; }
+
+        $otp = (string) random_int(100000, 999999);
+        $_SESSION['password_reset'] = ['user_id'=>(int)$user['id'],'hash'=>password_hash($otp, PASSWORD_DEFAULT),'expires'=>time()+600,'attempts'=>0,'verified'=>false];
+        $_SESSION['password_reset_last_request'] = time();
+        $message = "Your GiftVibe password reset code is {$otp}. It expires in 10 minutes.";
+        $sent = $channel === 'sms'
+            ? SmsService::send((string) $user['phone'], $message)
+            : @mail((string) $user['email'], 'GiftVibe password reset code', $message, "Content-Type: text/plain; charset=UTF-8\r\n");
+        $isLocal = in_array((string) ($_SERVER['SERVER_NAME'] ?? ''), ['localhost', '127.0.0.1'], true);
+        echo json_encode([
+            'success'=>true,
+            'message'=>$sent ? $generic : ($isLocal ? "Local verification code: {$otp}" : 'Code created, but delivery is not configured. Please contact support.'),
+        ]);
+    }
+
+    public function verifyPasswordReset(): void
+    {
+        header('Content-Type: application/json');
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $otp = preg_replace('/\D+/', '', (string) ($input['otp'] ?? ''));
+        $reset = $_SESSION['password_reset'] ?? null;
+        if (!$reset || (int)$reset['expires'] < time() || (int)$reset['attempts'] >= 5) { unset($_SESSION['password_reset']); http_response_code(422); echo json_encode(['success'=>false,'message'=>'The verification code has expired. Request a new code.']); return; }
+        $_SESSION['password_reset']['attempts']++;
+        if (!password_verify($otp, (string)$reset['hash'])) { http_response_code(422); echo json_encode(['success'=>false,'message'=>'Incorrect verification code.']); return; }
+        $_SESSION['password_reset']['verified'] = true;
+        echo json_encode(['success'=>true]);
+    }
+
+    public function resetPassword(): void
+    {
+        header('Content-Type: application/json');
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $password = (string) ($input['password'] ?? '');
+        $confirmation = (string) ($input['password_confirmation'] ?? '');
+        $reset = $_SESSION['password_reset'] ?? null;
+        if (!$reset || empty($reset['verified']) || (int)$reset['expires'] < time()) { http_response_code(422); echo json_encode(['success'=>false,'message'=>'Verify a new code before resetting your password.']); return; }
+        if (strlen($password) < 8 || $password !== $confirmation) { http_response_code(422); echo json_encode(['success'=>false,'message'=>'Passwords must match and contain at least 8 characters.']); return; }
+        Database::connection()->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([password_hash($password, PASSWORD_BCRYPT),(int)$reset['user_id']]);
+        unset($_SESSION['password_reset'], $_SESSION['password_reset_last_request']);
+        echo json_encode(['success'=>true,'message'=>'Password reset successfully. You can now sign in.']);
+    }
+
+    private function validAvatarSeed(string $seed): string
+    {
+        return preg_match('/^[a-zA-Z0-9_-]{1,30}$/', $seed) === 1 ? $seed : 'giftvibe-1';
+    }
+
+    private function persistSessionCookie(): void
+    {
+        setcookie(session_name(), session_id(), [
+            'expires' => time() + (60 * 60 * 24 * 365),
+            'path' => '/',
+            'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     private function safeRedirect(string $redirect): string

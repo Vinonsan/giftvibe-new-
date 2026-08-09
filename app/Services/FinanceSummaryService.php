@@ -30,9 +30,11 @@ final class FinanceSummaryService
         }
 
         $businessExpenses = self::businessExpensesTotal($pdo);
+        $totalInvestments = self::investmentTotal($pdo);
+        $productPurchases = self::productProcurementTotal($pdo);
         $grossProfit = $totalIncome - $totalCogs;
         $netProfit = $grossProfit - $businessExpenses;
-        $cashOnHand = $totalIncome - $businessExpenses;
+        $cashOnHand = $totalIncome + $totalInvestments - $businessExpenses - $productPurchases;
 
         $pendingOrders = (int) ($pdo->query(
             "SELECT COUNT(*) FROM orders WHERE order_status NOT IN ('delivered','cancelled','refunded')"
@@ -66,6 +68,8 @@ final class FinanceSummaryService
             'totalCogs' => $totalCogs,
             'grossProfit' => $grossProfit,
             'businessExpenses' => $businessExpenses,
+            'totalInvestments' => $totalInvestments,
+            'productPurchases' => $productPurchases,
             'netProfit' => $netProfit,
             'cashOnHand' => $cashOnHand,
             'margin' => $totalIncome > 0 ? ($netProfit / $totalIncome) * 100 : 0,
@@ -85,6 +89,26 @@ final class FinanceSummaryService
             return (float) ($pdo->query(
                 "SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE status IN ('approved','paid')"
             )->fetchColumn() ?: 0);
+        } catch (\PDOException) {
+            return 0.0;
+        }
+    }
+
+    public static function investmentTotal(PDO $pdo): float
+    {
+        try {
+            return (float) ($pdo->query(
+                "SELECT COALESCE(SUM(amount), 0) FROM investments WHERE status = 'received'"
+            )->fetchColumn() ?: 0);
+        } catch (\PDOException) {
+            return 0.0;
+        }
+    }
+
+    public static function productProcurementTotal(PDO $pdo): float
+    {
+        try {
+            return (float) ($pdo->query('SELECT COALESCE(SUM(amount), 0) FROM product_procurements')->fetchColumn() ?: 0);
         } catch (\PDOException) {
             return 0.0;
         }

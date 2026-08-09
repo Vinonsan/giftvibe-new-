@@ -17,7 +17,7 @@ final class CheckoutController extends Controller
     {
         if (!isset($_SESSION['user']['id'])) {
             $_SESSION['auth_notice'] = 'Please sign in before continuing to checkout.';
-            header('Location: /login?redirect=' . rawurlencode($_SERVER['REQUEST_URI'] ?? '/checkout'), true, 303);
+            header('Location: ' . app_url('/login?redirect=' . rawurlencode($_SERVER['REQUEST_URI'] ?? '/checkout')), true, 303);
             exit;
         }
 
@@ -71,7 +71,7 @@ final class CheckoutController extends Controller
         $orderNumber = (string) ($_SESSION['placed_order'] ?? '');
         unset($_SESSION['placed_order']);
         if ($orderNumber === '') {
-            header('Location: /shop', true, 303);
+            header('Location: ' . app_url('/shop'), true, 303);
             exit;
         }
         $pdo = Database::connection();
@@ -164,7 +164,7 @@ final class CheckoutController extends Controller
             $orderNumberStmt = $pdo->prepare('SELECT order_number FROM orders WHERE id = ? LIMIT 1');
             $orderNumberStmt->execute([$orderId]);
             $_SESSION['placed_order'] = (string) $orderNumberStmt->fetchColumn();
-            header('Location: /checkout/success', true, 303);
+            header('Location: ' . app_url('/checkout/success'), true, 303);
             exit;
         } catch (\InvalidArgumentException $exception) {
             $this->checkoutError($exception->getMessage(), $selection);
@@ -176,7 +176,7 @@ final class CheckoutController extends Controller
     private function checkoutError(string $message, string $selection): never
     {
         $_SESSION['checkout_error'] = $message;
-        header('Location: /checkout?items=' . rawurlencode($selection), true, 303);
+        header('Location: ' . app_url('/checkout?items=' . rawurlencode($selection)), true, 303);
         exit;
     }
 

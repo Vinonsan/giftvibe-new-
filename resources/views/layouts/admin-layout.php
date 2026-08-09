@@ -55,7 +55,7 @@ $sidebarMenu = [
             ['label' => 'Financial Reports', 'href' => '/admin/finance'],
             ['label' => 'Expenses',      'href' => '/admin/expenses'],
             ['label' => 'Inventory',     'href' => '/admin/inventory'],
-            ['label' => 'Payments',      'href' => '/admin/payments'],
+            ['label' => 'Investments',   'href' => '/admin/investments'],
         ],
     ],
     [
@@ -72,6 +72,30 @@ $adminUser = $adminUser ?? [
     'email'  => 'admin@giftvibe.lk',
     'avatar' => null,
 ];
+
+// Build the notification panel from the order table itself so older orders
+// remain available even when they pre-date admin_notifications records.
+$adminNotifications = [];
+$adminUnreadNotificationCount = 0;
+try {
+    $notificationPdo = \App\Core\Database::connection();
+    $adminNotifications = $notificationPdo->query(
+        "SELECT o.id AS entity_id, o.order_number, o.customer_name, o.grand_total,
+                o.order_status, o.created_at,
+                COALESCE(n.status, 'unread') AS notification_status
+         FROM orders o
+         LEFT JOIN admin_notifications n
+           ON n.entity_type = 'order' AND n.entity_id = o.id
+         ORDER BY o.id DESC
+         LIMIT 30"
+    )->fetchAll(\PDO::FETCH_ASSOC);
+    $adminUnreadNotificationCount = count(array_filter(
+        $adminNotifications,
+        static fn (array $notification): bool => $notification['notification_status'] === 'unread'
+    ));
+} catch (\Throwable) {
+    // Keep admin pages usable during a fresh installation before tables exist.
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,12 +114,12 @@ $adminUser = $adminUser ?? [
 
     <?php require BASE_PATH . '/resources/views/components/admin/tailwind-head.php'; ?>
     <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
-    <style type="text/tailwindcss">
+    <style>
         #admin-sidebar {
             transition: transform 0.3s ease-in-out, width 0.3s ease-in-out !important;
         }
         [data-admin-content] {
-            transition: padding-left 0.3s ease-in-out !important;
+            transition: padding-left 0.3s ease-in-out, width 0.3s ease-in-out !important;
         }
 
         @media (min-width: 1024px) {

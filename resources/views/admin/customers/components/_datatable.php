@@ -1,14 +1,8 @@
 <?php
 declare(strict_types=1);
 
-$avatarPaths = [
-    'avatar_1' => '/assets/images/avatars/avatar-1.svg',
-    'avatar_2' => '/assets/images/avatars/avatar-2.svg',
-    'avatar_3' => '/assets/images/avatars/avatar-3.svg',
-    'avatar_4' => '/assets/images/avatars/avatar-4.svg',
-    'avatar_5' => '/assets/images/avatars/avatar-5.svg',
-    'avatar_6' => '/assets/images/avatars/avatar-6.svg',
-];
+$avatarPaths = [];
+foreach (['giftvibe-1','giftvibe-2','giftvibe-3','giftvibe-4','giftvibe-5','giftvibe-6'] as $avatarSeed) $avatarPaths[$avatarSeed] = dicebear_avatar_url($avatarSeed);
 
 $statusBadge = static function (string $status): string {
     $class = match ($status) {
@@ -22,8 +16,8 @@ $statusBadge = static function (string $status): string {
 $tableRows = [];
 foreach ($customers as $c) {
     $id = (int) $c['id'];
-    $avatarKey = (string) ($c['avatar'] ?? 'avatar_1');
-    $avatarUrl = $avatarPaths[$avatarKey] ?? $avatarPaths['avatar_1'];
+    $avatarKey = (string) ($c['avatar'] ?? 'giftvibe-1');
+    $avatarUrl = dicebear_avatar_url($avatarKey);
     $fullName = trim(((string) $c['first_name']) . ' ' . ((string) ($c['last_name'] ?? '')));
     $ordersCount = (int) ($c['orders_count'] ?? 0);
     $lifetime = (float) ($c['lifetime_total'] ?? 0);

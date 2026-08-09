@@ -41,6 +41,19 @@ final class InventoryService
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
 
+        $pdo->exec(
+            "CREATE TABLE IF NOT EXISTS order_inventory_deductions (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                order_id BIGINT UNSIGNED NOT NULL,
+                product_id BIGINT UNSIGNED NOT NULL,
+                inventory_item_id BIGINT UNSIGNED NOT NULL,
+                quantity INT UNSIGNED NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_order_inventory_product (order_id, product_id),
+                KEY idx_order_inventory_item (inventory_item_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+
         try {
             $pdo->query('SELECT inventory_item_id FROM expenses LIMIT 1');
         } catch (\PDOException) {
@@ -63,6 +76,7 @@ final class InventoryService
             "SELECT i.*,
                 p.slug AS product_slug,
                 p.status AS product_status,
+                p.base_price AS selling_price,
                 CASE WHEN i.product_id IS NOT NULL THEN 'catalog' ELSE 'stock' END AS source_type
              FROM inventory_items i
              LEFT JOIN products p ON p.id = i.product_id
@@ -97,6 +111,66 @@ final class InventoryService
                 (float) ($product['cost_price'] ?? 0),
                 (int) ($product['low_stock_threshold'] ?? 5),
             ]);
+        }
+    }
+
+    public static function syncProduct(PDO $pdo, int $productId): void
+    {
+        self::ensureSchema($pdo);
+        $product = $pdo->prepare(
+            'SELECT id, name, sku, stock_quantity, cost_price, low_stock_threshold FROM products WHERE id = ? LIMIT 1'
+        );
+        $product->execute([$productId]);
+        $row = $product->fetch(PDO::FETCH_ASSOC);
+        if (!$row) return;
+
+        $pdo->prepare(
+            'INSERT INTO inventory_items (product_id, name, sku, quantity, cost_price, low_stock_threshold)
+             VALUES (?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE name=VALUES(name), sku=VALUES(sku), quantity=VALUES(quantity),
+                                     cost_price=VALUES(cost_price), low_stock_threshold=VALUES(low_stock_threshold)'
+        )->execute([
+            $productId,
+            (string) $row['name'],
+            (string) ($row['sku'] ?? ''),
+            (int) $row['stock_quantity'],
+            (float) ($row['cost_price'] ?? 0),
+            (int) ($row['low_stock_threshold'] ?? 5),
+        ]);
+    }
+
+    /** Deduct catalog stock once when an order becomes a confirmed sale. */
+    public static function deductOrderStock(PDO $pdo, int $orderId): void
+    {
+        $items = $pdo->prepare(
+            'SELECT product_id, SUM(quantity) AS quantity
+             FROM order_items WHERE order_id = ? AND product_id IS NOT NULL
+             GROUP BY product_id'
+        );
+        $items->execute([$orderId]);
+
+        foreach ($items->fetchAll(PDO::FETCH_ASSOC) as $orderItem) {
+            $productId = (int) $orderItem['product_id'];
+            $requested = max(0, (int) $orderItem['quantity']);
+            if ($productId < 1 || $requested < 1) continue;
+
+            $already = $pdo->prepare('SELECT 1 FROM order_inventory_deductions WHERE order_id = ? AND product_id = ? LIMIT 1');
+            $already->execute([$orderId, $productId]);
+            if ($already->fetchColumn()) continue;
+
+            $itemId = self::findOrCreateForProduct($pdo, $productId);
+            $stock = $pdo->prepare('SELECT quantity FROM inventory_items WHERE id = ? FOR UPDATE');
+            $stock->execute([$itemId]);
+            $available = max(0, (int) $stock->fetchColumn());
+            $deducted = min($available, $requested);
+
+            $pdo->prepare(
+                'INSERT INTO order_inventory_deductions (order_id, product_id, inventory_item_id, quantity) VALUES (?, ?, ?, ?)'
+            )->execute([$orderId, $productId, $itemId, $deducted]);
+
+            if ($deducted > 0) {
+                self::adjustQuantity($pdo, $itemId, -$deducted, 'sale', null, 'Sold via order #' . $orderId);
+            }
         }
     }
 

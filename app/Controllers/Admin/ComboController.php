@@ -422,7 +422,7 @@ class ComboController extends Controller
     private function redirect(string $message, string $type = 'success', ?int $id = null): never
     {
         $_SESSION['combo_flash'] = compact('message', 'type');
-        header('Location: /admin/combos' . ($id ? '?edit=' . $id : ''), true, 303);
+        header('Location: ' . app_url('/admin/combos' . ($id ? '?edit=' . $id : '')), true, 303);
         exit;
     }
 
@@ -433,7 +433,7 @@ class ComboController extends Controller
         if ($editMode) {
             $url .= '&mode=edit';
         }
-        header('Location: ' . $url, true, 303);
+        header('Location: ' . app_url($url), true, 303);
         exit;
     }
 }

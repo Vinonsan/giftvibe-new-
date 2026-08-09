@@ -156,6 +156,7 @@ final class OrderPlacementService
             throw new \InvalidArgumentException('Add at least one product or combo.');
         }
 
+        InventoryService::ensureSchema($pdo);
         $total = round(array_sum(array_column($orderItems, 'line_total')), 2);
         $method = (string) ($data['payment_method'] ?? 'cod');
         if (!in_array($method, ['cod', 'bank_deposit'], true)) {
@@ -243,6 +244,10 @@ final class OrderPlacementService
                     $product['cost_price'],
                     $product['line_total'],
                 ]);
+            }
+
+            if ($orderStatus === 'confirmed') {
+                InventoryService::deductOrderStock($pdo, $orderId);
             }
 
             $paymentStatusDb = match ($paymentStatus) {

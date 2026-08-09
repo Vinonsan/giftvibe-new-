@@ -11,14 +11,6 @@
         </label>
 
         <label class="block">
-            <span class="mb-1.5 block text-xs font-bold text-secondary">SKU <span class="text-primary">*</span></span>
-            <input id="field-sku" required name="sku"
-                   value="<?= htmlspecialchars((string)($editProduct['sku'] ?? '')) ?>"
-                   placeholder="e.g. GV-ROSE-001"
-                   class="<?= $fc ?>">
-        </label>
-
-        <label class="block">
             <span class="mb-1.5 block text-xs font-bold text-secondary">Short description</span>
             <textarea id="field-short-desc" name="short_description" rows="2"
                       placeholder="Brief one-line summary shown in listings"
@@ -51,4 +43,13 @@
         $selectClass       = '';
         require BASE_PATH . '/resources/views/components/base/select.php';
         ?>
+
+        <label class="block">
+            <span class="mb-1.5 block text-xs font-bold text-secondary">Search keywords <span class="ml-1 font-normal text-slate-400">— press Enter or , to add</span></span>
+            <div id="gv-tags-box" class="flex min-h-[44px] cursor-text flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-2.5 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10" onclick="document.getElementById('gv-tag-input').focus()">
+                <div id="gv-tags-container" class="contents"></div>
+                <input type="text" id="gv-tag-input" placeholder="#birthday #flowers #surprise" autocomplete="off" class="min-w-[100px] flex-1 bg-transparent py-0.5 text-sm text-secondary outline-none">
+            </div>
+            <input type="hidden" name="search_keywords" id="gv-keywords-hidden" value="<?= htmlspecialchars((string)($editProduct['search_keywords'] ?? '')) ?>">
+        </label>
     </div>

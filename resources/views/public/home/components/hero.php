@@ -84,7 +84,8 @@ $initialBackground = preg_match('/^#[0-9A-Fa-f]{6}$/', $initialBackground) ? $in
 
                 <!-- Right: Image Content (Slides DOWN when active) -->
                 <div class="flex justify-center md:justify-end items-center">
-                    <img src="<?= htmlspecialchars($slide['image_path'] ?? '') ?>" 
+                    <img src="<?= $index === 0 ? htmlspecialchars($slide['image_path'] ?? '') : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' ?>"
+                         <?= $index === 0 ? '' : 'data-src="' . htmlspecialchars((string) ($slide['image_path'] ?? ''), ENT_QUOTES) . '"' ?>
                          alt="<?= htmlspecialchars($slide['title']) ?>" 
                          width="640"
                          height="480"
@@ -124,6 +125,11 @@ $initialBackground = preg_match('/^#[0-9A-Fa-f]{6}$/', $initialBackground) ? $in
     function activateSlide(index) {
         var prevSlide = slides[current];
         var nextSlide = slides[index];
+        var deferredImage = nextSlide.querySelector('img[data-src]');
+        if (deferredImage) {
+            deferredImage.src = deferredImage.getAttribute('data-src');
+            deferredImage.removeAttribute('data-src');
+        }
 
         /* Reset the elements of the old slide */
         prevSlide.classList.replace('opacity-100', 'opacity-0');

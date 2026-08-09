@@ -169,7 +169,7 @@ class HeroController extends Controller
     {
         $_SESSION['hero_flash'] = ['message' => $message, 'type' => $type];
         $location = '/admin/hero' . ($editId ? '?edit=' . $editId : '');
-        header('Location: ' . $location, true, 303);
+        header('Location: ' . app_url($location), true, 303);
         exit;
     }
 }

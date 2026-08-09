@@ -58,7 +58,7 @@ $socials = [
             <!-- Column 1: Logo, Brand, Description, Social Media -->
             <div class="space-y-6">
                 <a href="/" class="inline-flex items-center gap-3" aria-label="<?= htmlspecialchars($siteName) ?> home">
-                    <img src="<?= htmlspecialchars($logo) ?>" alt="<?= htmlspecialchars($siteName) ?>" class="h-11 w-11 rounded-xl ring-1 ring-white/10 object-contain bg-white/5 p-1">
+                    <img src="<?= htmlspecialchars($logo) ?>" alt="<?= htmlspecialchars($siteName) ?>" loading="lazy" decoding="async" class="h-11 w-11 rounded-xl ring-1 ring-white/10 object-contain bg-white/5 p-1">
                     <span class="text-xl font-extrabold tracking-tight"><?= htmlspecialchars($siteName) ?></span>
                 </a>
                 <p class="max-w-sm break-words text-sm leading-relaxed text-slate-400 [overflow-wrap:anywhere]">

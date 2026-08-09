@@ -38,5 +38,5 @@ class CtaController extends Controller
         $this->redirect('CTA saved successfully.');
     }
     private function upload(?array $file):?string{if(!$file||($file['error']??UPLOAD_ERR_NO_FILE)===UPLOAD_ERR_NO_FILE)return null;if(($file['error']??1)!==UPLOAD_ERR_OK||(int)($file['size']??0)>8*1024*1024)throw new \RuntimeException('Upload an image smaller than 8MB.');$info=@getimagesize((string)$file['tmp_name']);$types=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'];if(!isset($types[$info['mime']??'']))throw new \RuntimeException('Use JPG, PNG or WebP.');$dir=BASE_PATH.'/public/assets/uploads/cta';if(!is_dir($dir))mkdir($dir,0775,true);$name=bin2hex(random_bytes(16)).'.'.$types[$info['mime']];if(!move_uploaded_file((string)$file['tmp_name'],$dir.'/'.$name))throw new \RuntimeException('CTA image upload failed.');return '/assets/uploads/cta/'.$name;}
-    private function redirect(string $message,string $type='success',?int $id=null):never{$_SESSION['cta_flash']=compact('message','type');header('Location: /admin/cta'.($id?'?edit='.$id:''),true,303);exit;}
+    private function redirect(string $message,string $type='success',?int $id=null):never{$_SESSION['cta_flash']=compact('message','type');header('Location: '.app_url('/admin/cta'.($id?'?edit='.$id:'')),true,303);exit;}
 }

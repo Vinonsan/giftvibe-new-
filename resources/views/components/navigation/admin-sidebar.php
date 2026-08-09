@@ -183,6 +183,8 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
     var overlay = document.querySelector('[data-sidebar-overlay]');
     var collapseToggle = document.querySelector('[data-sidebar-collapse-toggle]');
     var toggleIcon = document.querySelector('[data-collapse-toggle-icon]');
+    var adminContent = document.querySelector('[data-admin-content]');
+    var desktopQuery = window.matchMedia('(min-width: 1024px)');
     if (!sidebar) return;
 
     function updateCollapseIcon(isCollapsed) {
@@ -193,17 +195,37 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
                 toggleIcon.classList.remove('rotate-180');
             }
         }
+        if (collapseToggle) {
+            collapseToggle.setAttribute('aria-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+            collapseToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        }
     }
 
-    if (localStorage.getItem('sidebar-collapsed') === 'true') {
-        updateCollapseIcon(true);
+    function applyCollapsedState(collapsed) {
+        collapsed = collapsed && desktopQuery.matches;
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
+        sidebar.style.width = collapsed ? '5rem' : '';
+        if (adminContent) adminContent.style.paddingLeft = collapsed ? '5rem' : '';
+
+        sidebar.querySelectorAll('[data-sidebar-text], [data-sidebar-chevron], [data-sidebar-logo-text], [data-sidebar-submenu]').forEach(function (element) {
+            element.hidden = collapsed;
+        });
+        sidebar.querySelectorAll('[data-sidebar-group] > button, nav > a, [data-sidebar-footer] a').forEach(function (element) {
+            element.style.justifyContent = collapsed ? 'center' : '';
+            element.style.paddingLeft = collapsed ? '0' : '';
+            element.style.paddingRight = collapsed ? '0' : '';
+        });
+        updateCollapseIcon(collapsed);
     }
+
+    applyCollapsedState(localStorage.getItem('sidebar-collapsed') === 'true');
 
     if (collapseToggle) {
         collapseToggle.addEventListener('click', function () {
-            var isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+            var isCollapsed = !document.body.classList.contains('sidebar-collapsed');
             localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
-            updateCollapseIcon(isCollapsed);
+            applyCollapsedState(isCollapsed);
 
             if (isCollapsed) {
                 sidebar.querySelectorAll('[data-sidebar-toggle]').forEach(function (btn) {
@@ -228,9 +250,8 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
 
         btn.addEventListener('click', function () {
             if (document.body.classList.contains('sidebar-collapsed')) {
-                document.body.classList.remove('sidebar-collapsed');
                 localStorage.setItem('sidebar-collapsed', 'false');
-                updateCollapseIcon(false);
+                applyCollapsedState(false);
             }
 
             var expanded = btn.getAttribute('aria-expanded') === 'true';
@@ -283,6 +304,10 @@ $siteName = (string)($general['site_name'] ?? 'GiftVibe');
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeSidebar();
+    });
+
+    desktopQuery.addEventListener('change', function () {
+        applyCollapsedState(localStorage.getItem('sidebar-collapsed') === 'true');
     });
 
     window.GiftVibeUI.sidebar = true;

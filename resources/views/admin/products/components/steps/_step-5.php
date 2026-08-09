@@ -1,4 +1,12 @@
-    <div id="gv-step-5" data-step-panel="5" class="space-y-4 hidden">
+    <div id="gv-step-4" data-step-panel="4" class="space-y-4 hidden">
+
+        <fieldset>
+            <legend class="mb-2 text-xs font-bold text-secondary">How is this product sourced? <span class="text-primary">*</span></legend>
+            <div class="grid gap-3 sm:grid-cols-2">
+                <label class="cursor-pointer rounded-xl border border-slate-200 p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5"><input required type="radio" name="procurement_type" value="handcrafted" <?= ($editProduct['procurement_type'] ?? 'handcrafted') === 'handcrafted' ? 'checked' : '' ?> class="mr-2 accent-primary"><span class="font-bold text-secondary">Handcrafted</span><span class="mt-1 block text-xs text-slate-500">Creating this product does not reduce cash on hand.</span></label>
+                <label class="cursor-pointer rounded-xl border border-slate-200 p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5"><input required type="radio" name="procurement_type" value="purchased" <?= ($editProduct['procurement_type'] ?? '') === 'purchased' ? 'checked' : '' ?> class="mr-2 accent-primary"><span class="font-bold text-secondary">Purchased externally</span><span class="mt-1 block text-xs text-slate-500">Buying price × stock quantity is deducted from cash.</span></label>
+            </div>
+        </fieldset>
 
         <div class="grid gap-4 sm:grid-cols-2">
             <label class="block">

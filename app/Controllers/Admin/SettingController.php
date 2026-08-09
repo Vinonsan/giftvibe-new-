@@ -278,7 +278,7 @@ class SettingController extends Controller
     private function redirectWithMessage(string $message, string $type = 'success', string $tab = 'general'): never
     {
         $_SESSION['settings_flash'] = ['message' => $message, 'type' => $type];
-        header('Location: /admin/settings?tab=' . $tab, true, 303);
+        header('Location: ' . app_url('/admin/settings?tab=' . $tab), true, 303);
         exit;
     }
 }

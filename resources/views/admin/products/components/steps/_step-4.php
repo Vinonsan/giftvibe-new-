@@ -1,4 +1,4 @@
-    <div id="gv-step-4" data-step-panel="4" class="space-y-4 hidden">
+    <div id="gv-step-3" data-step-panel="3" class="space-y-4 hidden">
 
         <!-- YouTube / Video links -->
         <div>

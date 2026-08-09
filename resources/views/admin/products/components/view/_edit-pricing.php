@@ -1,5 +1,6 @@
 <?php declare(strict_types=1); ?>
 <div class="space-y-4">
+    <fieldset><legend class="mb-2 text-xs font-bold text-secondary">Product source <span class="text-primary">*</span></legend><div class="grid gap-3 sm:grid-cols-2"><label class="rounded-xl border border-slate-200 p-4"><input required type="radio" name="procurement_type" value="handcrafted" <?= ($editProduct['procurement_type'] ?? 'handcrafted')==='handcrafted'?'checked':'' ?> class="mr-2 accent-primary"><strong>Handcrafted</strong><span class="mt-1 block text-xs text-slate-500">No cash deduction.</span></label><label class="rounded-xl border border-slate-200 p-4"><input required type="radio" name="procurement_type" value="purchased" <?= ($editProduct['procurement_type'] ?? '')==='purchased'?'checked':'' ?> class="mr-2 accent-primary"><strong>Purchased externally</strong><span class="mt-1 block text-xs text-slate-500">Cost × stock deducted from cash.</span></label></div></fieldset>
     <div class="grid gap-4 sm:grid-cols-2">
         <label class="block">
             <span class="mb-1.5 block text-xs font-bold text-secondary">Selling price (LKR) <span class="text-primary">*</span></span>

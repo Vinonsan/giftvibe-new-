@@ -105,7 +105,7 @@ final class InventoryController extends Controller
     private function redirect(string $message, string $type = 'success'): never
     {
         $_SESSION['inventory_flash'] = ['type' => $type, 'message' => $message];
-        header('Location: /admin/inventory', true, 303);
+        header('Location: ' . app_url('/admin/inventory'), true, 303);
         exit;
     }
 }

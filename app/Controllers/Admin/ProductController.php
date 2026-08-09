@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Services\InventoryService;
 use PDO;
 
 class ProductController extends Controller
@@ -76,7 +77,7 @@ class ProductController extends Controller
         $productSocialLinks = $this->loadSocialLinks($pdo, $id);
         $editProduct = $product;
 
-        $tabs = ['basic', 'keywords', 'images', 'social', 'pricing'];
+        $tabs = ['basic', 'images', 'social', 'pricing'];
         $tab = strtolower((string) ($_GET['tab'] ?? 'basic'));
         if (!in_array($tab, $tabs, true)) {
             $tab = 'basic';
@@ -123,18 +124,24 @@ class ProductController extends Controller
             catch (\Throwable $e) { $pdo->rollBack(); $this->redirect('This product could not be deleted.', 'error'); }
             $this->redirect('Product deleted.');
         }
-        $name = trim((string) ($_POST['name'] ?? '')); $sku = strtoupper(trim((string) ($_POST['sku'] ?? '')));
+        $name = trim((string) ($_POST['name'] ?? ''));
         $categoryIds = array_values(array_filter(array_map('intval', (array) ($_POST['category_ids'] ?? []))));
-        if ($name === '' || $sku === '' || !$categoryIds) $this->redirect('Name, SKU and at least one category are required.', 'error', $id);
+        if ($name === '' || !$categoryIds) $this->redirect('Name and at least one category are required.', 'error', $id);
         $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $name), '-'));
+        $sku = '';
         if ($id) {
-            $slugStatement = $pdo->prepare('SELECT slug FROM products WHERE id=?');
+            $slugStatement = $pdo->prepare('SELECT slug, sku FROM products WHERE id=?');
             $slugStatement->execute([$id]);
-            $existingSlug = trim((string) $slugStatement->fetchColumn());
+            $existingProduct = $slugStatement->fetch(PDO::FETCH_ASSOC) ?: [];
+            $existingSlug = trim((string) ($existingProduct['slug'] ?? ''));
+            $sku = trim((string) ($existingProduct['sku'] ?? ''));
             if ($existingSlug !== '') $slug = $existingSlug;
         }
+        if ($sku === '') $sku = $this->generateSku($pdo, $name);
         $basePrice = max(0, (float) ($_POST['selling_price'] ?? 0));
         $costPrice = max(0, (float) ($_POST['buying_price'] ?? 0));
+        $procurementType = (string) ($_POST['procurement_type'] ?? '');
+        if (!in_array($procurementType, ['handcrafted', 'purchased'], true)) $this->redirect('Select whether this product is handcrafted or purchased externally.', 'error', $id);
         $videoUrls = array_values(array_unique(array_filter(array_map('trim', (array) ($_POST['video_urls'] ?? [])), static fn(string $url): bool => filter_var($url, FILTER_VALIDATE_URL) !== false)));
         $videoUrl = $videoUrls[0] ?? '';
         $imageAltText = trim((string) ($_POST['image_alt_text'] ?? ''));
@@ -160,14 +167,15 @@ class ProductController extends Controller
         $metaDescription = trim((string) ($_POST['meta_description'] ?? '')) ?: trim((string) ($_POST['short_description'] ?? ''));
         $searchKeywords = trim((string) ($_POST['search_keywords'] ?? ''));
         
-        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,max(0,(int)($_POST['stock_quantity'] ?? 0)),isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl,$metaTitle,$metaDescription,$searchKeywords];
+        $stockQuantity = max(0,(int)($_POST['stock_quantity'] ?? 0));
+        $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,$stockQuantity,isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl,$metaTitle,$metaDescription,$searchKeywords,$procurementType];
         $pdo->beginTransaction();
         try {
             if ($id) { 
-                $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,description=?,base_price=?,cost_price=?,sale_price=NULL,stock_quantity=?,is_featured=?,status=?,video_url=?,meta_title=?,meta_description=?,search_keywords=? WHERE id=?')->execute([...$data,$id]); 
+                $pdo->prepare('UPDATE products SET sku=?,name=?,slug=?,short_description=?,description=?,base_price=?,cost_price=?,sale_price=NULL,stock_quantity=?,is_featured=?,status=?,video_url=?,meta_title=?,meta_description=?,search_keywords=?,procurement_type=? WHERE id=?')->execute([...$data,$id]); 
             }
             else { 
-                $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,description,base_price,cost_price,sale_price,stock_quantity,is_featured,status,video_url,meta_title,meta_description,search_keywords) VALUES (?,?,?,?,?,?,?,NULL,?,?,?,?,?,?,?)')->execute($data); 
+                $pdo->prepare('INSERT INTO products (sku,name,slug,short_description,description,base_price,cost_price,sale_price,stock_quantity,is_featured,status,video_url,meta_title,meta_description,search_keywords,procurement_type) VALUES (?,?,?,?,?,?,?,NULL,?,?,?,?,?,?,?,?)')->execute($data); 
                 $id=(int)$pdo->lastInsertId(); 
             }
             
@@ -191,9 +199,11 @@ class ProductController extends Controller
             $insertVideo=$pdo->prepare('INSERT INTO product_videos(product_id,video_url,sort_order) VALUES(?,?,?)');
             foreach($videoUrls as $index=>$url)$insertVideo->execute([$id,$url,$index]);
             $this->saveSocialLinks($pdo, $id, array_map('trim', (array) ($_POST['social_url'] ?? [])));
+            $this->syncProcurement($pdo, (int)$id, $procurementType, $costPrice, $stockQuantity);
 
             $pdo->commit();
-        } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); $this->redirect('SKU or product details already exist. ' . $e->getMessage(),'error',$id); }
+        } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); $this->redirect('Product details could not be saved. ' . $e->getMessage(),'error',$id); }
+        InventoryService::syncProduct($pdo, (int) $id);
         $redirectTo = trim((string) ($_POST['redirect_to'] ?? ''));
         if ($redirectTo !== '' && str_starts_with($redirectTo, '/admin/products/view')) {
             $this->redirectToView($id, 'basic', 'Product saved.');
@@ -220,28 +230,25 @@ class ProductController extends Controller
         try {
             if ($section === 'basic') {
                 $name = trim((string) ($_POST['name'] ?? ''));
-                $sku = strtoupper(trim((string) ($_POST['sku'] ?? '')));
                 $categoryIds = array_values(array_filter(array_map('intval', (array) ($_POST['category_ids'] ?? []))));
-                if ($name === '' || $sku === '' || !$categoryIds) {
-                    $this->redirectToView($id, $tab, 'Name, SKU and at least one category are required.', 'error', true);
+                if ($name === '' || !$categoryIds) {
+                    $this->redirectToView($id, $tab, 'Name and at least one category are required.', 'error', true);
                 }
                 $metaTitle = trim((string) ($_POST['meta_title'] ?? '')) ?: $name;
                 $metaDescription = trim((string) ($_POST['meta_description'] ?? ''));
-                $pdo->prepare('UPDATE products SET sku=?, name=?, short_description=?, description=?, meta_title=?, meta_description=? WHERE id=?')->execute([
-                    $sku, $name,
+                $pdo->prepare('UPDATE products SET name=?, short_description=?, description=?, meta_title=?, meta_description=?, search_keywords=? WHERE id=?')->execute([
+                    $name,
                     trim((string) ($_POST['short_description'] ?? '')),
                     trim((string) ($_POST['description'] ?? '')),
-                    $metaTitle, $metaDescription, $id,
+                    $metaTitle, $metaDescription,
+                    trim((string) ($_POST['search_keywords'] ?? '')),
+                    $id,
                 ]);
                 $pdo->prepare('DELETE FROM product_categories WHERE product_id=?')->execute([$id]);
                 $relation = $pdo->prepare('INSERT INTO product_categories(product_id,category_id) VALUES(?,?)');
                 foreach ($categoryIds as $categoryId) {
                     $relation->execute([$id, $categoryId]);
                 }
-            } elseif ($section === 'keywords') {
-                $pdo->prepare('UPDATE products SET search_keywords=? WHERE id=?')->execute([
-                    trim((string) ($_POST['search_keywords'] ?? '')), $id,
-                ]);
             } elseif ($section === 'images') {
                 $imageAltText = trim((string) ($_POST['image_alt_text'] ?? ''));
                 if ($imageAltText === '') $imageAltText = (string) $product['name'];
@@ -295,17 +302,24 @@ class ProductController extends Controller
             } elseif ($section === 'pricing') {
                 $basePrice = max(0, (float) ($_POST['selling_price'] ?? 0));
                 $costPrice = max(0, (float) ($_POST['buying_price'] ?? 0));
+                $procurementType = (string) ($_POST['procurement_type'] ?? '');
+                if (!in_array($procurementType, ['handcrafted', 'purchased'], true)) {
+                    $this->redirectToView($id, $tab, 'Select handcrafted or purchased externally.', 'error', true);
+                }
                 if ($basePrice <= 0 || $costPrice <= 0) {
                     $this->redirectToView($id, $tab, 'Selling price and cost price are required.', 'error', true);
                 }
-                $pdo->prepare('UPDATE products SET base_price=?, cost_price=?, stock_quantity=?, is_featured=?, status=? WHERE id=?')->execute([
+                $stockQuantity = max(0, (int) ($_POST['stock_quantity'] ?? 0));
+                $pdo->prepare('UPDATE products SET base_price=?, cost_price=?, stock_quantity=?, procurement_type=?, is_featured=?, status=? WHERE id=?')->execute([
                     $basePrice,
                     $costPrice,
-                    max(0, (int) ($_POST['stock_quantity'] ?? 0)),
+                    $stockQuantity,
+                    $procurementType,
                     isset($_POST['is_featured']) ? 1 : 0,
                     ($_POST['status'] ?? '') === 'active' ? 'active' : 'draft',
                     $id,
                 ]);
+                $this->syncProcurement($pdo, (int)$id, $procurementType, $costPrice, $stockQuantity);
             } else {
                 $this->redirectToView($id, $tab, 'Unknown section.', 'error', true);
             }
@@ -313,6 +327,7 @@ class ProductController extends Controller
             $this->redirectToView($id, $tab, $e->getMessage(), 'error', true);
         }
 
+        InventoryService::syncProduct($pdo, (int) $id);
         $this->redirectToView($id, $tab, 'Changes saved.');
     }
 
@@ -322,6 +337,10 @@ class ProductController extends Controller
         if (!in_array('search_keywords', $columns, true)) {
             $pdo->exec('ALTER TABLE `products` ADD `search_keywords` TEXT NULL DEFAULT NULL');
         }
+        if (!in_array('procurement_type', $columns, true)) {
+            $pdo->exec("ALTER TABLE `products` ADD `procurement_type` ENUM('handcrafted','purchased') NOT NULL DEFAULT 'handcrafted' AFTER `cost_price`");
+        }
+        $pdo->exec("CREATE TABLE IF NOT EXISTS product_procurements (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,product_id BIGINT UNSIGNED NOT NULL,amount DECIMAL(12,2) NOT NULL DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,UNIQUE KEY uq_product_procurement(product_id),CONSTRAINT fk_product_procurement_product FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $hasSocial = (bool) $pdo->query("SHOW TABLES LIKE 'product_social_links'")->fetchColumn();
         if (!$hasSocial) {
             $pdo->exec("CREATE TABLE `product_social_links` (
@@ -337,6 +356,17 @@ class ProductController extends Controller
                 CONSTRAINT `fk_product_social_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         }
+    }
+
+    private function syncProcurement(PDO $pdo, int $productId, string $type, float $costPrice, int $stockQuantity): void
+    {
+        if ($type === 'handcrafted') {
+            $pdo->prepare('DELETE FROM product_procurements WHERE product_id=?')->execute([$productId]);
+            return;
+        }
+        $amount = round(max(0, $costPrice) * max(0, $stockQuantity), 2);
+        $pdo->prepare('INSERT INTO product_procurements(product_id,amount) VALUES(?,?) ON DUPLICATE KEY UPDATE product_id=VALUES(product_id)')
+            ->execute([$productId,$amount]);
     }
 
     /** @return array<int, array<string, mixed>> */
@@ -383,6 +413,21 @@ class ProductController extends Controller
         };
     }
 
+    private function generateSku(PDO $pdo, string $name): string
+    {
+        $base = strtoupper(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $name), '-'));
+        $base = substr($base !== '' ? $base : 'PRODUCT', 0, 48);
+        $prefix = 'GV-' . $base;
+        $candidate = $prefix;
+        $suffix = 1;
+        $statement = $pdo->prepare('SELECT 1 FROM products WHERE sku = ? LIMIT 1');
+        while (true) {
+            $statement->execute([$candidate]);
+            if (!$statement->fetchColumn()) return $candidate;
+            $candidate = $prefix . '-' . str_pad((string) $suffix++, 3, '0', STR_PAD_LEFT);
+        }
+    }
+
     private function upload(?array $file): ?string
     {
         if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return null;
@@ -393,7 +438,7 @@ class ProductController extends Controller
         $name=bin2hex(random_bytes(16)).'.'.$types[$info['mime']]; if (!move_uploaded_file((string)$file['tmp_name'],$dir.'/'.$name)) throw new \RuntimeException('Image upload failed.');
         return '/assets/uploads/products/'.$name;
     }
-    private function redirect(string $message,string $type='success',?int $id=null): never { $_SESSION['product_flash']=compact('message','type'); header('Location: /admin/products'.($id?'?edit='.$id:''),true,303); exit; }
+    private function redirect(string $message,string $type='success',?int $id=null): never { $_SESSION['product_flash']=compact('message','type'); header('Location: ' . app_url('/admin/products'.($id?'?edit='.$id:'')),true,303); exit; }
     private function redirectToView(int $id, string $tab, string $message, string $type = 'success', bool $editMode = false): never
     {
         $_SESSION['product_flash'] = compact('message', 'type');
@@ -401,7 +446,7 @@ class ProductController extends Controller
         if ($editMode) {
             $url .= '&mode=edit';
         }
-        header('Location: ' . $url, true, 303);
+        header('Location: ' . app_url($url), true, 303);
         exit;
     }
 }

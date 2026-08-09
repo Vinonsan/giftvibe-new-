@@ -1,4 +1,4 @@
-    <div id="gv-step-3" data-step-panel="3" class="space-y-4 hidden">
+    <div id="gv-step-2" data-step-panel="2" class="space-y-4 hidden">
 
         <?php
         $fileName       = 'product_images[]';

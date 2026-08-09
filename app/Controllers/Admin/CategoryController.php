@@ -13,6 +13,7 @@ class CategoryController extends Controller
     public function index(): void
     {
         $pdo = Database::connection();
+        $this->ensureImageAltColumn($pdo);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePost($pdo);
@@ -42,6 +43,7 @@ class CategoryController extends Controller
     public function show(): void
     {
         $pdo = Database::connection();
+        $this->ensureImageAltColumn($pdo);
         $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
         if (!$id) {
             $this->redirect('Category not found.', 'error');
@@ -97,15 +99,15 @@ class CategoryController extends Controller
         }
 
         if ($id) {
-            $pdo->prepare('UPDATE categories SET name=?, slug=?, description=?, link_url=?, image_path=?, sort_order=?, status=?, meta_title=?, meta_description=? WHERE id=?')->execute([
-                $payload['name'], $payload['slug'], $payload['description'], $payload['link_url'], $payload['image'],
+            $pdo->prepare('UPDATE categories SET name=?, slug=?, description=?, link_url=?, image_path=?, image_alt_text=?, sort_order=?, status=?, meta_title=?, meta_description=? WHERE id=?')->execute([
+                $payload['name'], $payload['slug'], $payload['description'], $payload['link_url'], $payload['image'], $payload['image_alt_text'],
                 $payload['sort_order'], $payload['status'], $payload['meta_title'], $payload['meta_description'], $id,
             ]);
             $this->redirect('Category updated.');
         }
 
-        $pdo->prepare('INSERT INTO categories (name, slug, description, link_url, image_path, sort_order, status, meta_title, meta_description) VALUES (?,?,?,?,?,?,?,?,?)')->execute([
-            $payload['name'], $payload['slug'], $payload['description'], $payload['link_url'], $payload['image'],
+        $pdo->prepare('INSERT INTO categories (name, slug, description, link_url, image_path, image_alt_text, sort_order, status, meta_title, meta_description) VALUES (?,?,?,?,?,?,?,?,?,?)')->execute([
+            $payload['name'], $payload['slug'], $payload['description'], $payload['link_url'], $payload['image'], $payload['image_alt_text'],
             $payload['sort_order'], $payload['status'], $payload['meta_title'], $payload['meta_description'],
         ]);
         $this->redirect('Category added.');
@@ -130,13 +132,13 @@ class CategoryController extends Controller
         try {
             if ($section === 'basic') {
                 $name = trim((string) ($_POST['name'] ?? ''));
-                $linkUrl = trim((string) ($_POST['link_url'] ?? ''));
-                if ($name === '' || $linkUrl === '') {
-                    $this->redirectToView($id, $tab, 'Name and category link are required.', 'error', true);
+                if ($name === '') {
+                    $this->redirectToView($id, $tab, 'Category name is required.', 'error', true);
                 }
-                $slug = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $name), '-'));
+                $slug = $this->uniqueSlug($pdo, $name, $id);
+                $linkUrl = '/shop?category=' . rawurlencode($slug);
                 $pdo->prepare('UPDATE categories SET name=?, slug=?, description=?, link_url=? WHERE id=?')->execute([
-                    $name, $slug, trim((string) ($_POST['description'] ?? '')), $linkUrl, $id,
+                    $name, $slug, (string) ($existing['description'] ?? ''), $linkUrl, $id,
                 ]);
             } elseif ($section === 'image') {
                 $image = (string) ($existing['image_path'] ?? '');
@@ -171,19 +173,19 @@ class CategoryController extends Controller
     private function readCategoryPayload(PDO $pdo, ?int $id): array
     {
         $name = trim((string) ($_POST['name'] ?? ''));
-        $linkUrl = trim((string) ($_POST['link_url'] ?? ''));
         if ($name === '') {
             return ['error' => 'Category name is required.'] + $this->emptyPayload();
         }
-        if ($linkUrl === '') {
-            return ['error' => 'Category URL is required.'] + $this->emptyPayload();
-        }
+        $slug = $this->uniqueSlug($pdo, $name, $id);
+        $linkUrl = '/shop?category=' . rawurlencode($slug);
 
+        $existing = [];
         $image = '';
         if ($id) {
-            $statement = $pdo->prepare('SELECT image_path FROM categories WHERE id = ?');
+            $statement = $pdo->prepare('SELECT * FROM categories WHERE id = ?');
             $statement->execute([$id]);
-            $image = (string) ($statement->fetchColumn() ?: '');
+            $existing = $statement->fetch(PDO::FETCH_ASSOC) ?: [];
+            $image = (string) ($existing['image_path'] ?? '');
         }
         try {
             $image = $this->upload($_FILES['category_image'] ?? null) ?? $image;
@@ -193,28 +195,59 @@ class CategoryController extends Controller
         if ($image === '') {
             return ['error' => 'Category image is required.'] + $this->emptyPayload();
         }
+        $imageAltText = trim((string) ($_POST['image_alt_text'] ?? ''));
+        if ($imageAltText === '') {
+            return ['error' => 'Image alt words are required.'] + $this->emptyPayload();
+        }
 
         return [
             'error' => '',
             'name' => $name,
-            'slug' => strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $name), '-')),
-            'description' => trim((string) ($_POST['description'] ?? '')),
+            'slug' => $slug,
+            'description' => (string) ($existing['description'] ?? ''),
             'link_url' => $linkUrl,
             'image' => $image,
-            'sort_order' => max(0, (int) ($_POST['sort_order'] ?? 0)),
-            'status' => ($_POST['status'] ?? '') === 'active' ? 'active' : 'inactive',
-            'meta_title' => trim((string) ($_POST['meta_title'] ?? '')),
-            'meta_description' => trim((string) ($_POST['meta_description'] ?? '')),
+            'image_alt_text' => $imageAltText,
+            'sort_order' => $id ? (int) ($existing['sort_order'] ?? 0) : (int) $pdo->query('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM categories')->fetchColumn(),
+            'status' => (string) ($existing['status'] ?? 'active'),
+            'meta_title' => (string) ($existing['meta_title'] ?? ''),
+            'meta_description' => (string) ($existing['meta_description'] ?? ''),
         ];
+    }
+
+    private function uniqueSlug(PDO $pdo, string $name, ?int $excludeId = null): string
+    {
+        $base = strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $name), '-'));
+        $base = $base !== '' ? $base : 'category';
+        $slug = $base;
+        $suffix = 2;
+
+        $sql = 'SELECT id FROM categories WHERE slug = ?' . ($excludeId ? ' AND id <> ?' : '') . ' LIMIT 1';
+        $statement = $pdo->prepare($sql);
+        while (true) {
+            $statement->execute($excludeId ? [$slug, $excludeId] : [$slug]);
+            if (!$statement->fetchColumn()) {
+                return $slug;
+            }
+            $slug = $base . '-' . $suffix++;
+        }
     }
 
     /** @return array{name:string,slug:string,description:string,link_url:string,image:string,sort_order:int,status:string,meta_title:string,meta_description:string,error:string} */
     private function emptyPayload(): array
     {
         return [
-            'name' => '', 'slug' => '', 'description' => '', 'link_url' => '', 'image' => '',
+            'name' => '', 'slug' => '', 'description' => '', 'link_url' => '', 'image' => '', 'image_alt_text' => '',
             'sort_order' => 0, 'status' => 'active', 'meta_title' => '', 'meta_description' => '', 'error' => '',
         ];
+    }
+
+    private function ensureImageAltColumn(PDO $pdo): void
+    {
+        $statement = $pdo->query("SHOW COLUMNS FROM categories LIKE 'image_alt_text'");
+        if (!$statement->fetch()) {
+            $pdo->exec("ALTER TABLE categories ADD COLUMN image_alt_text VARCHAR(255) NOT NULL DEFAULT '' AFTER image_path");
+        }
     }
 
     private function upload(?array $file): ?string
@@ -244,7 +277,7 @@ class CategoryController extends Controller
     private function redirect(string $message, string $type = 'success', ?int $id = null): never
     {
         $_SESSION['category_flash'] = compact('message', 'type');
-        header('Location: /admin/categories' . ($id ? '?edit=' . $id : ''), true, 303);
+        header('Location: ' . app_url('/admin/categories' . ($id ? '?edit=' . $id : '')), true, 303);
         exit;
     }
 
@@ -255,7 +288,7 @@ class CategoryController extends Controller
         if ($editMode) {
             $url .= '&mode=edit';
         }
-        header('Location: ' . $url, true, 303);
+        header('Location: ' . app_url($url), true, 303);
         exit;
     }
 }

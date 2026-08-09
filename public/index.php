@@ -35,12 +35,23 @@ if (function_exists('opcache_invalidate')) {
 }
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
+    ini_set('session.gc_maxlifetime', (string) (60 * 60 * 24 * 365));
     $sessionPath = BASE_PATH . '/storage/sessions';
     if (!is_dir($sessionPath)) {
         mkdir($sessionPath, 0775, true);
     }
     session_save_path($sessionPath);
     session_start();
+}
+
+if (isset($_SESSION['user']['id'])) {
+    setcookie(session_name(), session_id(), [
+        'expires' => time() + (60 * 60 * 24 * 365),
+        'path' => '/',
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
 }
 
 /* Simple PSR-4 style autoloader for the App\ namespace (app/ folder). */

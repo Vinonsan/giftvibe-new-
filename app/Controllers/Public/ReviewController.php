@@ -20,7 +20,7 @@ class ReviewController extends Controller
             exit;
         }
 
-        header('Location: /', true, 302);
+        header('Location: ' . app_url('/'), true, 302);
         exit;
     }
 
@@ -63,7 +63,7 @@ class ReviewController extends Controller
         $stmt = $pdo->prepare("INSERT INTO testimonials(reviewer_name, reviewer_email, reviewer_role, avatar_path, title, review_text, rating, source, status, sort_order) VALUES(?, ?, ?, ?, ?, ?, ?, 'public', 'pending', 0)");
         $stmt->execute([$name, $email, $role ?: null, $avatarPath, $title, $text, $rating]);
 
-        $this->redirect('Thank you! Your review has been submitted for approval.');
+        $this->redirect('Thank you! Your review has been submitted.');
     }
 
     private function upload(?array $file): ?string
@@ -89,7 +89,7 @@ class ReviewController extends Controller
     private function redirect(string $message, string $type = 'success'): never
     {
         $_SESSION['review_flash'] = compact('message', 'type');
-        header('Location: /reviews', true, 303);
+        header('Location: ' . app_url('/reviews'), true, 303);
         exit;
     }
 }

@@ -13,8 +13,9 @@ foreach ($categories as $item) {
     $id = (int) $item['id'];
     $image = $normalizeImage((string) ($item['image_path'] ?? $item['image'] ?? ''));
     $active = ($item['status'] ?? 'active') === 'active';
+    $shopUrl = '/shop?category=' . rawurlencode((string) ($item['slug'] ?? ''));
     $tableRows[] = [
-        'category' => '<div class="flex items-center gap-3"><img src="' . htmlspecialchars($image, ENT_QUOTES) . '" class="h-12 w-14 shrink-0 rounded-lg object-cover"><div><p class="font-semibold leading-snug text-secondary">' . htmlspecialchars((string) $item['name']) . '</p><p class="mt-0.5 text-[11px] text-secondary/60">' . htmlspecialchars((string) ($item['link_url'] ?? '')) . '</p></div></div>',
+        'category' => '<div class="flex items-center gap-3"><img src="' . htmlspecialchars($image, ENT_QUOTES) . '" alt="' . htmlspecialchars((string) ($item['image_alt_text'] ?? $item['name']), ENT_QUOTES) . '" class="h-12 w-14 shrink-0 rounded-lg object-cover"><div><p class="font-semibold leading-snug text-secondary">' . htmlspecialchars((string) $item['name']) . '</p><a href="' . htmlspecialchars($shopUrl, ENT_QUOTES) . '" target="_blank" class="mt-0.5 block text-[11px] text-primary hover:underline">' . htmlspecialchars($shopUrl) . '</a></div></div>',
         'sort_order' => (int) ($item['sort_order'] ?? 0),
         'status' => $active
             ? '<span class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">Active</span>'

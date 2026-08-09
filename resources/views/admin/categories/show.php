@@ -99,7 +99,10 @@ $field = static function (string $label, string $value, bool $empty = false): vo
                 <div class="grid gap-4 sm:grid-cols-2">
                     <?php $field('Category name', (string) $category['name']); ?>
                     <?php $field('Slug', (string) ($category['slug'] ?? ''), trim((string) ($category['slug'] ?? '')) === ''); ?>
-                    <?php $field('Category link', (string) ($category['link_url'] ?? ''), trim((string) ($category['link_url'] ?? '')) === ''); ?>
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Category link</p>
+                        <a href="<?= htmlspecialchars((string) ($category['link_url'] ?? '/shop')) ?>" target="_blank" class="mt-1 block break-all text-sm font-semibold text-primary hover:underline"><?= htmlspecialchars((string) ($category['link_url'] ?? '/shop')) ?></a>
+                    </div>
                 </div>
                 <div class="mt-4 grid gap-4">
                     <div class="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3">

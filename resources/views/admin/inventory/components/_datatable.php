@@ -8,6 +8,8 @@ foreach ($items as $item) {
     $qty = (int) $item['quantity'];
     $low = (int) $item['low_stock_threshold'];
     $sourceType = (string) ($item['source_type'] ?? 'stock');
+    $sellingPrice = isset($item['selling_price']) ? (float) $item['selling_price'] : null;
+    $profit = $sellingPrice !== null ? $sellingPrice - (float) $item['cost_price'] : null;
 
     $typeBadge = $isCatalog
         ? '<span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-blue-700">Shop product</span>'
@@ -34,6 +36,8 @@ foreach ($items as $item) {
         'source_type' => '<span data-filter-match="' . htmlspecialchars($sourceType) . '">' . $typeBadge . '</span>',
         'quantity' => '<span class="' . $qtyClass . '">' . number_format($qty) . ' ' . htmlspecialchars((string) ($item['unit'] ?? 'pcs')) . '</span>',
         'cost_price' => 'LKR ' . number_format((float) $item['cost_price'], 2),
+        'selling_price' => $sellingPrice !== null ? 'LKR ' . number_format($sellingPrice, 2) : '—',
+        'profit' => $profit !== null ? '<span class="' . ($profit >= 0 ? 'font-bold text-emerald-600' : 'font-bold text-rose-600') . '">LKR ' . number_format($profit, 2) . '</span>' : '—',
         'low_stock_threshold' => (string) $low,
         '_meta' => htmlspecialchars(json_encode([
             'id' => $id,
@@ -56,6 +60,8 @@ $tableColumns = [
     ['key' => 'source_type', 'label' => 'Type', 'html' => true],
     ['key' => 'quantity', 'label' => 'In stock', 'html' => true, 'type' => 'number'],
     ['key' => 'cost_price', 'label' => 'Cost / unit', 'type' => 'number'],
+    ['key' => 'selling_price', 'label' => 'Selling price', 'type' => 'number'],
+    ['key' => 'profit', 'label' => 'Profit / unit', 'html' => true, 'type' => 'number'],
     ['key' => 'low_stock_threshold', 'label' => 'Low at', 'type' => 'number'],
     ['key' => '_meta', 'label' => '', 'class' => 'hidden'],
     ['key' => '_actions', 'label' => 'Actions', 'html' => true, 'sortable' => false, 'align' => 'right'],

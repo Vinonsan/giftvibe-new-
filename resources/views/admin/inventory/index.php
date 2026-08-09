@@ -10,7 +10,7 @@ declare(strict_types=1);
     <div class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-xl font-bold text-secondary">Inventory</h1>
-            <p class="mt-1 text-sm text-slate-500">Shop products + extra stock items. Product purchase expenses auto-add stock here.</p>
+            <p class="mt-1 text-sm text-slate-500">Products sync automatically with buying price, selling price and live stock. Confirmed sales reduce stock once.</p>
         </div>
         <button type="button" data-drawer-open="inventory-item-drawer"
             class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-secondary transition shadow-sm shadow-primary/20">

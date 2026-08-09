@@ -27,15 +27,31 @@ function app_base_path(): string
 function app_url(string $path = '/'): string
 {
     $path = $path === '' ? '/' : $path;
+
+    if (preg_match('~^https?://~i', $path) === 1) {
+        return $path;
+    }
+
+    $basePath = app_base_path();
+    if ($basePath !== '' && ($path === $basePath || str_starts_with($path, $basePath . '/'))) {
+        return $path;
+    }
+
     if (!str_starts_with($path, '/')) {
         $path = '/' . $path;
     }
 
-    return app_base_path() . $path;
+    return $basePath . $path;
 }
 
 /** Public static asset URL (files under public/assets/). */
 function app_asset(string $path = ''): string
 {
     return app_url('/assets/' . ltrim($path, '/'));
+}
+
+function dicebear_avatar_url(string $seed, int $size = 128): string
+{
+    return 'https://api.dicebear.com/10.x/avataaars/svg?seed=' . rawurlencode($seed)
+        . '&size=' . max(32, min(512, $size)) . '&backgroundColor=f3f4f6';
 }

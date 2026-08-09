@@ -21,7 +21,6 @@ $fc = 'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-second
 $productId = (int) $product['id'];
 $tabLabels = [
     'basic'    => 'Basic Info',
-    'keywords' => 'Keywords',
     'images'   => 'Images',
     'social'   => 'Social Links',
     'pricing'  => 'Pricing',
@@ -51,7 +50,6 @@ $field = static function (string $label, string $value, bool $empty = false): vo
 
 $tabEditPartials = [
     'basic'    => '_edit-basic.php',
-    'keywords' => '_edit-keywords.php',
     'images'   => '_edit-images.php',
     'social'   => '_edit-social.php',
     'pricing'  => '_edit-pricing.php',
@@ -75,7 +73,7 @@ $tabEditPartials = [
                         <span class="rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-bold text-secondary/60">Draft</span>
                     <?php endif; ?>
                 </div>
-                <p class="mt-1 text-sm text-slate-500">SKU: <span class="font-semibold text-secondary"><?= htmlspecialchars((string) $product['sku']) ?></span> · ID #<?= $productId ?></p>
+                <p class="mt-1 text-sm text-slate-500">Product ID #<?= $productId ?></p>
             </div>
         </div>
         <a href="/admin/products" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-slate-50 transition">
@@ -123,7 +121,6 @@ $tabEditPartials = [
             <?php elseif ($tab === 'basic'): ?>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <?php $field('Product name', (string) $product['name']); ?>
-                    <?php $field('SKU', (string) $product['sku']); ?>
                     <?php $field('Categories', $categoryNames ? implode(', ', $categoryNames) : '', !$categoryNames); ?>
                     <?php $field('Slug', (string) ($product['slug'] ?? ''), trim((string) ($product['slug'] ?? '')) === ''); ?>
                 </div>
@@ -141,16 +138,12 @@ $tabEditPartials = [
                     </div>
                 </div>
 
-            <?php elseif ($tab === 'keywords'): ?>
-                <?php if ($keywords): ?>
-                    <div class="flex flex-wrap gap-2">
-                        <?php foreach ($keywords as $keyword): ?>
-                            <span class="inline-flex rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">#<?= htmlspecialchars(ltrim($keyword, '#')) ?></span>
-                        <?php endforeach; ?>
-                    </div>
-                <?php else: ?>
-                    <p class="text-sm italic text-slate-400">No search keywords added.</p>
-                <?php endif; ?>
+                <div class="mt-4 rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3">
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Search keywords</p>
+                    <?php if ($keywords): ?>
+                        <div class="mt-2 flex flex-wrap gap-2"><?php foreach ($keywords as $keyword): ?><span class="inline-flex rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">#<?= htmlspecialchars(ltrim($keyword, '#')) ?></span><?php endforeach; ?></div>
+                    <?php else: ?><p class="mt-1 text-sm italic text-slate-400">No search keywords added.</p><?php endif; ?>
+                </div>
 
             <?php elseif ($tab === 'images'): ?>
                 <?php if ($productImages): ?>
@@ -206,6 +199,7 @@ $tabEditPartials = [
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <?php $field('Selling price', 'LKR ' . number_format((float) ($product['base_price'] ?? 0), 2)); ?>
                     <?php $field('Cost / buying price', 'LKR ' . number_format((float) ($product['cost_price'] ?? 0), 2)); ?>
+                    <?php $field('Product source', ($product['procurement_type'] ?? 'handcrafted') === 'purchased' ? 'Purchased externally — deducted from cash' : 'Handcrafted — no cash deduction'); ?>
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
                         <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Profit per unit</p>
                         <p class="mt-1 text-lg font-black <?= $profit >= 0 ? 'text-emerald-600' : 'text-rose-500' ?>">LKR <?= number_format($profit, 2) ?></p>

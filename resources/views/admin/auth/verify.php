@@ -33,7 +33,7 @@ $siteName = $siteName ?? 'GiftVibe';
                     <img src="<?= htmlspecialchars($logo) ?>" 
                          alt="<?= htmlspecialchars($siteName) ?> Logo" 
                          class="h-16 w-16 rounded-xl object-contain" 
-                         onerror="this.src='/assets/images/logo.svg'">
+                         onerror="this.src='<?= htmlspecialchars(app_asset('images/logo.svg'), ENT_QUOTES) ?>'">
                 </div>
             </div>
 
@@ -51,7 +51,7 @@ $siteName = $siteName ?? 'GiftVibe';
             <?php endif; ?>
 
             <!-- Form -->
-            <form class="space-y-6" action="/admin/login/verify" method="POST" id="otp-form">
+            <form class="space-y-6" action="<?= htmlspecialchars(app_url('/admin/login/verify')) ?>" method="POST" id="otp-form">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
 
                 <div>

@@ -6,14 +6,13 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Database;
-use App\Services\InventoryService;
+use App\Services\FinanceSummaryService;
 use PDO;
 
 final class ExpenseController extends Controller
 {
     /** @var array<string, string> */
     private const CATEGORIES = [
-        'product_purchase' => 'Product / stock purchase',
         'packing' => 'Packing materials',
         'delivery' => 'Delivery / courier',
         'marketing' => 'Marketing',
@@ -26,7 +25,6 @@ final class ExpenseController extends Controller
     {
         $pdo = Database::connection();
         $this->ensureExpenseSchema($pdo);
-        InventoryService::ensureSchema($pdo);
         $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -50,14 +48,7 @@ final class ExpenseController extends Controller
             static fn(array $e): float => in_array($e['status'], ['approved', 'paid'], true) ? (float) $e['amount'] : 0.0,
             $expenses
         ));
-
-        $catalogProducts = $pdo->query(
-            "SELECT id, name, sku FROM products WHERE status = 'active' ORDER BY name"
-        )->fetchAll(PDO::FETCH_ASSOC);
-
-        $inventoryItems = $pdo->query(
-            'SELECT id, name, sku, quantity, product_id FROM inventory_items WHERE product_id IS NULL ORDER BY name'
-        )->fetchAll(PDO::FETCH_ASSOC);
+        $financeSummary = FinanceSummaryService::summary($pdo);
 
         $flash = $_SESSION['expenses_flash'] ?? null;
         unset($_SESSION['expenses_flash']);
@@ -69,10 +60,9 @@ final class ExpenseController extends Controller
             'content' => $this->render('admin/expenses/index', [
                 'expenses' => $expenses,
                 'categories' => self::CATEGORIES,
-                'catalogProducts' => $catalogProducts,
-                'inventoryItems' => $inventoryItems,
                 'totalAmount' => $totalAmount,
                 'approvedTotal' => $approvedTotal,
+                'cashOnHand' => (float) $financeSummary['cashOnHand'],
                 'csrfToken' => $_SESSION['csrf_token'],
                 'flash' => $flash,
             ]),
@@ -141,31 +131,6 @@ final class ExpenseController extends Controller
 
         $expenseId = (int) $pdo->lastInsertId();
 
-        if ($category === 'product_purchase' && isset($_POST['add_to_inventory'])) {
-            $stockQty = max(1, (int) ($_POST['stock_quantity'] ?? 1));
-            $productId = (int) ($_POST['product_id'] ?? 0) ?: null;
-            $inventoryItemId = (int) ($_POST['inventory_item_id'] ?? 0) ?: null;
-            $costPerUnit = $stockQty > 0 ? round($amount / $stockQty, 2) : 0.0;
-
-            $receivedItemId = InventoryService::receiveFromExpense($pdo, [
-                'title' => $title,
-                'quantity' => $stockQty,
-                'product_id' => $productId,
-                'inventory_item_id' => $inventoryItemId,
-                'cost_per_unit' => $costPerUnit,
-                'expense_id' => $expenseId,
-            ]);
-
-            if ($receivedItemId > 0) {
-                $pdo->prepare('UPDATE expenses SET inventory_item_id = ?, stock_quantity = ? WHERE id = ?')
-                    ->execute([$receivedItemId, $stockQty, $expenseId]);
-            } else {
-                $pdo->prepare('UPDATE expenses SET stock_quantity = ? WHERE id = ?')->execute([$stockQty, $expenseId]);
-            }
-
-            $this->redirect('Expense added and stock updated in inventory.', 'success');
-        }
-
         $this->redirect('Expense added successfully.', 'success');
     }
 
@@ -217,7 +182,7 @@ final class ExpenseController extends Controller
     private function redirect(string $message, string $type = 'success'): never
     {
         $_SESSION['expenses_flash'] = ['type' => $type, 'message' => $message];
-        header('Location: /admin/expenses', true, 303);
+        header('Location: ' . app_url('/admin/expenses'), true, 303);
         exit;
     }
 }

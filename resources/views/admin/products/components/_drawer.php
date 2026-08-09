@@ -27,16 +27,15 @@ $lsKey = 'gv_product_draft_' . ($editProduct ? (int)$editProduct['id'] : 'new');
 
 $steps = [
     1 => ['label' => 'Basic Info',    'icon' => 'M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3ZM6 6h.008v.008H6V6Z'],
-    2 => ['label' => 'Keywords',      'icon' => 'M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5-3.9 19.5m-2.1-19.5-3.9 19.5'],
-    3 => ['label' => 'Images',        'icon' => 'm2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z'],
-    4 => ['label' => 'Social Links',  'icon' => 'M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244'],
-    5 => ['label' => 'Pricing',       'icon' => 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
+    2 => ['label' => 'Images',        'icon' => 'm2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z'],
+    3 => ['label' => 'Social Links',  'icon' => 'M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244'],
+    4 => ['label' => 'Pricing',       'icon' => 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'],
 ];
 
 ob_start();
 ?>
 <!-- ══ Form ═══════════════════════════════════════════════════════════ -->
-<form id="product-form" method="post" action="/admin/products" enctype="multipart/form-data" novalidate>
+<form id="product-form" method="post" action="<?= htmlspecialchars(app_url('/admin/products')) ?>" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
     <input type="hidden" name="action"     value="save">
     <?php if ($editProduct): ?>
@@ -45,7 +44,6 @@ ob_start();
 
     <!-- ── Step 1 · Basic Info ─────────────────────────── -->
     <?php require __DIR__ . '/steps/_step-1.php'; ?>
-    <?php require __DIR__ . '/steps/_step-2.php'; ?>
     <?php require __DIR__ . '/steps/_step-3.php'; ?>
     <?php require __DIR__ . '/steps/_step-4.php'; ?>
     <?php require __DIR__ . '/steps/_step-5.php'; ?>
@@ -56,18 +54,18 @@ ob_start();
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
-    var TOTAL   = 5;
+    var TOTAL   = 4;
     var current = 1;
     var LS_KEY  = <?= json_encode($lsKey) ?>;
-    var WIDTHS  = { 1:'20%', 2:'40%', 3:'60%', 4:'80%', 5:'100%' };
-    var LABELS  = { 1:'Basic Info', 2:'Keywords', 3:'Images', 4:'Social Links', 5:'Pricing' };
+    var WIDTHS  = { 1:'25%', 2:'50%', 3:'75%', 4:'100%' };
+    var LABELS  = { 1:'Basic Info', 2:'Images', 3:'Social Links', 4:'Pricing' };
     var FC      = <?= json_encode($fc) ?>;
 
     /* ── localStorage helpers ──────────────────────── */
     function saveDraft() {
         try {
             var data = {};
-            ['field-name','field-sku','field-short-desc','field-desc','selling-price','buying-price'].forEach(function(id) {
+            ['field-name','field-short-desc','field-desc','selling-price','buying-price'].forEach(function(id) {
                 var el = document.getElementById(id);
                 if (el) data[id] = el.value;
             });
@@ -82,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var raw = localStorage.getItem(LS_KEY);
             if (!raw) return;
             var data = JSON.parse(raw);
-            ['field-name','field-sku','field-short-desc','field-desc','selling-price','buying-price'].forEach(function(id) {
+            ['field-name','field-short-desc','field-desc','selling-price','buying-price'].forEach(function(id) {
                 var el = document.getElementById(id);
                 if (el && data[id] !== undefined && el.value === '') el.value = data[id];
             });
@@ -181,13 +179,8 @@ document.addEventListener('DOMContentLoaded', function () {
         var ok = true;
         if (n === 1) {
             var nameEl = document.getElementById('field-name');
-            var skuEl = document.getElementById('field-sku');
             if (nameEl && !nameEl.value.trim()) {
                 showError(nameEl, 'Product name is required.');
-                ok = false;
-            }
-            if (skuEl && !skuEl.value.trim()) {
-                showError(skuEl, 'SKU is required.');
                 ok = false;
             }
             /* Category multi-select — custom select uses hidden inputs, not a native <select> */
@@ -201,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         }
-        if (n === 3) {
+        if (n === 2) {
             var isEdit = !!document.querySelector('#product-form input[name="id"]');
             var fileInput = document.getElementById('product-images');
             var existingImages = stepEl.querySelectorAll('input[name="delete_images[]"]').length;
@@ -214,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ok = false;
             }
         }
-        if (n === 5) {
+        if (n === 4) {
             var sp = document.getElementById('selling-price');
             var bp = document.getElementById('buying-price');
             if (sp && !sp.value.trim()) { showError(sp, 'Selling price is required.'); ok = false; }
