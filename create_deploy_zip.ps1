@@ -52,15 +52,9 @@ if (Test-Path $receiptsPath) {
     Get-ChildItem -Path $receiptsPath -File -ErrorAction SilentlyContinue | Remove-Item -Force
 }
 
-$tailwindJs = Join-Path $tempDir "public\assets\js\tailwindcss-browser.js"
-if (-not (Test-Path $tailwindJs)) {
-    Write-Host "Downloading Tailwind browser bundle for offline CSS (production)..."
-    try {
-        New-Item -ItemType Directory -Force -Path (Split-Path $tailwindJs) | Out-Null
-        Invoke-WebRequest -Uri "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4" -OutFile $tailwindJs -UseBasicParsing
-    } catch {
-        Write-Warning "Could not download Tailwind bundle. Admin will use CDN fallback on server."
-    }
+$adminCss = Join-Path $tempDir "public\assets\css\admin.css"
+if (-not (Test-Path $adminCss)) {
+    throw "Missing compiled admin CSS: public/assets/css/admin.css"
 }
 
 Write-Host "Creating zip (this may take a minute)..."
