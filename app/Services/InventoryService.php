@@ -142,6 +142,12 @@ final class InventoryService
     /** Deduct catalog stock once when an order becomes a confirmed sale. */
     public static function deductOrderStock(PDO $pdo, int $orderId): void
     {
+        $variants = $pdo->prepare('SELECT variant_id, SUM(quantity) AS quantity FROM order_items WHERE order_id=? AND variant_id IS NOT NULL GROUP BY variant_id');
+        $variants->execute([$orderId]);
+        foreach ($variants->fetchAll(PDO::FETCH_ASSOC) as $variant) {
+            $pdo->prepare('UPDATE product_variants SET stock_quantity=GREATEST(0,stock_quantity-?) WHERE id=?')
+                ->execute([max(0, (int) $variant['quantity']), (int) $variant['variant_id']]);
+        }
         $items = $pdo->prepare(
             'SELECT product_id, SUM(quantity) AS quantity
              FROM order_items WHERE order_id = ? AND product_id IS NOT NULL

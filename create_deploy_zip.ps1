@@ -57,6 +57,12 @@ if (-not (Test-Path $adminCss)) {
     throw "Missing compiled admin CSS: public/assets/css/admin.css"
 }
 
+$productionEnv = Join-Path $source ".env.production"
+if (-not (Test-Path $productionEnv)) {
+    throw "Missing deployment environment file: .env.production"
+}
+Copy-Item -LiteralPath $productionEnv -Destination (Join-Path $tempDir ".env") -Force
+
 Write-Host "Creating zip (this may take a minute)..."
 Push-Location $tempDir
 try {

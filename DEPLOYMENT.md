@@ -56,21 +56,23 @@ No Composer, Node.js, or build step required.
 
 ## Step 3 — Database (already configured)
 
-Database values are pre-set in **`config.php`**:
+Production database credentials are supplied by the deployment-only `.env` file included in the archive. Keep this file private and never place it inside the public document root.
 
 | Setting | Value |
 |---------|-------|
 | Host | `localhost` |
-| Database | `riversid_giftvibelk_db` |
-| User | `riversid_giftvibelk_db` |
-| Password | *(already in config.php)* |
+| Database | `riversid_giftvibe_lk_db` |
+| User | `riversid_giftvibe_lk_db` |
+| Password | Set in the packaged `.env` file |
 
 If cPanel shows different names, edit `config.php` only — no code changes needed.
+
+Supported environment variables are `APP_URL`, `DB_HOST`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`; hosting-panel environment values override `.env` values.
 
 ### Import schema
 
 1. cPanel → **phpMyAdmin**
-2. Select database **`riversid_giftvibelk_db`**
+2. Select database **`riversid_giftvibe_lk_db`**
 3. **Import** → choose **`schema.sql`** from project root
 4. Click **Go** (wait until success — all tables + starter content)
 
@@ -118,24 +120,19 @@ Open these URLs:
 | `https://giftvibelk.lk/` | Homepage loads |
 | `https://giftvibelk.lk/shop` | Shop page |
 | `https://giftvibelk.lk/admin` | Admin login |
-| `https://giftvibelk.lk/sitemap.php` | XML sitemap |
+| `https://giftvibelk.lk/sitemap.xml` | XML sitemap |
 | `https://giftvibelk.lk/robots.txt` | Robots file |
 
 ### Admin login
 
-First visit to `/admin` auto-creates admin user if none exists:
-
-- Email: `admin@giftvibe.lk`
-- Password: `admin123`
-
-**Change this password immediately after first login.**
+Open `/admin/login` and sign in with the configured administrator phone number and OTP. Test OTP/SMS delivery before launch.
 
 ---
 
 ## Step 7 — Post-launch
 
 1. Submit sitemap in Google Search Console:  
-   `https://giftvibelk.lk/sitemap.php`
+   `https://giftvibelk.lk/sitemap.xml`
 2. Admin → Settings — update phone, address, logo, social links
 3. Remove sample products/testimonials if not needed
 4. Enable SSL (AutoSSL / Let's Encrypt) if not already active
@@ -146,7 +143,7 @@ First visit to `/admin` auto-creates admin user if none exists:
 
 - [ ] Document root points to `public/` only
 - [ ] `config.php` and `schema.sql` blocked by root `.htaccess` (included)
-- [ ] Admin password changed from default
+- [ ] Admin OTP/SMS delivery tested
 - [ ] HTTPS forced in cPanel
 - [ ] Database user limited to this database only
 
@@ -186,5 +183,4 @@ giftvibelk-deployment.zip
 
 - Site: `https://giftvibelk.lk`
 - Admin: `https://giftvibelk.lk/admin`
-- Sitemap: `https://giftvibelk.lk/sitemap.php`
-- AI catalog: `https://giftvibelk.lk/catalog.php`
+- Sitemap: `https://giftvibelk.lk/sitemap.xml`

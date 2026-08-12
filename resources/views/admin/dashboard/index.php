@@ -24,7 +24,7 @@ $orderBadge = static function (string $status): string {
         <div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5 shadow-sm">
             <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Cash on hand</p>
             <p class="mt-2 text-2xl font-black text-secondary"><?= $money((float) $stats['cashOnHand']) ?></p>
-            <p class="mt-1 text-xs text-emerald-700/70">Sales + investments − external product purchases − expenses</p>
+            <p class="mt-1 text-xs text-emerald-700/70">Placed orders + investments − external purchases − expenses</p>
         </div>
         <div class="rounded-2xl border border-primary/15 bg-primary/[0.04] p-5 shadow-sm">
             <p class="text-[10px] font-bold uppercase tracking-wider text-primary">Net profit</p>
@@ -34,7 +34,7 @@ $orderBadge = static function (string $status): string {
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total revenue</p>
             <p class="mt-2 text-2xl font-black text-secondary"><?= $money((float) $stats['totalIncome']) ?></p>
-            <p class="mt-1 text-xs text-slate-500"><?= (int) $stats['deliveredCount'] ?> delivered orders</p>
+            <p class="mt-1 text-xs text-slate-500"><?= (int) $stats['deliveredCount'] ?> placed orders counted</p>
         </div>
         <div class="rounded-2xl border border-rose-100 bg-rose-50/40 p-5 shadow-sm">
             <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Business expenses</p>

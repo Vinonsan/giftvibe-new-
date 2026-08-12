@@ -106,6 +106,10 @@ function showNotification(message) {
 function giftAddCart(event, product) {
     event.preventDefault();
     event.stopPropagation();
+    if ((product.type || 'product') === 'product') {
+        window.location.href = '/shop?product=' + encodeURIComponent(product.slug);
+        return;
+    }
     
     // Local storage mock cart
     let cart = JSON.parse(localStorage.getItem('giftvibe_cart') || '[]');
@@ -121,6 +125,7 @@ function giftAddCart(event, product) {
 function giftBuyNow(event, slug, type) {
     event.preventDefault();
     event.stopPropagation();
+    if (type === 'product') { window.location.href = '/shop?product=' + encodeURIComponent(slug); return; }
     window.giftRequireAuth('/checkout?' + (type === 'combo' ? 'combo' : 'product') + '=' + encodeURIComponent(slug));
 }
 function giftToggleFavorite(event, button, product) {

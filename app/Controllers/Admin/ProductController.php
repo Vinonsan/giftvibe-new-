@@ -17,7 +17,7 @@ class ProductController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') $this->handlePost($pdo);
         $products = $pdo->query("SELECT p.*,pi.image_path,GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') category_names FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN product_categories pc ON pc.product_id=p.id LEFT JOIN categories c ON c.id=pc.category_id GROUP BY p.id ORDER BY p.id DESC")->fetchAll();
         $categories = $pdo->query("SELECT id,name FROM categories WHERE status='active' ORDER BY sort_order,id")->fetchAll();
-        $editProduct = null; $editCategoryIds = []; $secondaryImages = []; $productVideos = []; $productSocialLinks = [];
+        $editProduct = null; $editCategoryIds = []; $secondaryImages = []; $productVideos = []; $productSocialLinks = []; $productVariants = [];
         $editId = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT);
         if ($editId) {
             $statement = $pdo->prepare("SELECT p.*,pi.image_path,pi.alt_text FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 WHERE p.id=?"); $statement->execute([$editId]);
@@ -33,10 +33,11 @@ class ProductController extends Controller
             $productVideos = $videoStatement->fetchAll(PDO::FETCH_COLUMN);
             if (!$productVideos && trim((string) ($editProduct['video_url'] ?? '')) !== '') $productVideos[] = $editProduct['video_url'];
             $productSocialLinks = $this->loadSocialLinks($pdo, $editId);
+            $productVariants = $this->loadVariants($pdo, $editId);
         }
         $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
         $flash = $_SESSION['product_flash'] ?? null; unset($_SESSION['product_flash']);
-        $this->view('layouts/admin-layout', ['title'=>'Products','pageTitle'=>'Products','showPageTitle'=>false,'content'=>$this->render('admin/products/index', compact('products','categories','editProduct','editCategoryIds','flash','secondaryImages','productVideos','productSocialLinks') + ['csrfToken'=>$_SESSION['csrf_token']])]);
+        $this->view('layouts/admin-layout', ['title'=>'Products','pageTitle'=>'Products','showPageTitle'=>false,'content'=>$this->render('admin/products/index', compact('products','categories','editProduct','editCategoryIds','flash','secondaryImages','productVideos','productSocialLinks','productVariants') + ['csrfToken'=>$_SESSION['csrf_token']])]);
     }
 
     public function show(): void
@@ -75,6 +76,7 @@ class ProductController extends Controller
         }
 
         $productSocialLinks = $this->loadSocialLinks($pdo, $id);
+        $productVariants = $this->loadVariants($pdo, $id);
         $editProduct = $product;
 
         $tabs = ['basic', 'images', 'social', 'pricing'];
@@ -102,6 +104,7 @@ class ProductController extends Controller
                 'secondaryImages',
                 'productVideos',
                 'productSocialLinks',
+                'productVariants',
                 'tab',
                 'tabs',
                 'editMode',
@@ -200,6 +203,7 @@ class ProductController extends Controller
             foreach($videoUrls as $index=>$url)$insertVideo->execute([$id,$url,$index]);
             $this->saveSocialLinks($pdo, $id, array_map('trim', (array) ($_POST['social_url'] ?? [])));
             $this->syncProcurement($pdo, (int)$id, $procurementType, $costPrice, $stockQuantity);
+            $this->syncVariants($pdo, (int) $id, $sku, $basePrice);
 
             $pdo->commit();
         } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); $this->redirect('Product details could not be saved. ' . $e->getMessage(),'error',$id); }
@@ -320,6 +324,7 @@ class ProductController extends Controller
                     $id,
                 ]);
                 $this->syncProcurement($pdo, (int)$id, $procurementType, $costPrice, $stockQuantity);
+                $this->syncVariants($pdo, (int) $id, (string) $product['sku'], $basePrice);
             } else {
                 $this->redirectToView($id, $tab, 'Unknown section.', 'error', true);
             }
@@ -341,6 +346,10 @@ class ProductController extends Controller
             $pdo->exec("ALTER TABLE `products` ADD `procurement_type` ENUM('handcrafted','purchased') NOT NULL DEFAULT 'handcrafted' AFTER `cost_price`");
         }
         $pdo->exec("CREATE TABLE IF NOT EXISTS product_procurements (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,product_id BIGINT UNSIGNED NOT NULL,amount DECIMAL(12,2) NOT NULL DEFAULT 0,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,UNIQUE KEY uq_product_procurement(product_id),CONSTRAINT fk_product_procurement_product FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $procurementColumns = $pdo->query('DESCRIBE `product_procurements`')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('unit_cost', $procurementColumns, true)) $pdo->exec('ALTER TABLE `product_procurements` ADD `unit_cost` DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER `product_id`');
+        if (!in_array('quantity', $procurementColumns, true)) $pdo->exec('ALTER TABLE `product_procurements` ADD `quantity` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `unit_cost`');
+        $pdo->exec('UPDATE product_procurements pp INNER JOIN products p ON p.id=pp.product_id SET pp.unit_cost=p.cost_price,pp.quantity=p.stock_quantity WHERE pp.unit_cost=0 AND pp.quantity=0');
         $hasSocial = (bool) $pdo->query("SHOW TABLES LIKE 'product_social_links'")->fetchColumn();
         if (!$hasSocial) {
             $pdo->exec("CREATE TABLE `product_social_links` (
@@ -356,6 +365,46 @@ class ProductController extends Controller
                 CONSTRAINT `fk_product_social_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         }
+        $pdo->exec("CREATE TABLE IF NOT EXISTS product_variants (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,product_id BIGINT UNSIGNED NOT NULL,name VARCHAR(160) NOT NULL,sku VARCHAR(80) NOT NULL,color_name VARCHAR(120) NULL,color_hex CHAR(7) NULL,image_path VARCHAR(255) NULL,price_adjustment DECIMAL(12,2) NOT NULL DEFAULT 0,stock_quantity INT NOT NULL DEFAULT 0,status ENUM('active','inactive') NOT NULL DEFAULT 'active',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,UNIQUE KEY sku(sku),KEY fk_product_variants_product(product_id),CONSTRAINT fk_product_variants_product FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    private function loadVariants(PDO $pdo, int $productId): array
+    {
+        $statement = $pdo->prepare('SELECT * FROM product_variants WHERE product_id=? ORDER BY id');
+        $statement->execute([$productId]);
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function syncVariants(PDO $pdo, int $productId, string $productSku, float $basePrice): void
+    {
+        $names = (array) ($_POST['variant_name'] ?? []);
+        $colors = (array) ($_POST['variant_color'] ?? []);
+        $hexes = (array) ($_POST['variant_hex'] ?? []);
+        $prices = (array) ($_POST['variant_price'] ?? []);
+        $stocks = (array) ($_POST['variant_stock'] ?? []);
+        $ids = (array) ($_POST['variant_id'] ?? []);
+        $keep = [];
+        $save = $pdo->prepare("INSERT INTO product_variants(id,product_id,name,sku,color_name,color_hex,price_adjustment,stock_quantity,status) VALUES(?,?,?,?,?,?,?,?, 'active') ON DUPLICATE KEY UPDATE name=VALUES(name),sku=VALUES(sku),color_name=VALUES(color_name),color_hex=VALUES(color_hex),price_adjustment=VALUES(price_adjustment),stock_quantity=VALUES(stock_quantity),status='active'");
+        foreach ($names as $index => $rawName) {
+            $name = trim((string) $rawName);
+            if ($name === '') continue;
+            $id = max(0, (int) ($ids[$index] ?? 0));
+            $color = trim((string) ($colors[$index] ?? $name));
+            $hex = strtoupper(trim((string) ($hexes[$index] ?? '')));
+            if (!preg_match('/^#[0-9A-F]{6}$/', $hex)) $hex = null;
+            $price = max(0, (float) ($prices[$index] ?? $basePrice));
+            $adjustment = round($price - $basePrice, 2);
+            $stock = max(0, (int) ($stocks[$index] ?? 0));
+            $variantSku = substr($productSku . '-' . strtoupper(preg_replace('/[^A-Z0-9]+/i', '-', $name)), 0, 80);
+            $save->execute([$id ?: null, $productId, $name, $variantSku, $color ?: $name, $hex, $adjustment, $stock]);
+            $keep[] = $id ?: (int) $pdo->lastInsertId();
+        }
+        if ($keep) {
+            $marks = implode(',', array_fill(0, count($keep), '?'));
+            $pdo->prepare("DELETE FROM product_variants WHERE product_id=? AND id NOT IN ($marks)")->execute(array_merge([$productId], $keep));
+        } else {
+            $pdo->prepare('DELETE FROM product_variants WHERE product_id=?')->execute([$productId]);
+        }
     }
 
     private function syncProcurement(PDO $pdo, int $productId, string $type, float $costPrice, int $stockQuantity): void
@@ -365,8 +414,8 @@ class ProductController extends Controller
             return;
         }
         $amount = round(max(0, $costPrice) * max(0, $stockQuantity), 2);
-        $pdo->prepare('INSERT INTO product_procurements(product_id,amount) VALUES(?,?) ON DUPLICATE KEY UPDATE product_id=VALUES(product_id)')
-            ->execute([$productId,$amount]);
+        $pdo->prepare('INSERT INTO product_procurements(product_id,unit_cost,quantity,amount) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE product_id=VALUES(product_id)')
+            ->execute([$productId,$costPrice,$stockQuantity,$amount]);
     }
 
     /** @return array<int, array<string, mixed>> */

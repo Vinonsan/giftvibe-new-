@@ -173,6 +173,7 @@ CREATE TABLE `categories` (
   `slug` varchar(190) NOT NULL,
   `description` text DEFAULT NULL,
   `image_path` varchar(255) DEFAULT NULL,
+  `image_alt_text` varchar(255) NOT NULL DEFAULT '',
   `link_url` varchar(255) DEFAULT NULL,
   `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
   `status` enum('active','inactive') NOT NULL DEFAULT 'active',
@@ -1238,6 +1239,7 @@ CREATE TABLE `products` (
   `base_price` decimal(12,2) NOT NULL DEFAULT 0.00,
   `sale_price` decimal(12,2) DEFAULT NULL,
   `cost_price` decimal(12,2) DEFAULT NULL,
+  `procurement_type` enum('handcrafted','purchased') NOT NULL DEFAULT 'handcrafted',
   `offer_type` enum('none','fixed','percentage') NOT NULL DEFAULT 'none',
   `offer_value` decimal(12,2) DEFAULT NULL,
   `unit` varchar(80) DEFAULT NULL,
@@ -1550,6 +1552,45 @@ INSERT INTO faqs (question, answer, category, sort_order, status) VALUES
   ('Can I customise a gift box?', 'Yes. Contact us with your preferred items, theme, budget and delivery date, and our team will help curate it.', 'Custom gifts', 3, 'active'),
   ('How should I care for a flower bouquet?', 'Keep flowers in fresh water, trim the stems at an angle and place them away from direct sunlight and heat.', 'Flowers', 4, 'active'),
   ('What payment methods are accepted?', 'Available payment methods are displayed securely during checkout.', 'Payments', 5, 'active');
+
+CREATE TABLE IF NOT EXISTS `product_procurements` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `unit_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `quantity` int(10) unsigned NOT NULL DEFAULT 0,
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_product_procurement` (`product_id`),
+  CONSTRAINT `fk_product_procurement_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `investments` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `member_name` varchar(190) NOT NULL,
+  `phone` varchar(40) DEFAULT NULL,
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `investment_date` date NOT NULL,
+  `notes` text DEFAULT NULL,
+  `status` enum('received','returned','cancelled') NOT NULL DEFAULT 'received',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_investment_date_status` (`investment_date`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `order_inventory_deductions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint(20) unsigned NOT NULL,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `inventory_item_id` bigint(20) unsigned NOT NULL,
+  `quantity` int(10) unsigned NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_order_product_deduction` (`order_id`,`product_id`),
+  KEY `idx_order_inventory_item` (`inventory_item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

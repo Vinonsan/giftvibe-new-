@@ -2,11 +2,21 @@
 declare(strict_types=1);
 /** Finance summary cards — updated by filter via JS. */
 ?>
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Current cash on hand</p>
+        <p class="mt-2 text-2xl font-black text-emerald-700">LKR <?= number_format($cashOnHand, 2) ?></p>
+        <p class="mt-1 text-xs text-emerald-700/70">Sales + investments − external purchases − expenses</p>
+    </div>
+    <div class="rounded-2xl border border-amber-100 bg-amber-50/40 p-5">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">External product purchases</p>
+        <p class="mt-2 text-2xl font-black text-amber-700">LKR <?= number_format($productPurchases, 2) ?></p>
+        <p class="mt-1 text-xs text-amber-700/70">Deducted from cash when purchased products are added</p>
+    </div>
     <div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
         <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total income</p>
         <p id="finance-summary-income" class="mt-2 text-2xl font-black text-secondary">LKR <?= number_format($totalSales, 2) ?></p>
-        <p class="mt-1 text-xs text-emerald-700/70">From filtered delivered orders</p>
+        <p class="mt-1 text-xs text-emerald-700/70">From placed orders excluding cancelled/refunded</p>
     </div>
     <div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-5">
         <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total expenses</p>

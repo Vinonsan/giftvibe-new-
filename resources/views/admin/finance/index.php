@@ -6,7 +6,7 @@ declare(strict_types=1);
     <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div>
             <h1 class="text-xl font-bold text-secondary">Financial Reports</h1>
-            <p class="mt-1 text-sm text-slate-500">Delivered orders revenue and profit. Use filters below to update summary cards and the report table.</p>
+            <p class="mt-1 text-sm text-slate-500">Order cash-in and externally purchased product cash-out transactions.</p>
         </div>
     </div>
 
@@ -19,12 +19,13 @@ declare(strict_types=1);
     <?php require __DIR__ . '/components/_chart.php'; ?>
 
     <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4"><h2 class="text-base font-bold text-secondary">Cash transactions</h2><p class="mt-1 text-xs text-slate-500">Orders add cash; externally purchased products deduct cash.</p></div>
         <?php require __DIR__ . '/components/_datatable.php'; ?>
     </div>
 
 </div>
 
-<script>
+<script class="hidden" type="application/x-disabled">
 document.addEventListener('DOMContentLoaded', function () {
     var table = document.querySelector('[data-datatable][data-id="finance-table"]');
     if (!table) return;

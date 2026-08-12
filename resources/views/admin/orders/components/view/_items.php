@@ -15,6 +15,9 @@ declare(strict_types=1);
                         <div>
                             <h3 class="font-bold text-secondary"><?= htmlspecialchars((string) $item['product_name']) ?></h3>
                             <p class="mt-0.5 font-mono text-xs text-slate-500">SKU: <?= htmlspecialchars((string) ($item['sku'] ?? '—')) ?></p>
+                            <?php $chosenColour = trim((string) ($item['variant_color'] ?? $item['variant_name'] ?? '')); if ($chosenColour !== ''): ?>
+                                <p class="mt-1 inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">Selected colour: <?= htmlspecialchars($chosenColour) ?></p>
+                            <?php endif; ?>
                             <?php if (trim((string) ($item['short_description'] ?? '')) !== ''): ?>
                                 <p class="mt-1 text-sm text-slate-500 line-clamp-2"><?= htmlspecialchars((string) $item['short_description']) ?></p>
                             <?php endif; ?>

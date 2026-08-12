@@ -15,11 +15,12 @@ final class OrderPlacementService
         $requested = [];
         foreach (array_slice(explode(',', $selection), 0, 20) as $entry) {
             [$typedSlug, $quantity] = array_pad(explode(':', $entry, 2), 2, '1');
-            [$type, $slug] = str_contains($typedSlug, '~')
+            [$type, $slugWithVariant] = str_contains($typedSlug, '~')
                 ? array_pad(explode('~', $typedSlug, 2), 2, '')
                 : ['p', $typedSlug];
+            [$slug, $variantId] = array_pad(explode('@', $slugWithVariant, 2), 2, '0');
             if (in_array($type, ['p', 'c'], true) && preg_match('/^[a-z0-9-]+$/', $slug)) {
-                $requested[$type . '~' . $slug] = max(1, min(10, (int) $quantity));
+                $requested[$type . '~' . $slug . '@' . max(0, (int) $variantId)] = max(1, min(10, (int) $quantity));
             }
         }
 
@@ -38,7 +39,8 @@ final class OrderPlacementService
         );
 
         foreach ($requested as $typedSlug => $quantity) {
-            [$type, $slug] = explode('~', $typedSlug, 2);
+            [$type, $slugWithVariant] = explode('~', $typedSlug, 2);
+            [$slug, $variantId] = array_pad(explode('@', $slugWithVariant, 2), 2, '0');
             $stmt = $type === 'c' ? $comboStmt : $productStmt;
             $stmt->execute([$slug]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -46,7 +48,24 @@ final class OrderPlacementService
                 continue;
             }
 
-            $items[] = self::normalizeItem($pdo, $row, $type === 'c' ? 'combo' : 'product', $quantity);
+            $normalized = self::normalizeItem($pdo, $row, $type === 'c' ? 'combo' : 'product', $quantity);
+            if ($type === 'p' && (int) $variantId < 1) {
+                $hasVariants = $pdo->prepare("SELECT 1 FROM product_variants WHERE product_id=? AND status='active' LIMIT 1");
+                $hasVariants->execute([(int) $row['id']]);
+                if ($hasVariants->fetchColumn()) continue;
+            }
+            if ($type === 'p' && (int) $variantId > 0) {
+                $variantStmt = $pdo->prepare("SELECT id,name,sku,color_name,price_adjustment,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND status='active' LIMIT 1");
+                $variantStmt->execute([(int) $variantId, (int) $row['id']]);
+                $variant = $variantStmt->fetch(PDO::FETCH_ASSOC);
+                if (!$variant || (int) $variant['stock_quantity'] < $quantity) continue;
+                $normalized['variant_id'] = (int) $variant['id'];
+                $normalized['variant_name'] = (string) ($variant['color_name'] ?: $variant['name']);
+                $normalized['sku'] = (string) $variant['sku'];
+                $normalized['base_price'] = round((float) $row['base_price'] + (float) $variant['price_adjustment'], 2);
+                $normalized['line_total'] = round($normalized['base_price'] * $quantity, 2);
+            }
+            $items[] = $normalized;
         }
 
         return $items;
@@ -230,19 +249,21 @@ final class OrderPlacementService
             $orderId = (int) $pdo->lastInsertId();
 
             $item = $pdo->prepare(
-                'INSERT INTO order_items (order_id, product_id, product_name, sku, quantity, unit_price, cost_price, total_price)
-                 VALUES (?,?,?,?,?,?,?,?)'
+                'INSERT INTO order_items (order_id, product_id, variant_id, product_name, sku, quantity, unit_price, cost_price, total_price, custom_options_json)
+                 VALUES (?,?,?,?,?,?,?,?,?,?)'
             );
             foreach ($orderItems as $product) {
                 $item->execute([
                     $orderId,
                     $product['product_id'],
+                    $product['variant_id'] ?? null,
                     $product['name'],
                     $product['sku'],
                     $product['quantity'],
                     $product['base_price'],
                     $product['cost_price'],
                     $product['line_total'],
+                    !empty($product['variant_name']) ? json_encode(['colour' => $product['variant_name']], JSON_UNESCAPED_UNICODE) : null,
                 ]);
             }
 

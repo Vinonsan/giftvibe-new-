@@ -13,14 +13,14 @@ final class FinanceSummaryService
     {
         $incomeRow = $pdo->query(
             "SELECT COALESCE(SUM(o.grand_total), 0) AS income, COUNT(*) AS cnt
-             FROM orders o WHERE o.order_status = 'delivered'"
+             FROM orders o WHERE o.order_status NOT IN ('cancelled','refunded')"
         )->fetch(PDO::FETCH_ASSOC) ?: ['income' => 0, 'cnt' => 0];
 
         $cogsRow = $pdo->query(
             "SELECT COALESCE(SUM(oi.cost_price * oi.quantity), 0) AS cogs
              FROM order_items oi
              INNER JOIN orders o ON o.id = oi.order_id
-             WHERE o.order_status = 'delivered'"
+             WHERE o.order_status NOT IN ('cancelled','refunded')"
         )->fetch(PDO::FETCH_ASSOC) ?: ['cogs' => 0];
 
         $totalIncome = (float) ($incomeRow['income'] ?? 0);

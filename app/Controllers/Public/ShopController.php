@@ -46,6 +46,9 @@ class ShopController extends Controller
                 $videoStmt->execute([$product['id']]);
                 $productVideos = $videoStmt->fetchAll(\PDO::FETCH_COLUMN);
                 if (!$productVideos && trim((string) ($product['video_url'] ?? '')) !== '') $productVideos[] = $product['video_url'];
+                $variantStmt = $pdo->prepare("SELECT id,name,sku,color_name,color_hex,image_path,price_adjustment,stock_quantity FROM product_variants WHERE product_id=? AND status='active' ORDER BY id");
+                $variantStmt->execute([$product['id']]);
+                $productVariants = $variantStmt->fetchAll(\PDO::FETCH_ASSOC);
 
                 // Fetch category IDs for the current product to query related items
                 $catIdsStmt = $pdo->prepare("SELECT category_id FROM product_categories WHERE product_id = ?");
@@ -78,7 +81,7 @@ class ShopController extends Controller
                             ]],
                         ],
                     ],
-                    'content' => $this->render('public/product/show', compact('product', 'gallery', 'relatedProducts', 'categories', 'productVideos')),
+                    'content' => $this->render('public/product/show', compact('product', 'gallery', 'relatedProducts', 'categories', 'productVideos', 'productVariants')),
                 ]);
                 return;
             }

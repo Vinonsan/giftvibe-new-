@@ -411,10 +411,11 @@ final class OrderController extends Controller
         }
 
         $itemsStmt = $pdo->prepare(
-            'SELECT oi.*, p.short_description, p.slug,
-                COALESCE(pi.image_path, \'/assets/images/hero_slide_1.jpg\') AS product_image
+            'SELECT oi.*, p.short_description, p.slug, pv.color_name AS variant_color, pv.name AS variant_name,
+                COALESCE(pv.image_path, pi.image_path, \'/assets/images/hero_slide_1.jpg\') AS product_image
              FROM order_items oi
              LEFT JOIN products p ON p.id = oi.product_id
+             LEFT JOIN product_variants pv ON pv.id = oi.variant_id
              LEFT JOIN product_images pi ON pi.product_id = oi.product_id AND pi.is_primary = 1
              WHERE oi.order_id = ?
              ORDER BY oi.id'

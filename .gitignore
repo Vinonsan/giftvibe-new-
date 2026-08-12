@@ -6,6 +6,8 @@
 /storage/sessions/sess_*
 !/storage/sessions/.gitkeep
 /config.local.php
+/.env
+/.env.production
 
 # Deployment artifacts & local scratch
 /*.zip

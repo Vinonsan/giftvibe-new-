@@ -17,7 +17,7 @@ $siteName = $settings['site_name'] ?? 'GiftVibe';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt - <?= htmlspecialchars($receiptNo) ?></title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="<?= htmlspecialchars(app_url('/assets/js/tailwindcss-browser.js')) ?>"></script>
     <style>
         @media print {
             body { background: white; color: black; padding: 0; }
@@ -99,6 +99,9 @@ $siteName = $settings['site_name'] ?? 'GiftVibe';
                                     <span class="font-bold text-slate-800"><?= htmlspecialchars($item['product_name']) ?></span>
                                     <?php if ($item['sku']): ?>
                                         <small class="block text-[9px] text-slate-400 font-normal mt-0.5">SKU: <?= htmlspecialchars($item['sku']) ?></small>
+                                    <?php endif; ?>
+                                    <?php $options = json_decode((string) ($item['custom_options_json'] ?? ''), true) ?: []; if (!empty($options['colour'])): ?>
+                                        <small class="block text-[9px] font-bold text-rose-500 mt-0.5">Colour: <?= htmlspecialchars((string) $options['colour']) ?></small>
                                     <?php endif; ?>
                                 </td>
                                 <td class="py-3 text-center text-slate-500"><?= (int) $item['quantity'] ?></td>

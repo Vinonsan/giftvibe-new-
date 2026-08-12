@@ -21,6 +21,7 @@
         <span class="mb-1.5 block text-xs font-bold text-secondary">Stock quantity</span>
         <input type="number" min="0" name="stock_quantity" value="<?= (int) ($editProduct['stock_quantity'] ?? 0) ?>" class="<?= $fc ?>">
     </label>
+    <?php require dirname(__DIR__) . '/_variants.php'; ?>
     <div class="grid gap-3 sm:grid-cols-2">
         <label class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-secondary">
             Featured product

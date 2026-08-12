@@ -8,7 +8,7 @@ $maxVal = max(array_merge(array_column($monthlyReport, 'sales'), [1]));
     <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h3 class="text-sm font-bold text-secondary">6-month income vs expenses</h3>
-            <p class="mt-0.5 text-xs text-slate-500">Delivered orders grouped by month (not affected by filters above).</p>
+            <p class="mt-0.5 text-xs text-slate-500">Placed orders grouped by month (cancelled/refunded excluded).</p>
         </div>
         <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Last 6 months</span>
     </div>

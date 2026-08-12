@@ -60,7 +60,7 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="<?= htmlspecialchars(app_url('/assets/js/tailwindcss-browser.js')) ?>"></script>
     <script type="module" src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
 
     <style type="text/tailwindcss">

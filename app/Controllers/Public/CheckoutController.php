@@ -27,7 +27,8 @@ final class CheckoutController extends Controller
         if ($selection === '') {
             $slug = trim((string) ($_GET['product'] ?? ''));
             $comboSlug = trim((string) ($_GET['combo'] ?? ''));
-            $selection = $comboSlug !== '' ? 'c~' . $comboSlug . ':' . max(1, min(10, (int) ($_GET['qty'] ?? 1))) : ($slug !== '' ? 'p~' . $slug . ':' . max(1, min(10, (int) ($_GET['qty'] ?? 1))) : '');
+            $variantId = max(0, (int) ($_GET['variant'] ?? 0));
+            $selection = $comboSlug !== '' ? 'c~' . $comboSlug . ':' . max(1, min(10, (int) ($_GET['qty'] ?? 1))) : ($slug !== '' ? 'p~' . $slug . ($variantId ? '@' . $variantId : '') . ':' . max(1, min(10, (int) ($_GET['qty'] ?? 1))) : '');
         }
         $orderItems = OrderPlacementService::resolveFromSelection($pdo, $selection);
         if (!$orderItems) {

@@ -9,7 +9,7 @@
         </fieldset>
 
         <div class="grid gap-4 sm:grid-cols-2">
-            <label class="block">
+    <label class="block">
                 <span class="mb-1.5 block text-xs font-bold text-secondary">
                     Selling price (LKR) <span class="text-primary">*</span>
                 </span>
@@ -17,7 +17,8 @@
                        name="selling_price"
                        value="<?= htmlspecialchars((string)($editProduct['base_price'] ?? '')) ?>"
                        class="<?= $fc ?>">
-            </label>
+    </label>
+    <?php require dirname(__DIR__) . '/_variants.php'; ?>
             <label class="block">
                 <span class="mb-1.5 block text-xs font-bold text-secondary">
                     Cost / buying price (LKR) <span class="text-primary">*</span>

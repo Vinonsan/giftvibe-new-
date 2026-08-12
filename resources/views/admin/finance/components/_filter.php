@@ -55,7 +55,7 @@ for ($y = $currentYear; $y >= $currentYear - 3; $y--) {
         $inputLabel = '';
         $inputValue = '';
         $inputType = 'search';
-        $inputPlaceholder = 'Search order #, customer…';
+        $inputPlaceholder = 'Search order, customer, product or SKU…';
         $inputHint = $inputError = '';
         $inputSize = 'lg';
         $inputState = 'default';

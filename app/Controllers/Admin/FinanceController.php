@@ -5,6 +5,7 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Services\FinanceSummaryService;
 use PDO;
 
 final class FinanceController extends Controller
@@ -17,7 +18,7 @@ final class FinanceController extends Controller
             "SELECT o.id, o.order_number, o.customer_name, o.grand_total, o.created_at,
                 COALESCE((SELECT SUM(oi.cost_price * oi.quantity) FROM order_items oi WHERE oi.order_id = o.id), 0) AS total_cost
              FROM orders o
-             WHERE o.order_status = 'delivered'
+             WHERE o.order_status NOT IN ('cancelled','refunded')
              ORDER BY o.id DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
 
@@ -53,6 +54,13 @@ final class FinanceController extends Controller
         $margin = $totalSales > 0 ? ($totalProfit / $totalSales) * 100 : 0;
         $monthlyReport = $this->buildMonthlyReport($pdo);
         $deliveredCount = count($orders);
+        $cashSummary = FinanceSummaryService::summary($pdo);
+        $procurementReports = [];
+        try {
+            $procurementReports = $pdo->query("SELECT pp.id,pp.product_id,p.cost_price AS unit_cost,p.stock_quantity AS quantity,pp.amount,pp.created_at,p.name,p.sku FROM product_procurements pp INNER JOIN products p ON p.id=pp.product_id ORDER BY pp.id DESC")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException) {
+            $procurementReports = [];
+        }
 
         $this->view('layouts/admin-layout', [
             'title' => 'Financial Reports',
@@ -66,6 +74,11 @@ final class FinanceController extends Controller
                 'orderReports' => $orderReports,
                 'monthlyReport' => $monthlyReport,
                 'deliveredCount' => $deliveredCount,
+                'cashOnHand' => (float) $cashSummary['cashOnHand'],
+                'productPurchases' => (float) $cashSummary['productPurchases'],
+                'totalInvestments' => (float) $cashSummary['totalInvestments'],
+                'businessExpenses' => (float) $cashSummary['businessExpenses'],
+                'procurementReports' => $procurementReports,
             ]),
         ]);
     }
@@ -85,7 +98,7 @@ final class FinanceController extends Controller
                     (SELECT SUM(oi.cost_price * oi.quantity) FROM order_items oi WHERE oi.order_id = o.id)
                 ), 0) AS cost
              FROM orders o
-             WHERE o.order_status = 'delivered'
+             WHERE o.order_status NOT IN ('cancelled','refunded')
                AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
              GROUP BY ym"
         )->fetchAll(PDO::FETCH_ASSOC);

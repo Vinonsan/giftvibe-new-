@@ -151,6 +151,7 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
                                 <p class="shrink-0 text-sm font-bold text-secondary">LKR <?= number_format((float)$product['line_total'],2) ?></p>
                             </div>
                             <p class="mt-1 text-xs text-secondary/55">LKR <?= number_format((float)$product['base_price'],2) ?> each</p>
+                            <?php if (!empty($product['variant_name'])): ?><p class="mt-1 text-xs font-bold text-primary">Colour: <?= htmlspecialchars((string) $product['variant_name']) ?></p><?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
