@@ -61,7 +61,11 @@ final class InventoryController extends Controller
 
         try {
             if ($action === 'save_item') {
-                InventoryService::saveStockItem($pdo, [
+                $editingId = (int) ($_POST['id'] ?? 0);
+                $quantity = (int) ($_POST['quantity'] ?? 0);
+                $unitCost = (float) ($_POST['cost_price'] ?? 0);
+                $pdo->beginTransaction();
+                $itemId = InventoryService::saveStockItem($pdo, [
                     'id' => (int) ($_POST['id'] ?? 0),
                     'name' => (string) ($_POST['name'] ?? ''),
                     'sku' => (string) ($_POST['sku'] ?? ''),
@@ -71,6 +75,10 @@ final class InventoryController extends Controller
                     'low_stock_threshold' => (int) ($_POST['low_stock_threshold'] ?? 5),
                     'notes' => (string) ($_POST['notes'] ?? ''),
                 ]);
+                if ($editingId < 1 && $quantity > 0 && $unitCost > 0) {
+                    $this->recordStockExpense($pdo, $itemId, (string) ($_POST['name'] ?? ''), $quantity, $unitCost);
+                }
+                $pdo->commit();
                 $this->redirect(((int) ($_POST['id'] ?? 0)) > 0 ? 'Inventory item updated.' : 'Stock item added to inventory.');
             }
 
@@ -81,6 +89,13 @@ final class InventoryController extends Controller
                     $this->redirect('Enter a valid quantity change.', 'error');
                 }
                 InventoryService::adjustQuantity($pdo, $itemId, $change, 'adjustment', null, trim((string) ($_POST['note'] ?? '')) ?: null);
+                $unitCost = max(0, (float) ($_POST['unit_cost'] ?? 0));
+                if ($change > 0 && $unitCost > 0) {
+                    $stmt = $pdo->prepare('SELECT name FROM inventory_items WHERE id = ?');
+                    $stmt->execute([$itemId]);
+                    $this->recordStockExpense($pdo, $itemId, (string) $stmt->fetchColumn(), $change, $unitCost);
+                    $pdo->prepare('UPDATE inventory_items SET cost_price = ? WHERE id = ?')->execute([$unitCost, $itemId]);
+                }
                 $this->redirect('Stock updated.');
             }
 
@@ -96,10 +111,29 @@ final class InventoryController extends Controller
                 $this->redirect('Stock item removed.');
             }
         } catch (\InvalidArgumentException $exception) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
             $this->redirect($exception->getMessage(), 'error');
+        } catch (\Throwable $exception) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            $this->redirect('Inventory could not be saved.', 'error');
         }
 
         $this->redirect('Invalid action.', 'error');
+    }
+
+    private function recordStockExpense(PDO $pdo, int $itemId, string $name, int $quantity, float $unitCost): void
+    {
+        $amount = round($quantity * $unitCost, 2);
+        if ($amount <= 0) return;
+        $number = 'STK-' . date('Ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
+        $pdo->prepare(
+            'INSERT INTO expenses (admin_id, paid_source, expense_number, category, title, description, amount, expense_date, status, inventory_item_id, stock_quantity)
+             VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE(), ?, ?, ?)'
+        )->execute([
+            (int) ($_SESSION['admin_user']['id'] ?? 0) ?: null, 'company_cash', $number, 'other',
+            'Inventory purchase: ' . trim($name), "{$quantity} units × LKR " . number_format($unitCost, 2, '.', ''),
+            $amount, 'approved', $itemId, $quantity,
+        ]);
     }
 
     private function redirect(string $message, string $type = 'success'): never

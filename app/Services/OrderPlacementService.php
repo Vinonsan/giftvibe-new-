@@ -176,7 +176,10 @@ final class OrderPlacementService
         }
 
         InventoryService::ensureSchema($pdo);
-        $total = round(array_sum(array_column($orderItems, 'line_total')), 2);
+        self::ensureOrderColumns($pdo);
+        $subtotal = round(array_sum(array_column($orderItems, 'line_total')), 2);
+        $discount = max(0, min($subtotal, round((float) ($data['discount_total'] ?? 0), 2)));
+        $total = round($subtotal - $discount, 2);
         $method = (string) ($data['payment_method'] ?? 'cod');
         if (!in_array($method, ['cod', 'bank_deposit'], true)) {
             $method = 'cod';
@@ -223,8 +226,8 @@ final class OrderPlacementService
                     order_number, user_id, customer_name, customer_email, customer_phone,
                     recipient_name, recipient_phone,
                     delivery_address_line_1, delivery_address_line_2, delivery_city, delivery_district, delivery_postal_code,
-                    subtotal, grand_total, payment_status, order_status, customer_notes, admin_notes
-                 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+                    delivery_date, subtotal, discount_total, grand_total, payment_status, order_status, order_source, customer_notes, admin_notes
+                 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
             );
             $order->execute([
                 $orderNumber,
@@ -239,10 +242,13 @@ final class OrderPlacementService
                 trim((string) $data['delivery_city']),
                 trim((string) $data['delivery_district']),
                 trim((string) ($data['delivery_postal_code'] ?? '')),
-                $total,
+                trim((string) ($data['delivery_date'] ?? '')) ?: null,
+                $subtotal,
+                $discount,
                 $total,
                 $paymentStatus,
                 $orderStatus,
+                (string) ($data['order_source'] ?? (!empty($data['created_by_admin']) ? 'admin' : 'website')),
                 $customerNotes,
                 $adminNotes !== '' ? $adminNotes : null,
             ]);
@@ -322,6 +328,14 @@ final class OrderPlacementService
         }
 
         return $orderId;
+    }
+
+    private static function ensureOrderColumns(PDO $pdo): void
+    {
+        $columns = $pdo->query('DESCRIBE orders')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('order_source', $columns, true)) {
+            $pdo->exec("ALTER TABLE orders ADD order_source VARCHAR(30) NOT NULL DEFAULT 'website' AFTER order_status");
+        }
     }
 
     public static function storeReceipt(array $file, bool $required = true): ?string

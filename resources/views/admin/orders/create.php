@@ -34,9 +34,7 @@ foreach ($customers as $customer) {
     <form id="admin-create-order-form" method="post" action="<?= app_url('/admin/orders/create') ?>" class="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]" novalidate>
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $csrfToken) ?>">
         <input type="hidden" name="line_items" id="line-items-json" value="[]">
-        <input type="hidden" name="payment_method" value="cod">
         <input type="hidden" name="auto_confirm" value="1">
-        <input type="hidden" name="mark_paid" value="1">
         <input type="hidden" name="customer_mode" id="customer-mode-input" value="existing">
 
         <!-- LEFT: Products & combos -->
@@ -164,6 +162,27 @@ foreach ($customers as $customer) {
                     <textarea name="customer_notes" rows="2" class="<?= $fc ?>" placeholder="Customer-ku show aagura notes…"></textarea>
                 </label>
 
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Order source</span>
+                        <select name="order_source" class="<?= $fc ?>"><option value="admin">Admin / walk-in</option><option value="whatsapp">WhatsApp</option><option value="phone">Phone</option><option value="website">Website</option></select>
+                    </label>
+                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Delivery date</span>
+                        <input type="date" name="delivery_date" min="<?= date('Y-m-d') ?>" class="<?= $fc ?>">
+                    </label>
+                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Discount (LKR)</span>
+                        <input type="number" min="0" step="0.01" name="discount_total" id="order-discount" value="0" class="<?= $fc ?>">
+                    </label>
+                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Payment</span>
+                        <select name="payment_option" id="payment-option" class="<?= $fc ?>"><option value="full">Fully paid</option><option value="partial">Partial payment</option><option value="unpaid">Not paid</option></select>
+                    </label>
+                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Amount received (LKR)</span>
+                        <input type="number" min="0" step="0.01" name="payment_amount" id="payment-amount" value="0" class="<?= $fc ?>">
+                    </label>
+                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Method</span>
+                        <select name="payment_method" class="<?= $fc ?>"><option value="cod">Cash</option><option value="bank_deposit">Bank deposit</option></select>
+                    </label>
+                </div>
+
                 <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold text-secondary">
                     <input type="checkbox" name="send_sms" value="1" checked class="accent-primary">
                     SMS customer about this order
@@ -174,7 +193,7 @@ foreach ($customers as $customer) {
                         <span>Order total</span>
                         <span id="order-summary-total" class="text-lg font-black text-primary">LKR 0.00</span>
                     </div>
-                    <p class="mt-2 text-xs text-slate-500">Order auto-confirmed &amp; marked paid. Receipt upload not required.</p>
+                    <p class="mt-2 text-xs text-slate-500">Discount and partial payments are reflected in the final balance.</p>
                 </div>
 
                 <button type="submit" id="admin-create-order-btn"

@@ -35,6 +35,12 @@ ob_start();
     ?>
 
     <label class="block space-y-1.5">
+        <span class="text-sm font-medium text-secondary">Unit price (LKR) <span class="font-normal text-slate-400">(for purchased stock)</span></span>
+        <input type="number" min="0" step="0.01" name="unit_cost" id="adjust-unit-cost" class="<?= $fc ?>" placeholder="0.00">
+        <span class="text-xs text-slate-500">Positive quantity × unit price is automatically deducted from cash as an expense.</span>
+    </label>
+
+    <label class="block space-y-1.5">
         <span class="text-sm font-medium text-secondary">Note <span class="font-normal text-slate-400">(optional)</span></span>
         <input type="text" name="note" id="adjust-note" class="<?= $fc ?>" placeholder="Reason for adjustment">
     </label>
@@ -49,6 +55,7 @@ document.addEventListener('click', function (e) {
     document.getElementById('adjust-item-id').value = btn.getAttribute('data-adjust-id') || '0';
     document.getElementById('adjust-item-label').textContent = btn.getAttribute('data-adjust-name') || 'Item';
     document.getElementById('adjust-change-qty').value = '';
+    document.getElementById('adjust-unit-cost').value = '';
     document.getElementById('adjust-note').value = '';
 });
 </script>

@@ -13,6 +13,26 @@ use PDO;
 
 final class OrderController extends Controller
 {
+    public function readNotification(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!hash_equals((string) ($_SESSION['csrf_token'] ?? ''), (string) ($_POST['csrf_token'] ?? ''))) {
+            http_response_code(419);
+            echo json_encode(['ok' => false]);
+            return;
+        }
+        $orderId = max(0, (int) ($_POST['order_id'] ?? 0));
+        if ($orderId < 1) {
+            http_response_code(422);
+            echo json_encode(['ok' => false]);
+            return;
+        }
+        $pdo = Database::connection();
+        $this->ensureNotificationSchema($pdo);
+        $pdo->prepare("UPDATE admin_notifications SET status='read', read_at=NOW() WHERE entity_type='order' AND entity_id=? AND status='unread'")->execute([$orderId]);
+        echo json_encode(['ok' => true]);
+    }
+
     public function index(): void
     {
         $pdo = Database::connection();
@@ -232,9 +252,11 @@ final class OrderController extends Controller
             $recipientName = $customerName;
             $recipientPhone = $customerPhone;
 
-            $method = 'cod';
+            $method = in_array((string) ($_POST['payment_method'] ?? 'cod'), ['cod', 'bank_deposit'], true)
+                ? (string) $_POST['payment_method'] : 'cod';
             $autoConfirm = true;
-            $markPaid = true;
+            $paymentAmount = max(0, (float) ($_POST['payment_amount'] ?? 0));
+            $markPaid = (string) ($_POST['payment_option'] ?? 'full') === 'full';
             $sendSms = isset($_POST['send_sms']);
 
             $receiptPath = null;
@@ -263,10 +285,14 @@ final class OrderController extends Controller
                 'customer_notes' => trim((string) ($_POST['customer_notes'] ?? '')),
                 'admin_notes' => trim((string) ($_POST['admin_notes'] ?? '')) ?: 'Manual order created by admin',
                 'payment_method' => $method,
+                'payment_amount' => $paymentAmount,
+                'discount_total' => max(0, (float) ($_POST['discount_total'] ?? 0)),
+                'delivery_date' => trim((string) ($_POST['delivery_date'] ?? '')),
+                'order_source' => (string) ($_POST['order_source'] ?? 'admin'),
                 'bank_account_id' => (int) ($_POST['bank_account_id'] ?? 0),
                 'receipt_path' => $receiptPath,
                 'order_status' => $orderStatus,
-                'payment_status' => $paymentStatus,
+                'payment_status' => $markPaid ? 'paid' : 'pending',
                 'created_by_admin' => true,
                 'notify_admin' => true,
                 'verified_by' => (int) ($_SESSION['admin_user']['id'] ?? 0),
@@ -280,7 +306,7 @@ final class OrderController extends Controller
 
             if ($autoConfirm) {
                 $days = max(1, min(30, (int) ($_POST['delivery_days'] ?? 3)));
-                $deliveryDate = date('Y-m-d', strtotime("+{$days} days"));
+                $deliveryDate = trim((string) ($_POST['delivery_date'] ?? '')) ?: date('Y-m-d', strtotime("+{$days} days"));
                 $pdo->prepare('UPDATE orders SET delivery_date = ? WHERE id = ?')->execute([$deliveryDate, $orderId]);
                 $this->recordOrderStatus($pdo, $orderId, 'confirmed', 'Auto-confirmed on manual order creation');
                 $this->ensureDeliveryRow($pdo, $orderId, $deliveryDate);
@@ -499,7 +525,7 @@ final class OrderController extends Controller
         $redirectTo = trim((string) ($_POST['redirect_to'] ?? ''));
         $days = max(1, min(30, (int) ($_POST['delivery_days'] ?? 3)));
 
-        $allowed = ['confirm', 'cancel', 'payment_pending', 'delete_receipt', 'update_status', 'advance_status', 'save_tracking', 'update_payment', 'mark_paid'];
+        $allowed = ['confirm', 'cancel', 'payment_pending', 'delete_receipt', 'update_status', 'advance_status', 'save_tracking', 'update_payment', 'mark_paid', 'edit_details'];
         if ($orderId < 1 || !in_array($decision, $allowed, true)) {
             $this->redirect('Invalid order action.', 'error', $orderId ?: null, $redirectTo);
         }
@@ -509,6 +535,24 @@ final class OrderController extends Controller
         $order = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$order) {
             $this->redirect('Order not found.', 'error', null, $redirectTo);
+        }
+
+        if ($decision === 'edit_details') {
+            $subtotal = max(0, (float) $order['subtotal']);
+            $discount = min($subtotal, max(0, (float) ($_POST['discount_total'] ?? 0)));
+            $pdo->prepare(
+                'UPDATE orders SET customer_name=?, customer_phone=?, customer_email=?, recipient_name=?, recipient_phone=?,
+                 delivery_address_line_1=?, delivery_address_line_2=?, delivery_city=?, delivery_district=?, delivery_date=?,
+                 discount_total=?, grand_total=?, order_source=?, customer_notes=? WHERE id=?'
+            )->execute([
+                trim((string) $_POST['customer_name']), trim((string) $_POST['customer_phone']), trim((string) $_POST['customer_email']),
+                trim((string) $_POST['recipient_name']), trim((string) $_POST['recipient_phone']), trim((string) $_POST['delivery_address_line_1']),
+                trim((string) ($_POST['delivery_address_line_2'] ?? '')), trim((string) $_POST['delivery_city']), trim((string) $_POST['delivery_district']),
+                trim((string) ($_POST['delivery_date'] ?? '')) ?: null, $discount, $subtotal - $discount,
+                trim((string) ($_POST['order_source'] ?? 'admin')) ?: 'admin', trim((string) ($_POST['customer_notes'] ?? '')), $orderId,
+            ]);
+            $this->recordOrderStatus($pdo, $orderId, 'edited', 'Order details edited by admin');
+            $this->redirect('Order details updated.', 'success', $orderId, '/admin/orders/view?id=' . $orderId . '&tab=overview');
         }
 
         if ($decision === 'save_tracking') {
@@ -521,8 +565,15 @@ final class OrderController extends Controller
             if (!in_array($newPaymentStatus, ['pending', 'paid', 'failed'], true)) {
                 $this->redirect('Invalid payment status.', 'error', $orderId, $redirectTo);
             }
+            $received = min((float) $order['grand_total'], max(0, (float) ($_POST['payment_amount'] ?? $order['grand_total'])));
+            if ($received > 0 && $received < (float) $order['grand_total']) $newPaymentStatus = 'pending';
+            $payStmt = $pdo->prepare('SELECT raw_response_json FROM payments WHERE order_id=? LIMIT 1');
+            $payStmt->execute([$orderId]);
+            $meta = json_decode((string) $payStmt->fetchColumn(), true) ?: [];
+            $meta['payment_option'] = $received >= (float) $order['grand_total'] ? 'full' : ($received > 0 ? 'partial' : 'unpaid');
+            $meta['balance_due'] = max(0, (float) $order['grand_total'] - $received);
             $pdo->prepare('UPDATE orders SET payment_status = ? WHERE id = ?')->execute([$newPaymentStatus, $orderId]);
-            $pdo->prepare('UPDATE payments SET status = ? WHERE order_id = ?')->execute([$newPaymentStatus, $orderId]);
+            $pdo->prepare('UPDATE payments SET amount = ?, status = ?, raw_response_json = ? WHERE order_id = ?')->execute([$received, $newPaymentStatus, json_encode($meta), $orderId]);
             $this->recordOrderStatus($pdo, $orderId, 'payment_' . $newPaymentStatus, 'Payment status updated to ' . $newPaymentStatus);
             $this->redirect('Payment status updated.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
@@ -862,6 +913,10 @@ final class OrderController extends Controller
 
     private function ensureOrderSchema(PDO $pdo): void
     {
+        $orderColumns = $pdo->query('DESCRIBE orders')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('order_source', $orderColumns, true)) {
+            $pdo->exec("ALTER TABLE orders ADD order_source VARCHAR(30) NOT NULL DEFAULT 'website' AFTER order_status");
+        }
         $pdo->exec(
             "CREATE TABLE IF NOT EXISTS order_status_history (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

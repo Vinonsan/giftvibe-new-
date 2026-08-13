@@ -97,6 +97,15 @@ $workflowButtons = [
     <?php $field('Order Status', ucfirst(str_replace('_', ' ', $orderStatus))); ?>
 </div>
 
+<?php if ($canAct): ?>
+<form method="post" action="/admin/orders" class="mt-5 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-end">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>"><input type="hidden" name="order_id" value="<?= $orderId ?>"><input type="hidden" name="decision" value="update_payment"><input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
+    <label class="flex-1"><span class="mb-1 block text-xs font-bold text-slate-500">Total amount received</span><input type="number" min="0" max="<?= (float)$order['grand_total'] ?>" step="0.01" name="payment_amount" value="<?= (float)($payment['amount'] ?? 0) ?>" class="<?= $fc ?>"></label>
+    <label class="flex-1"><span class="mb-1 block text-xs font-bold text-slate-500">Status</span><select name="payment_status" class="<?= $fc ?>"><option value="pending">Pending / partial</option><option value="paid">Paid in full</option><option value="failed">Failed</option></select></label>
+    <button class="rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white">Update payment</button>
+</form>
+<?php endif; ?>
+
 <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50/40 p-5">
     <h3 class="mb-3 text-sm font-bold text-secondary">Payment Receipt</h3>
     <?php if ($receiptPath !== ''): ?>

@@ -100,19 +100,19 @@ $initials = substr($initials, 0, 2);
             <div data-notification-panel class="pointer-events-none absolute right-0 top-full z-50 mt-2 w-[22rem] origin-top-right scale-95 opacity-0 transition-all duration-200 sm:w-[26rem]">
                 <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/40">
                     <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                        <div><p class="text-sm font-bold text-secondary">Order notifications</p><p class="text-xs text-slate-400">Select an order to view details</p></div>
+                        <div><p class="text-sm font-bold text-secondary">New orders</p><p class="text-xs text-slate-400"><?= (int)($adminUnreadNotificationCount ?? 0) ?> unread</p></div>
                         <a href="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="text-xs font-bold text-primary hover:text-secondary">View all</a>
                     </div>
                     <div class="max-h-[28rem] overflow-y-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         <?php if (!$notificationRows): ?>
-                            <p class="px-4 py-10 text-center text-sm text-slate-400">No orders yet.</p>
+                            <div class="px-5 py-10 text-center"><span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">✓</span><p class="mt-3 text-sm font-bold text-secondary">You're all caught up</p><p class="mt-1 text-xs text-slate-400">New orders will appear here.</p></div>
                         <?php else: foreach ($notificationRows as $notification): $isUnread = ($notification['notification_status'] ?? 'unread') === 'unread'; ?>
-                            <a href="<?= htmlspecialchars(app_url('/admin/orders/view?id=' . (int) $notification['entity_id'])) ?>" class="flex items-start gap-3 rounded-xl p-3 transition hover:bg-primary/5">
+                            <a href="<?= htmlspecialchars(app_url('/admin/orders/view?id=' . (int) $notification['entity_id'])) ?>" data-order-notification data-order-id="<?= (int)$notification['entity_id'] ?>" class="group flex items-start gap-3 rounded-xl border border-transparent p-3 transition hover:border-primary/10 hover:bg-primary/5">
                                 <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full <?= $isUnread ? 'bg-primary' : 'bg-slate-200' ?>"></span>
                                 <span class="min-w-0 flex-1">
                                     <span class="flex justify-between gap-3"><strong class="text-sm text-secondary"><?= htmlspecialchars((string) $notification['order_number']) ?></strong><span class="shrink-0 text-xs font-bold text-primary">LKR <?= number_format((float) $notification['grand_total'], 2) ?></span></span>
                                     <span class="mt-1 block truncate text-xs text-slate-500"><?= htmlspecialchars((string) $notification['customer_name']) ?> · <?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) $notification['order_status']))) ?></span>
-                                    <span class="mt-1 block text-[11px] text-slate-400"><?= htmlspecialchars(date('d M Y, h:i A', strtotime((string) $notification['created_at']))) ?></span>
+                                    <span class="mt-2 flex items-center justify-between text-[11px] text-slate-400"><span><?= htmlspecialchars(date('d M Y, h:i A', strtotime((string) $notification['created_at']))) ?></span><span class="font-bold text-primary opacity-0 transition group-hover:opacity-100">Open →</span></span>
                                 </span>
                             </a>
                         <?php endforeach; endif; ?>
@@ -197,6 +197,7 @@ $initials = substr($initials, 0, 2);
 
 <script>
 (function () {
+    var notificationCsrf = <?= json_encode((string)($notificationCsrfToken ?? '')) ?>;
     var notificationTrigger = document.querySelector('[data-notification-trigger]');
     var notificationPanel = document.querySelector('[data-notification-panel]');
     if (notificationTrigger && notificationPanel) {
@@ -216,7 +217,19 @@ $initials = substr($initials, 0, 2);
                 notificationTrigger.setAttribute('aria-expanded', 'true');
             }
         });
-        notificationPanel.addEventListener('click', function (event) { event.stopPropagation(); });
+        notificationPanel.addEventListener('click', function (event) {
+            var link = event.target.closest('[data-order-notification]');
+            if (!link) { event.stopPropagation(); return; }
+            event.preventDefault();
+            var destination = link.href;
+            link.classList.add('opacity-50', 'pointer-events-none');
+            var body = new FormData();
+            body.append('csrf_token', notificationCsrf);
+            body.append('order_id', link.getAttribute('data-order-id') || '0');
+            fetch(<?= json_encode(app_url('/admin/notifications/read')) ?>, { method: 'POST', body: body, credentials: 'same-origin' })
+                .catch(function () {})
+                .finally(function () { window.location.href = destination; });
+        });
         document.addEventListener('click', closeNotifications);
         document.addEventListener('keydown', function (event) { if (event.key === 'Escape') closeNotifications(); });
     }

@@ -951,6 +951,7 @@ CREATE TABLE `orders` (
   `grand_total` decimal(12,2) NOT NULL DEFAULT 0.00,
   `payment_status` enum('pending','paid','failed','refunded','partially_refunded') NOT NULL DEFAULT 'pending',
   `order_status` enum('pending','confirmed','processing','ready','out_for_delivery','delivered','cancelled','refunded') NOT NULL DEFAULT 'pending',
+  `order_source` varchar(30) NOT NULL DEFAULT 'website',
   `admin_notes` text DEFAULT NULL,
   `customer_notes` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),

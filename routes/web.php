@@ -74,6 +74,7 @@ $router->post('/admin/orders/create', 'Admin\OrderController@create');
 $router->get('/admin/orders/view', 'Admin\OrderController@show');
 $router->post('/admin/orders/view', 'Admin\OrderController@show');
 $router->get('/admin/orders/receipt', 'Admin\OrderController@receipt');
+$router->post('/admin/notifications/read', 'Admin\OrderController@readNotification');
 $router->get('/admin/customers', 'Admin\CustomerController@index');
 $router->post('/admin/customers', 'Admin\CustomerController@index');
 $router->get('/admin/customers/view', 'Admin\CustomerController@show');

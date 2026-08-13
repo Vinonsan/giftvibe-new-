@@ -77,16 +77,17 @@ $adminUser = $adminUser ?? [
 // remain available even when they pre-date admin_notifications records.
 $adminNotifications = [];
 $adminUnreadNotificationCount = 0;
+$notificationCsrfToken = $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
 try {
     $notificationPdo = \App\Core\Database::connection();
     $adminNotifications = $notificationPdo->query(
         "SELECT o.id AS entity_id, o.order_number, o.customer_name, o.grand_total,
                 o.order_status, o.created_at,
                 COALESCE(n.status, 'unread') AS notification_status
-         FROM orders o
-         LEFT JOIN admin_notifications n
-           ON n.entity_type = 'order' AND n.entity_id = o.id
-         ORDER BY o.id DESC
+         FROM admin_notifications n
+         INNER JOIN orders o ON o.id = n.entity_id
+         WHERE n.entity_type = 'order' AND n.status = 'unread'
+         ORDER BY n.id DESC
          LIMIT 30"
     )->fetchAll(\PDO::FETCH_ASSOC);
     $adminUnreadNotificationCount = count(array_filter(
