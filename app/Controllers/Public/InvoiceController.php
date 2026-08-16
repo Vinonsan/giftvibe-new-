@@ -32,8 +32,11 @@ final class InvoiceController extends Controller
         $itemsStmt = $pdo->prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id');
         $itemsStmt->execute([(int) $order['id']]);
         $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
+        $paymentStmt = $pdo->prepare('SELECT * FROM payments WHERE order_id = ? LIMIT 1');
+        $paymentStmt->execute([(int) $order['id']]);
+        $payment = $paymentStmt->fetch(PDO::FETCH_ASSOC) ?: [];
         $settings = $pdo->query('SELECT * FROM general_settings WHERE id = 1')->fetch(PDO::FETCH_ASSOC) ?: [];
-        echo $this->render('admin/orders/receipt', compact('order', 'items', 'settings'));
+        echo $this->render('admin/orders/receipt', compact('order', 'items', 'payment', 'settings'));
         exit;
     }
 }

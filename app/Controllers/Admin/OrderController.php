@@ -9,6 +9,7 @@ use App\Core\Database;
 use App\Services\OrderPlacementService;
 use App\Services\SmsService;
 use App\Services\InventoryService;
+use App\Sms\Messages\CustomerOrderConfirmedMessage;
 use PDO;
 
 final class OrderController extends Controller
@@ -326,13 +327,14 @@ final class OrderController extends Controller
             }
 
             if ($order !== []) {
-                $orderNumber = (string) ($order['order_number'] ?? '');
-                $message = "Your GiftVibe order {$orderNumber} is confirmed. Invoice: " . $this->publicInvoiceUrl($order);
+                $paidForSms = min((float) ($order['grand_total'] ?? 0), max(0, $paymentAmount));
+                $message = CustomerOrderConfirmedMessage::build(
+                    $orderItems,
+                    $method,
+                    $paidForSms,
+                    max(0, (float) ($order['grand_total'] ?? 0) - $paidForSms)
+                );
                 $this->notifyCustomer($pdo, $order, $orderId, $message);
-            }
-
-            if ($order !== []) {
-                SmsService::send((string) getenv('ADMIN_SMS_PHONE'), "Admin placed order {$order['order_number']} for {$order['customer_name']}.");
             }
 
             $this->redirect('Order created successfully.', 'success', $orderId, '/admin/orders?view=' . $orderId);
@@ -525,9 +527,13 @@ final class OrderController extends Controller
         $itemsStmt->execute([$orderId]);
         $items = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $paymentStmt = $pdo->prepare('SELECT * FROM payments WHERE order_id = ? LIMIT 1');
+        $paymentStmt->execute([$orderId]);
+        $payment = $paymentStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
         $settings = $pdo->query('SELECT * FROM general_settings WHERE id = 1')->fetch(PDO::FETCH_ASSOC) ?: [];
 
-        echo $this->render('admin/orders/receipt', compact('order', 'items', 'settings'));
+        echo $this->render('admin/orders/receipt', compact('order', 'items', 'payment', 'settings'));
         exit;
     }
 
@@ -614,22 +620,7 @@ final class OrderController extends Controller
 
             $this->recordOrderStatus($pdo, $orderId, $newOrderStatus, $notes ?: null);
 
-            $statusLabels = [
-                'confirmed' => 'Confirmed',
-                'processing' => 'Processing',
-                'ready' => 'Ready for Delivery',
-                'out_for_delivery' => 'Picked up for Courier dispatch',
-                'delivered' => 'Completed & Delivered',
-                'cancelled' => 'Cancelled',
-            ];
-            $label = $statusLabels[$newOrderStatus] ?? $newOrderStatus;
-            $message = "Your GiftVibe order {$order['order_number']} status is updated to: {$label}.";
-
-            $sent = SmsService::send((string) $order['customer_phone'], $message);
-            $notice = $pdo->prepare('INSERT INTO customer_notifications(user_id, order_id, phone, message, status) VALUES (?,?,?,?,?)');
-            $notice->execute([(int) $order['user_id'], $orderId, $order['customer_phone'], $message, $sent ? 'sent' : 'queued']);
-
-            $this->redirect('Order status updated and customer notified.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
+            $this->redirect('Order status updated.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
 
         if ($decision === 'payment_pending') {
@@ -641,8 +632,7 @@ final class OrderController extends Controller
                 ->execute([$notes, $orderId]);
             $pdo->prepare("UPDATE payments SET status = 'pending' WHERE order_id = ?")->execute([$orderId]);
             $this->recordOrderStatus($pdo, $orderId, 'payment_pending', $message);
-            $this->notifyCustomer($pdo, $order, $orderId, $message);
-            $this->redirect('Payment pending message sent to customer.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
+            $this->redirect('Payment marked as pending.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
 
         if ($decision === 'mark_paid') {
@@ -650,7 +640,6 @@ final class OrderController extends Controller
             $pdo->prepare("UPDATE payments SET amount = ?, status = 'paid', paid_at = NOW(), verified_by = ?, verified_at = NOW(), raw_response_json = JSON_SET(COALESCE(raw_response_json, '{}'), '$.payment_option', 'full', '$.balance_due', 0) WHERE order_id = ?")
                 ->execute([(float) $order['grand_total'], (int) ($_SESSION['admin_user']['id'] ?? 0), $orderId]);
             $this->recordOrderStatus($pdo, $orderId, 'payment_paid', 'Payment marked as paid');
-            $this->notifyCustomer($pdo, $order, $orderId, "Payment for GiftVibe order {$order['order_number']} has been verified. Thank you!");
             $this->redirect('Payment marked as paid.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
 
@@ -670,15 +659,7 @@ final class OrderController extends Controller
             InventoryService::deductOrderStock($pdo, $orderId);
             $this->recordOrderStatus($pdo, $orderId, $newOrderStatus, null);
 
-            $labels = [
-                'confirmed' => 'Confirmed',
-                'processing' => 'Processing',
-                'ready' => 'Ready for delivery',
-                'out_for_delivery' => 'Out for delivery',
-            ];
-            $label = $labels[$newOrderStatus] ?? $newOrderStatus;
-            $this->notifyCustomer($pdo, $order, $orderId, "Your GiftVibe order {$order['order_number']} status is now: {$label}.");
-            $this->redirect('Order status updated and customer notified.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
+            $this->redirect('Order status updated.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
 
         if ($decision === 'delete_receipt') {
@@ -724,10 +705,18 @@ final class OrderController extends Controller
             InventoryService::deductOrderStock($pdo, $orderId);
             $this->ensureDeliveryRow($pdo, $orderId, $deliveryDate);
 
-            $message = "Your GiftVibe order {$order['order_number']} is confirmed. Expected delivery is within {$days} day(s), by {$deliveryDate}.";
-            $this->notifyCustomer($pdo, $order, $orderId, $message);
+            $smsItemsStmt = $pdo->prepare('SELECT product_name, quantity FROM order_items WHERE order_id = ? ORDER BY id');
+            $smsItemsStmt->execute([$orderId]);
+            $confirmationMessage = CustomerOrderConfirmedMessage::build(
+                $smsItemsStmt->fetchAll(PDO::FETCH_ASSOC),
+                (string) ($paymentRow['method'] ?? 'cod'),
+                $receivedAmount,
+                $balanceDue
+            );
+            $this->notifyCustomer($pdo, $order, $orderId, $confirmationMessage);
+
             $pdo->prepare("UPDATE admin_notifications SET status = 'read', read_at = NOW() WHERE entity_type = 'order' AND entity_id = ?")->execute([$orderId]);
-            $this->redirect('Order accepted and customer notified.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
+            $this->redirect('Order accepted and customer confirmation sent.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
 
         if ($decision === 'cancel') {
@@ -738,10 +727,8 @@ final class OrderController extends Controller
                 ->execute([(int) ($_SESSION['admin_user']['id'] ?? 0), $notes, $orderId]);
 
             $this->recordOrderStatus($pdo, $orderId, 'cancelled', $notes ?: 'Order rejected by admin');
-            $message = "Your GiftVibe order {$order['order_number']} was rejected. Please contact us if you need assistance.";
-            $this->notifyCustomer($pdo, $order, $orderId, $message);
             $pdo->prepare("UPDATE admin_notifications SET status = 'read', read_at = NOW() WHERE entity_type = 'order' AND entity_id = ?")->execute([$orderId]);
-            $this->redirect('Order rejected and customer notified.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
+            $this->redirect('Order rejected.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
 
         $this->redirect('Invalid order action.', 'error', $orderId, $redirectTo);
@@ -777,7 +764,6 @@ final class OrderController extends Controller
         }
 
         $this->recordOrderStatus($pdo, $orderId, 'delivered');
-        $this->notifyCustomer($pdo, $order, $orderId, "Your GiftVibe order {$order['order_number']} has been delivered. Thank you for shopping with us!");
     }
 
     private function notifyCustomer(PDO $pdo, array $order, int $orderId, string $message): void
@@ -840,25 +826,6 @@ final class OrderController extends Controller
                 (int) ($_SESSION['admin_user']['id'] ?? 0) ?: null,
             ]);
 
-            $stageLabels = [
-                'pending' => 'Pending',
-                'assigned' => 'Assigned to courier',
-                'dispatched' => 'Dispatched',
-                'picked_up' => 'Picked up',
-                'out_for_delivery' => 'Out for delivery',
-                'delivered' => 'Delivered',
-                'failed' => 'Delivery failed',
-                'returned' => 'Returned',
-            ];
-            $stageLabel = $stageLabels[$deliveryStatus] ?? $deliveryStatus;
-            $trackMsg = "GiftVibe order {$order['order_number']} parcel update: {$stageLabel}.";
-            if ($trackingNumber !== '') {
-                $trackMsg .= " Tracking: {$trackingNumber}.";
-            }
-            if ($trackingCode !== '') {
-                $trackMsg .= " Code: {$trackingCode}.";
-            }
-            $this->notifyCustomer($pdo, $order, $orderId, $trackMsg);
         }
 
         if ($deliveryStatus === 'out_for_delivery' && $order['order_status'] !== 'out_for_delivery') {

@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Services\OrderPlacementService;
 use App\Services\SmsService;
+use App\Sms\Messages\AdminNewOrderMessage;
 use PDO;
 use Throwable;
 
@@ -169,10 +170,21 @@ final class CheckoutController extends Controller
                 'notify_admin' => true,
             ]);
 
-            SmsService::send((string) getenv('ADMIN_SMS_PHONE'), 'New GiftVibe order requires verification.');
-            $orderNumberStmt = $pdo->prepare('SELECT order_number FROM orders WHERE id = ? LIMIT 1');
+            $orderNumberStmt = $pdo->prepare('SELECT order_number, customer_name, customer_phone, grand_total FROM orders WHERE id = ? LIMIT 1');
             $orderNumberStmt->execute([$orderId]);
-            $_SESSION['placed_order'] = (string) $orderNumberStmt->fetchColumn();
+            $placedOrder = $orderNumberStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            $orderNumber = (string) ($placedOrder['order_number'] ?? '');
+            $_SESSION['placed_order'] = $orderNumber;
+
+            SmsService::send(
+                (string) getenv('ADMIN_SMS_PHONE'),
+                AdminNewOrderMessage::build(
+                    (string) ($placedOrder['customer_name'] ?? ''),
+                    $orderItems,
+                    $method,
+                    (float) ($placedOrder['grand_total'] ?? 0)
+                )
+            );
             header('Location: ' . app_url('/checkout/success'), true, 303);
             exit;
         } catch (\InvalidArgumentException $exception) {
