@@ -17,7 +17,7 @@ class ProductController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') $this->handlePost($pdo);
         $products = $pdo->query("SELECT p.*,pi.image_path,GROUP_CONCAT(c.name ORDER BY c.name SEPARATOR ', ') category_names FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 LEFT JOIN product_categories pc ON pc.product_id=p.id LEFT JOIN categories c ON c.id=pc.category_id GROUP BY p.id ORDER BY p.id DESC")->fetchAll();
         $categories = $pdo->query("SELECT id,name FROM categories WHERE status='active' ORDER BY sort_order,id")->fetchAll();
-        $editProduct = null; $editCategoryIds = []; $secondaryImages = []; $productVideos = []; $productSocialLinks = []; $productVariants = [];
+        $editProduct = null; $editCategoryIds = []; $secondaryImages = []; $productVideos = []; $productSocialLinks = []; $productVariants = []; $productOptions = [];
         $editId = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT);
         if ($editId) {
             $statement = $pdo->prepare("SELECT p.*,pi.image_path,pi.alt_text FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 WHERE p.id=?"); $statement->execute([$editId]);
@@ -34,10 +34,11 @@ class ProductController extends Controller
             if (!$productVideos && trim((string) ($editProduct['video_url'] ?? '')) !== '') $productVideos[] = $editProduct['video_url'];
             $productSocialLinks = $this->loadSocialLinks($pdo, $editId);
             $productVariants = $this->loadVariants($pdo, $editId);
+            $productOptions = $this->loadOptions($pdo, $editId);
         }
         $_SESSION['csrf_token'] ??= bin2hex(random_bytes(32));
         $flash = $_SESSION['product_flash'] ?? null; unset($_SESSION['product_flash']);
-        $this->view('layouts/admin-layout', ['title'=>'Products','pageTitle'=>'Products','showPageTitle'=>false,'content'=>$this->render('admin/products/index', compact('products','categories','editProduct','editCategoryIds','flash','secondaryImages','productVideos','productSocialLinks','productVariants') + ['csrfToken'=>$_SESSION['csrf_token']])]);
+        $this->view('layouts/admin-layout', ['title'=>'Products','pageTitle'=>'Products','showPageTitle'=>false,'content'=>$this->render('admin/products/index', compact('products','categories','editProduct','editCategoryIds','flash','secondaryImages','productVideos','productSocialLinks','productVariants','productOptions') + ['csrfToken'=>$_SESSION['csrf_token']])]);
     }
 
     public function show(): void
@@ -77,9 +78,10 @@ class ProductController extends Controller
 
         $productSocialLinks = $this->loadSocialLinks($pdo, $id);
         $productVariants = $this->loadVariants($pdo, $id);
+        $productOptions = $this->loadOptions($pdo, $id);
         $editProduct = $product;
 
-        $tabs = ['basic', 'images', 'social', 'pricing'];
+        $tabs = ['basic', 'images', 'social', 'pricing', 'options'];
         $tab = strtolower((string) ($_GET['tab'] ?? 'basic'));
         if (!in_array($tab, $tabs, true)) {
             $tab = 'basic';
@@ -105,6 +107,7 @@ class ProductController extends Controller
                 'productVideos',
                 'productSocialLinks',
                 'productVariants',
+                'productOptions',
                 'tab',
                 'tabs',
                 'editMode',
@@ -170,7 +173,7 @@ class ProductController extends Controller
         $metaDescription = trim((string) ($_POST['meta_description'] ?? '')) ?: trim((string) ($_POST['short_description'] ?? ''));
         $searchKeywords = trim((string) ($_POST['search_keywords'] ?? ''));
         
-        $stockQuantity = max(0,(int)($_POST['stock_quantity'] ?? 0));
+        $stockQuantity = $procurementType === 'handcrafted' ? 0 : max(0,(int)($_POST['stock_quantity'] ?? 0));
         $data = [$sku,$name,$slug,trim((string)($_POST['short_description'] ?? '')),trim((string)($_POST['description'] ?? '')),$basePrice,$costPrice,$stockQuantity,isset($_POST['is_featured'])?1:0,($_POST['status'] ?? '')==='active'?'active':'draft',$videoUrl,$metaTitle,$metaDescription,$searchKeywords,$procurementType];
         $pdo->beginTransaction();
         try {
@@ -204,6 +207,7 @@ class ProductController extends Controller
             $this->saveSocialLinks($pdo, $id, array_map('trim', (array) ($_POST['social_url'] ?? [])));
             $this->syncProcurement($pdo, (int)$id, $procurementType, $costPrice, $stockQuantity);
             $this->syncVariants($pdo, (int) $id, $sku, $basePrice);
+            $this->syncOptions($pdo, (int) $id);
 
             $pdo->commit();
         } catch (\Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); $this->redirect('Product details could not be saved. ' . $e->getMessage(),'error',$id); }
@@ -313,7 +317,7 @@ class ProductController extends Controller
                 if ($basePrice <= 0 || $costPrice <= 0) {
                     $this->redirectToView($id, $tab, 'Selling price and cost price are required.', 'error', true);
                 }
-                $stockQuantity = max(0, (int) ($_POST['stock_quantity'] ?? 0));
+                $stockQuantity = $procurementType === 'handcrafted' ? 0 : max(0, (int) ($_POST['stock_quantity'] ?? 0));
                 $pdo->prepare('UPDATE products SET base_price=?, cost_price=?, stock_quantity=?, procurement_type=?, is_featured=?, status=? WHERE id=?')->execute([
                     $basePrice,
                     $costPrice,
@@ -325,6 +329,8 @@ class ProductController extends Controller
                 ]);
                 $this->syncProcurement($pdo, (int)$id, $procurementType, $costPrice, $stockQuantity);
                 $this->syncVariants($pdo, (int) $id, (string) $product['sku'], $basePrice);
+            } elseif ($section === 'options') {
+                $this->syncOptions($pdo, (int) $id);
             } else {
                 $this->redirectToView($id, $tab, 'Unknown section.', 'error', true);
             }
@@ -366,6 +372,35 @@ class ProductController extends Controller
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         }
         $pdo->exec("CREATE TABLE IF NOT EXISTS product_variants (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,product_id BIGINT UNSIGNED NOT NULL,name VARCHAR(160) NOT NULL,sku VARCHAR(80) NOT NULL,color_name VARCHAR(120) NULL,color_hex CHAR(7) NULL,image_path VARCHAR(255) NULL,price_adjustment DECIMAL(12,2) NOT NULL DEFAULT 0,stock_quantity INT NOT NULL DEFAULT 0,status ENUM('active','inactive') NOT NULL DEFAULT 'active',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,UNIQUE KEY sku(sku),KEY fk_product_variants_product(product_id),CONSTRAINT fk_product_variants_product FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS product_options (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            product_id bigint(20) unsigned NOT NULL,
+            name varchar(160) NOT NULL,
+            type enum('text','textarea','select','radio','checkbox','file','image_select') NOT NULL DEFAULT 'text',
+            is_required tinyint(1) NOT NULL DEFAULT 0,
+            sort_order int(10) unsigned NOT NULL DEFAULT 0,
+            KEY fk_product_options_product (product_id),
+            CONSTRAINT fk_product_options_product FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+        $pdo->exec("ALTER TABLE product_options MODIFY COLUMN type ENUM('text','textarea','select','radio','checkbox','file','image_select') NOT NULL DEFAULT 'text'");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS product_option_values (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            option_id bigint(20) unsigned NOT NULL,
+            label varchar(160) NOT NULL,
+            image_path varchar(255) DEFAULT NULL,
+            price_adjustment decimal(12,2) NOT NULL DEFAULT 0.00,
+            sort_order int(10) unsigned NOT NULL DEFAULT 0,
+            KEY fk_product_option_values_option (option_id),
+            CONSTRAINT fk_product_option_values_option FOREIGN KEY (option_id) REFERENCES product_options (id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        
+        $optionValueCols = $pdo->query('DESCRIBE product_option_values')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('image_path', $optionValueCols, true)) {
+            $pdo->exec("ALTER TABLE product_option_values ADD image_path varchar(255) DEFAULT NULL AFTER label");
+        }
     }
 
     private function loadVariants(PDO $pdo, int $productId): array
@@ -373,6 +408,99 @@ class ProductController extends Controller
         $statement = $pdo->prepare('SELECT * FROM product_variants WHERE product_id=? ORDER BY id');
         $statement->execute([$productId]);
         return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function loadOptions(PDO $pdo, int $productId): array
+    {
+        $statement = $pdo->prepare('SELECT * FROM product_options WHERE product_id=? ORDER BY sort_order, id');
+        $statement->execute([$productId]);
+        $options = $statement->fetchAll(PDO::FETCH_ASSOC);
+        if (!$options) return [];
+        $optionIds = array_column($options, 'id');
+        $inQuery = implode(',', array_fill(0, count($optionIds), '?'));
+        $valStmt = $pdo->prepare("SELECT * FROM product_option_values WHERE option_id IN ($inQuery) ORDER BY sort_order, id");
+        $valStmt->execute($optionIds);
+        $values = $valStmt->fetchAll(PDO::FETCH_ASSOC);
+        $valuesByOption = [];
+        foreach ($values as $val) $valuesByOption[$val['option_id']][] = $val;
+        foreach ($options as &$opt) $opt['values'] = $valuesByOption[$opt['id']] ?? [];
+        return $options;
+    }
+
+    private function syncOptions(PDO $pdo, int $productId): void
+    {
+        $names = (array) ($_POST['option_name'] ?? []);
+        $types = (array) ($_POST['option_type'] ?? []);
+        $requireds = (array) ($_POST['option_required'] ?? []);
+        $ids = (array) ($_POST['option_id'] ?? []);
+        
+        $valLabels = (array) ($_POST['optval_label'] ?? []);
+        $valPrices = (array) ($_POST['optval_price'] ?? []);
+        $valIds = (array) ($_POST['optval_id'] ?? []);
+        $files = $_FILES['optval_image'] ?? null;
+        
+        $keepOptions = [];
+        $keepValues = [];
+        
+        $saveOpt = $pdo->prepare("INSERT INTO product_options(id,product_id,name,type,is_required,sort_order) VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name),type=VALUES(type),is_required=VALUES(is_required),sort_order=VALUES(sort_order)");
+        $saveVal = $pdo->prepare("INSERT INTO product_option_values(id,option_id,label,image_path,price_adjustment,sort_order) VALUES(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE label=VALUES(label),image_path=IFNULL(VALUES(image_path), image_path),price_adjustment=VALUES(price_adjustment),sort_order=VALUES(sort_order)");
+        
+        $optSort = 0;
+        foreach ($names as $index => $name) {
+            $name = trim((string) $name);
+            if ($name === '') continue;
+            $id = max(0, (int) ($ids[$index] ?? 0));
+            $type = in_array($types[$index] ?? 'text', ['text','textarea','select','radio','checkbox','file','image_select'], true) ? $types[$index] : 'text';
+            $req = !empty($requireds[$index]) ? 1 : 0;
+            
+            $saveOpt->execute([$id ?: null, $productId, $name, $type, $req, $optSort++]);
+            $optId = $id ?: (int) $pdo->lastInsertId();
+            $keepOptions[] = $optId;
+            
+            $labels = (array) ($valLabels[$index] ?? []);
+            $prices = (array) ($valPrices[$index] ?? []);
+            $vIds = (array) ($valIds[$index] ?? []);
+            
+            $valSort = 0;
+            foreach ($labels as $vIndex => $label) {
+                $label = trim((string) $label);
+                if ($label === '') continue;
+                $vId = max(0, (int) ($vIds[$vIndex] ?? 0));
+                $price = (float) ($prices[$vIndex] ?? 0);
+                
+                $imgPath = null;
+                if ($type === 'image_select' && isset($files['name'][$index][$vIndex]) && $files['error'][$index][$vIndex] !== UPLOAD_ERR_NO_FILE) {
+                    try {
+                        $imgPath = $this->upload([
+                            'name' => $files['name'][$index][$vIndex],
+                            'type' => $files['type'][$index][$vIndex] ?? '',
+                            'tmp_name' => $files['tmp_name'][$index][$vIndex] ?? '',
+                            'error' => $files['error'][$index][$vIndex],
+                            'size' => $files['size'][$index][$vIndex] ?? 0
+                        ]);
+                    } catch (\Exception $e) {
+                        // ignore error
+                    }
+                }
+                
+                $saveVal->execute([$vId ?: null, $optId, $label, $imgPath, $price, $valSort++]);
+                $keepValues[] = $vId ?: (int) $pdo->lastInsertId();
+            }
+        }
+        
+        if ($keepValues) {
+            $marks = implode(',', array_fill(0, count($keepValues), '?'));
+            $pdo->prepare("DELETE FROM product_option_values WHERE option_id IN (SELECT id FROM product_options WHERE product_id=?) AND id NOT IN ($marks)")->execute(array_merge([$productId], $keepValues));
+        } else {
+            $pdo->prepare("DELETE FROM product_option_values WHERE option_id IN (SELECT id FROM product_options WHERE product_id=?)")->execute([$productId]);
+        }
+        
+        if ($keepOptions) {
+            $marks = implode(',', array_fill(0, count($keepOptions), '?'));
+            $pdo->prepare("DELETE FROM product_options WHERE product_id=? AND id NOT IN ($marks)")->execute(array_merge([$productId], $keepOptions));
+        } else {
+            $pdo->prepare("DELETE FROM product_options WHERE product_id=?")->execute([$productId]);
+        }
     }
 
     private function syncVariants(PDO $pdo, int $productId, string $productSku, float $basePrice): void

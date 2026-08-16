@@ -30,6 +30,20 @@ final class InventoryController extends Controller
         )->fetchAll(PDO::FETCH_ASSOC);
 
         $stockOnlyItems = array_values(array_filter($items, static fn(array $i): bool => empty($i['product_id'])));
+        $viewItem = null;
+        $viewBatches = [];
+        $editItem = null;
+        $viewId = filter_input(INPUT_GET, 'view', FILTER_VALIDATE_INT);
+        if ($viewId) {
+            foreach ($items as $item) if ((int)$item['id'] === $viewId) { $viewItem = $item; break; }
+            if ($viewItem) {
+                $batchStmt = $pdo->prepare('SELECT * FROM inventory_batches WHERE inventory_item_id=? ORDER BY id DESC');
+                $batchStmt->execute([$viewId]);
+                $viewBatches = $batchStmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+        }
+        $editId = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT);
+        if ($editId) foreach ($items as $item) if ((int)$item['id'] === $editId) { $editItem = $item; break; }
 
         $flash = $_SESSION['inventory_flash'] ?? null;
         unset($_SESSION['inventory_flash']);
@@ -44,6 +58,9 @@ final class InventoryController extends Controller
                 'lowStockCount' => count($lowStock),
                 'catalogProducts' => $catalogProducts,
                 'stockOnlyItems' => $stockOnlyItems,
+                'viewItem' => $viewItem,
+                'viewBatches' => $viewBatches,
+                'editItem' => $editItem,
                 'csrfToken' => $_SESSION['csrf_token'],
                 'flash' => $flash,
             ]),
@@ -64,18 +81,33 @@ final class InventoryController extends Controller
                 $editingId = (int) ($_POST['id'] ?? 0);
                 $quantity = (int) ($_POST['quantity'] ?? 0);
                 $unitCost = (float) ($_POST['cost_price'] ?? 0);
+                if ($editingId > 0) {
+                    $linked = $pdo->prepare('SELECT product_id FROM inventory_items WHERE id=? LIMIT 1');
+                    $linked->execute([$editingId]);
+                    $productId = (int)$linked->fetchColumn();
+                    if ($productId > 0) {
+                        $name = trim((string)($_POST['name'] ?? ''));
+                        if ($name === '') throw new \InvalidArgumentException('Item name is required.');
+                        $pdo->beginTransaction();
+                        $pdo->prepare('UPDATE inventory_items SET name=? WHERE id=?')->execute([$name,$editingId]);
+                        $pdo->prepare('UPDATE products SET name=? WHERE id=?')->execute([$name,$productId]);
+                        $pdo->commit();
+                        $this->redirect('Inventory item updated.');
+                    }
+                }
                 $pdo->beginTransaction();
                 $itemId = InventoryService::saveStockItem($pdo, [
                     'id' => (int) ($_POST['id'] ?? 0),
                     'name' => (string) ($_POST['name'] ?? ''),
                     'sku' => (string) ($_POST['sku'] ?? ''),
-                    'quantity' => (int) ($_POST['quantity'] ?? 0),
+                    'quantity' => $editingId < 1 ? 0 : (int) ($_POST['quantity'] ?? 0),
                     'cost_price' => (float) ($_POST['cost_price'] ?? 0),
                     'unit' => (string) ($_POST['unit'] ?? 'pcs'),
                     'low_stock_threshold' => (int) ($_POST['low_stock_threshold'] ?? 5),
                     'notes' => (string) ($_POST['notes'] ?? ''),
                 ]);
                 if ($editingId < 1 && $quantity > 0 && $unitCost > 0) {
+                    InventoryService::receiveBatch($pdo, $itemId, $quantity, $unitCost);
                     $this->recordStockExpense($pdo, $itemId, (string) ($_POST['name'] ?? ''), $quantity, $unitCost);
                 }
                 $pdo->commit();
@@ -85,18 +117,41 @@ final class InventoryController extends Controller
             if ($action === 'adjust_stock') {
                 $itemId = (int) ($_POST['inventory_item_id'] ?? 0);
                 $change = (int) ($_POST['change_qty'] ?? 0);
-                if ($itemId < 1 || $change === 0) {
-                    $this->redirect('Enter a valid quantity change.', 'error');
+                $pdo->beginTransaction();
+                $stmt = $pdo->prepare('SELECT name,cost_price FROM inventory_items WHERE id = ? FOR UPDATE');
+                $stmt->execute([$itemId]);
+                $lockedItem = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$lockedItem) throw new \InvalidArgumentException('Inventory item not found.');
+                $itemName = (string)$lockedItem['name'];
+                $priceMode = (string)($_POST['price_mode'] ?? 'same');
+                $unitCost = $priceMode === 'new' ? max(0,(float)($_POST['new_unit_cost'] ?? 0)) : (float)$lockedItem['cost_price'];
+                if ($itemId < 1 || $change < 1 || $unitCost <= 0) throw new \InvalidArgumentException('Enter a valid stock quantity and product cost.');
+                $newBatch = InventoryService::receiveBatch($pdo, $itemId, $change, $unitCost);
+                $this->recordStockExpense($pdo, $itemId, $itemName, $change, $unitCost);
+                $pdo->commit();
+                $this->redirect($newBatch ? 'New stock batch created.' : 'Stock added to the current batch.');
+            }
+
+            if (in_array($action, ['update_batch','delete_batch'], true)) {
+                $batchId = max(0,(int)($_POST['batch_id'] ?? 0));
+                $itemId = max(0,(int)($_POST['inventory_item_id'] ?? 0));
+                if ($batchId < 1 || $itemId < 1) throw new \InvalidArgumentException('Stock batch not found.');
+                $pdo->beginTransaction();
+                $batchStmt = $pdo->prepare('SELECT id,quantity_remaining FROM inventory_batches WHERE id=? AND inventory_item_id=? FOR UPDATE');
+                $batchStmt->execute([$batchId,$itemId]);
+                $batch = $batchStmt->fetch(PDO::FETCH_ASSOC);
+                if (!$batch) throw new \InvalidArgumentException('Stock batch not found.');
+                if ($action === 'delete_batch') {
+                    $pdo->prepare('DELETE FROM inventory_batches WHERE id=?')->execute([$batchId]);
+                } else {
+                    $remaining = max(0,(int)($_POST['quantity_remaining'] ?? 0));
+                    $pdo->prepare('UPDATE inventory_batches SET quantity_remaining=? WHERE id=?')->execute([$remaining,$batchId]);
                 }
-                InventoryService::adjustQuantity($pdo, $itemId, $change, 'adjustment', null, trim((string) ($_POST['note'] ?? '')) ?: null);
-                $unitCost = max(0, (float) ($_POST['unit_cost'] ?? 0));
-                if ($change > 0 && $unitCost > 0) {
-                    $stmt = $pdo->prepare('SELECT name FROM inventory_items WHERE id = ?');
-                    $stmt->execute([$itemId]);
-                    $this->recordStockExpense($pdo, $itemId, (string) $stmt->fetchColumn(), $change, $unitCost);
-                    $pdo->prepare('UPDATE inventory_items SET cost_price = ? WHERE id = ?')->execute([$unitCost, $itemId]);
-                }
-                $this->redirect('Stock updated.');
+                $total = (int)$pdo->query('SELECT COALESCE(SUM(quantity_remaining),0) FROM inventory_batches WHERE inventory_item_id='.(int)$itemId)->fetchColumn();
+                $pdo->prepare('UPDATE inventory_items SET quantity=? WHERE id=?')->execute([$total,$itemId]);
+                $pdo->prepare('UPDATE products p INNER JOIN inventory_items i ON i.product_id=p.id SET p.stock_quantity=? WHERE i.id=?')->execute([$total,$itemId]);
+                $pdo->commit();
+                $this->redirect($action === 'delete_batch' ? 'Stock batch deleted.' : 'Batch stock updated.', 'success', $itemId);
             }
 
             if ($action === 'delete_item') {
@@ -107,6 +162,10 @@ final class InventoryController extends Controller
                 if (!$row || !empty($row['product_id'])) {
                     $this->redirect('Only extra stock items can be deleted. Catalog products stay linked to Products.', 'error');
                 }
+                $pdo->prepare('UPDATE expenses SET inventory_item_id=NULL WHERE inventory_item_id=?')->execute([$id]);
+                $pdo->prepare('DELETE FROM order_inventory_deductions WHERE inventory_item_id=?')->execute([$id]);
+                $pdo->prepare('DELETE FROM inventory_movements WHERE inventory_item_id=?')->execute([$id]);
+                $pdo->prepare('DELETE FROM inventory_batches WHERE inventory_item_id=?')->execute([$id]);
                 $pdo->prepare('DELETE FROM inventory_items WHERE id = ?')->execute([$id]);
                 $this->redirect('Stock item removed.');
             }
@@ -136,10 +195,10 @@ final class InventoryController extends Controller
         ]);
     }
 
-    private function redirect(string $message, string $type = 'success'): never
+    private function redirect(string $message, string $type = 'success', ?int $viewId = null): never
     {
         $_SESSION['inventory_flash'] = ['type' => $type, 'message' => $message];
-        header('Location: ' . app_url('/admin/inventory'), true, 303);
+        header('Location: ' . app_url('/admin/inventory' . ($viewId ? '?view=' . $viewId : '')), true, 303);
         exit;
     }
 }

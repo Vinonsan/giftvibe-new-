@@ -9,7 +9,7 @@
         </fieldset>
 
         <div class="grid gap-4 sm:grid-cols-2">
-    <label class="block">
+            <label class="block">
                 <span class="mb-1.5 block text-xs font-bold text-secondary">
                     Selling price (LKR) <span class="text-primary">*</span>
                 </span>
@@ -17,8 +17,7 @@
                        name="selling_price"
                        value="<?= htmlspecialchars((string)($editProduct['base_price'] ?? '')) ?>"
                        class="<?= $fc ?>">
-    </label>
-    <?php require dirname(__DIR__) . '/_variants.php'; ?>
+            </label>
             <label class="block">
                 <span class="mb-1.5 block text-xs font-bold text-secondary">
                     Cost / buying price (LKR) <span class="text-primary">*</span>
@@ -43,7 +42,7 @@
             </div>
         </div>
 
-        <label class="block">
+        <label class="block" data-product-stock-field>
             <span class="mb-1.5 block text-xs font-bold text-secondary">Stock quantity</span>
             <input type="number" min="0" name="stock_quantity"
                    value="<?= (int)($editProduct['stock_quantity'] ?? 0) ?>"
@@ -65,3 +64,14 @@
             </label>
         </div>
     </div>
+    <script>
+    (function(){
+        var panel=document.getElementById('gv-step-4');
+        if(!panel)return;
+        var stockField=panel.querySelector('[data-product-stock-field]');
+        var stockInput=stockField?.querySelector('[name="stock_quantity"]');
+        function syncStockField(){var handcrafted=panel.querySelector('[name="procurement_type"]:checked')?.value==='handcrafted';stockField?.classList.toggle('hidden',handcrafted);if(stockInput){stockInput.disabled=handcrafted;if(handcrafted)stockInput.value='0';}}
+        panel.querySelectorAll('[name="procurement_type"]').forEach(function(input){input.addEventListener('change',syncStockField);});
+        syncStockField();
+    })();
+    </script>

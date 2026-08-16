@@ -2,14 +2,12 @@
 declare(strict_types=1);
 
 $fc = 'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-secondary outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition bg-white';
-$recentOrderItems = $recentOrderItems ?? [];
 ?>
 <div class="space-y-4">
     <!-- Item source tabs -->
     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div class="flex border-b border-slate-100 bg-slate-50/80 p-1.5 gap-1">
             <button type="button" data-item-tab="catalog" class="item-tab-btn flex-1 rounded-lg bg-white px-3 py-2.5 text-xs font-bold text-primary shadow-sm">Catalog</button>
-            <button type="button" data-item-tab="recent" class="item-tab-btn flex-1 rounded-lg px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-white/80">Past orders</button>
             <button type="button" data-item-tab="custom" class="item-tab-btn flex-1 rounded-lg px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-white/80">Custom item</button>
         </div>
 
@@ -38,29 +36,7 @@ $recentOrderItems = $recentOrderItems ?? [];
                 $inputWrapperClass = 'w-full';
                 require BASE_PATH . '/resources/views/components/base/input.php';
             ?></div>
-            <div id="catalog-list" class="grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2"></div>
-        </div>
-
-        <!-- Recent orders panel -->
-        <div id="item-tab-recent" class="hidden p-4">
-            <p class="mb-3 text-xs text-slate-500">Old orders la use panna items — click pannina buying &amp; selling price oda cart la add aagum.</p>
-            <?php if ($recentOrderItems === []): ?>
-                <p class="rounded-xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-400">No past order items yet.</p>
-            <?php else: ?>
-                <div id="recent-items-list" class="grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2">
-                    <?php foreach ($recentOrderItems as $i => $row): ?>
-                        <button type="button" data-add-recent="<?= (int) $i ?>"
-                            class="group flex flex-col rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:border-primary/40 hover:shadow-md hover:shadow-primary/5">
-                            <span class="line-clamp-2 text-sm font-semibold text-secondary group-hover:text-primary"><?= htmlspecialchars((string) $row['product_name']) ?></span>
-                            <span class="mt-1 text-[10px] font-medium text-slate-400"><?= htmlspecialchars((string) $row['order_number']) ?></span>
-                            <div class="mt-2 flex flex-wrap gap-2 text-[11px]">
-                                <span class="rounded-md bg-rose-50 px-2 py-0.5 font-bold text-rose-700">Buy LKR <?= number_format((float) $row['cost_price'], 0) ?></span>
-                                <span class="rounded-md bg-emerald-50 px-2 py-0.5 font-bold text-emerald-700">Sell LKR <?= number_format((float) $row['unit_price'], 0) ?></span>
-                            </div>
-                        </button>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+            <div id="catalog-list" class="grid max-h-[32rem] gap-2 overflow-y-auto pr-1 sm:grid-cols-2"></div>
         </div>
 
         <!-- Custom item panel -->

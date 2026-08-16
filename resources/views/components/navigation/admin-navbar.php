@@ -59,7 +59,7 @@ $initials = substr($initials, 0, 2);
             <?php else: ?>
                 <?php foreach ($notificationRows as $notification): ?>
                     <?php $isUnread = ($notification['notification_status'] ?? 'unread') === 'unread'; ?>
-                    <a href="<?= htmlspecialchars(app_url('/admin/orders/view?id=' . (int) $notification['entity_id'])) ?>"
+                    <a href="<?= htmlspecialchars(app_url('/admin/orders?view=' . (int) $notification['entity_id'])) ?>"
                        class="group flex items-start gap-3 rounded-2xl border <?= $isUnread ? 'border-primary/20 bg-primary/5' : 'border-slate-200 bg-white' ?> p-4 transition hover:border-primary/30 hover:bg-primary/5">
                         <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl <?= $isUnread ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500' ?>">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m4.5 3.75a3.75 3.75 0 107.5 0M3.375 7.5h17.25"/></svg>
@@ -107,12 +107,24 @@ $initials = substr($initials, 0, 2);
                         <?php if (!$notificationRows): ?>
                             <div class="px-5 py-10 text-center"><span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">✓</span><p class="mt-3 text-sm font-bold text-secondary">You're all caught up</p><p class="mt-1 text-xs text-slate-400">New orders will appear here.</p></div>
                         <?php else: foreach ($notificationRows as $notification): $isUnread = ($notification['notification_status'] ?? 'unread') === 'unread'; ?>
-                            <a href="<?= htmlspecialchars(app_url('/admin/orders/view?id=' . (int) $notification['entity_id'])) ?>" data-order-notification data-order-id="<?= (int)$notification['entity_id'] ?>" class="group flex items-start gap-3 rounded-xl border border-transparent p-3 transition hover:border-primary/10 hover:bg-primary/5">
-                                <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full <?= $isUnread ? 'bg-primary' : 'bg-slate-200' ?>"></span>
+                            <a href="<?= htmlspecialchars(app_url('/admin/orders?view=' . (int) $notification['entity_id'])) ?>" data-order-notification data-order-id="<?= (int)$notification['entity_id'] ?>" class="group flex items-start gap-3.5 rounded-xl p-3 transition-colors <?= $isUnread ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-slate-50' ?>">
+                                <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full <?= $isUnread ? 'bg-primary text-white shadow-sm shadow-primary/30' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200' ?>">
+                                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                                </span>
                                 <span class="min-w-0 flex-1">
-                                    <span class="flex justify-between gap-3"><strong class="text-sm text-secondary"><?= htmlspecialchars((string) $notification['order_number']) ?></strong><span class="shrink-0 text-xs font-bold text-primary">LKR <?= number_format((float) $notification['grand_total'], 2) ?></span></span>
-                                    <span class="mt-1 block truncate text-xs text-slate-500"><?= htmlspecialchars((string) $notification['customer_name']) ?> · <?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) $notification['order_status']))) ?></span>
-                                    <span class="mt-2 flex items-center justify-between text-[11px] text-slate-400"><span><?= htmlspecialchars(date('d M Y, h:i A', strtotime((string) $notification['created_at']))) ?></span><span class="font-bold text-primary opacity-0 transition group-hover:opacity-100">Open →</span></span>
+                                    <span class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                        <strong class="truncate text-sm text-secondary font-bold group-hover:text-primary transition-colors"><?= htmlspecialchars((string) $notification['order_number']) ?></strong>
+                                        <span class="shrink-0 text-xs font-extrabold text-primary">LKR <?= number_format((float) $notification['grand_total'], 2) ?></span>
+                                    </span>
+                                    <span class="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                                        <span class="truncate"><?= htmlspecialchars((string) $notification['customer_name']) ?></span>
+                                        <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+                                        <span class="shrink-0 font-medium text-slate-600"><?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) $notification['order_status']))) ?></span>
+                                    </span>
+                                    <span class="mt-2.5 flex items-center justify-between text-[11px] font-medium text-slate-400">
+                                        <span><?= htmlspecialchars(date('d M Y, h:i A', strtotime((string) $notification['created_at']))) ?></span>
+                                        <span class="font-bold text-primary opacity-0 transition transform translate-x-[-4px] group-hover:opacity-100 group-hover:translate-x-0">View details &rarr;</span>
+                                    </span>
                                 </span>
                             </a>
                         <?php endforeach; endif; ?>

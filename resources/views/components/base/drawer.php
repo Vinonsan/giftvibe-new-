@@ -75,6 +75,7 @@ $drawerCloseOnEsc      = $drawerCloseOnEsc      ?? true;
 $drawerShowCloseButton = $drawerShowCloseButton ?? true;
 $drawerOverlay         = $drawerOverlay         ?? true;
 $drawerHeaderBottom    = $drawerHeaderBottom    ?? '';
+$drawerBodyClass       = $drawerBodyClass       ?? 'flex-1 overflow-y-auto px-6 py-5 text-sm text-slate-600';
 
 $drawerTrigger         = $drawerTrigger         ?? '';
 $drawerTriggerLabel    = $drawerTriggerLabel    ?? 'Open Drawer';
@@ -142,7 +143,7 @@ if ($drawerTrigger === '') {
         aria-labelledby="<?= htmlspecialchars($drawerId) ?>-title"
     >
         <?php if ($drawerTitle !== '' || $drawerShowCloseButton || $drawerHeaderBottom !== ''): ?>
-            <div class="border-b border-slate-200">
+            <div class="shrink-0 border-b border-slate-200">
                 <?php if ($drawerTitle !== '' || $drawerShowCloseButton): ?>
                     <div class="flex items-start justify-between gap-4 px-6 py-4">
                         <div>
@@ -173,10 +174,10 @@ if ($drawerTrigger === '') {
             </div>
         <?php endif; ?>
 
-        <div class="flex-1 overflow-y-auto px-6 py-5 text-sm text-slate-600"><?= $drawerBody ?></div>
+        <div class="<?= htmlspecialchars($drawerBodyClass) ?>"><?= $drawerBody ?></div>
 
         <?php if ($drawerFooter !== ''): ?>
-            <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4"><?= $drawerFooter ?></div>
+            <div class="shrink-0 flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4"><?= $drawerFooter ?></div>
         <?php endif; ?>
     </aside>
 </div>

@@ -51,6 +51,21 @@ final class OrderController extends Controller
              ORDER BY CASE WHEN LOWER(o.delivery_city) = 'jaffna' OR LOWER(o.delivery_district) = 'jaffna' THEN 0 ELSE 1 END, o.id DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
 
+        $orderItemsByOrder = [];
+        try {
+            $itemRows = $pdo->query(
+                "SELECT oi.*, COALESCE(oi.image_path, pi.image_path, '/assets/images/hero_slide_1.jpg') AS product_image
+                 FROM order_items oi
+                 LEFT JOIN product_images pi ON pi.product_id = oi.product_id AND pi.is_primary = 1
+                 ORDER BY oi.order_id, oi.id"
+            )->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($itemRows as $itemRow) {
+                $orderItemsByOrder[(int) $itemRow['order_id']][] = $itemRow;
+            }
+        } catch (\PDOException) {
+            $orderItemsByOrder = [];
+        }
+
         $flash = $_SESSION['orders_flash'] ?? null;
         unset($_SESSION['orders_flash']);
 
@@ -60,6 +75,7 @@ final class OrderController extends Controller
             'showPageTitle' => false,
             'content' => $this->render('admin/orders/index', [
                 'orders' => $orders,
+                'orderItemsByOrder' => $orderItemsByOrder,
                 'csrfToken' => $_SESSION['csrf_token'],
                 'flash' => $flash,
             ]),
@@ -95,15 +111,6 @@ final class OrderController extends Controller
              LEFT JOIN combo_images ci ON ci.combo_id = c.id AND ci.is_primary = 1
              WHERE c.status = 'active'
              ORDER BY c.name"
-        )->fetchAll(PDO::FETCH_ASSOC);
-
-        $recentOrderItems = $pdo->query(
-            "SELECT oi.product_name, oi.unit_price, oi.cost_price, oi.sku, oi.product_id, oi.quantity,
-                o.order_number, o.created_at
-             FROM order_items oi
-             INNER JOIN orders o ON o.id = oi.order_id
-             ORDER BY oi.id DESC
-             LIMIT 30"
         )->fetchAll(PDO::FETCH_ASSOC);
 
         $customers = $pdo->query(
@@ -172,7 +179,6 @@ final class OrderController extends Controller
             'content' => $this->render('admin/orders/create', [
                 'catalogProducts' => $catalogProducts,
                 'catalogCombos' => $catalogCombos,
-                'recentOrderItems' => $recentOrderItems,
                 'customers' => $customers,
                 'addressesByCustomer' => $addressesByCustomer,
                 'bankAccounts' => $bankAccounts,
@@ -256,8 +262,7 @@ final class OrderController extends Controller
                 ? (string) $_POST['payment_method'] : 'cod';
             $autoConfirm = true;
             $paymentAmount = max(0, (float) ($_POST['payment_amount'] ?? 0));
-            $markPaid = (string) ($_POST['payment_option'] ?? 'full') === 'full';
-            $sendSms = isset($_POST['send_sms']);
+            $markPaid = $method === 'bank_deposit';
 
             $receiptPath = null;
             if (!empty($_FILES['receipt']['name'] ?? '')) {
@@ -282,13 +287,13 @@ final class OrderController extends Controller
                 'delivery_address_line_2' => trim((string) ($_POST['delivery_address_line_2'] ?? '')),
                 'delivery_city' => trim((string) $_POST['delivery_city']),
                 'delivery_district' => trim((string) $_POST['delivery_district']),
-                'customer_notes' => trim((string) ($_POST['customer_notes'] ?? '')),
+                'customer_notes' => '',
                 'admin_notes' => trim((string) ($_POST['admin_notes'] ?? '')) ?: 'Manual order created by admin',
                 'payment_method' => $method,
                 'payment_amount' => $paymentAmount,
-                'discount_total' => max(0, (float) ($_POST['discount_total'] ?? 0)),
+                'discount_total' => 0,
                 'delivery_date' => trim((string) ($_POST['delivery_date'] ?? '')),
-                'order_source' => (string) ($_POST['order_source'] ?? 'admin'),
+                'order_source' => 'admin',
                 'bank_account_id' => (int) ($_POST['bank_account_id'] ?? 0),
                 'receipt_path' => $receiptPath,
                 'order_status' => $orderStatus,
@@ -316,11 +321,9 @@ final class OrderController extends Controller
                 $this->recordOrderStatus($pdo, $orderId, 'payment_paid', 'Payment marked paid on manual order creation');
             }
 
-            if ($sendSms && $order !== []) {
+            if ($order !== []) {
                 $orderNumber = (string) ($order['order_number'] ?? '');
-                $message = $autoConfirm
-                    ? "Your GiftVibe order {$orderNumber} has been placed and confirmed. We will update you on delivery."
-                    : "Your GiftVibe order {$orderNumber} has been placed. We will confirm after payment verification.";
+                $message = "Your GiftVibe order {$orderNumber} is confirmed. Invoice: " . $this->publicInvoiceUrl($order);
                 $this->notifyCustomer($pdo, $order, $orderId, $message);
             }
 
@@ -328,12 +331,23 @@ final class OrderController extends Controller
                 SmsService::send((string) getenv('ADMIN_SMS_PHONE'), "Admin placed order {$order['order_number']} for {$order['customer_name']}.");
             }
 
-            $this->redirect('Order created successfully.', 'success', $orderId, '/admin/orders/view?id=' . $orderId);
+            $this->redirect('Order created successfully.', 'success', $orderId, '/admin/orders?view=' . $orderId);
         } catch (\InvalidArgumentException $exception) {
             $this->redirect($exception->getMessage(), 'error', null, '/admin/orders/create');
         } catch (\Throwable) {
             $this->redirect('The order could not be created. Please try again.', 'error', null, '/admin/orders/create');
         }
+    }
+
+    /** @param array<string,mixed> $order */
+    private function publicInvoiceUrl(array $order): string
+    {
+        $number = (string) ($order['order_number'] ?? '');
+        $secret = (string) (getenv('INVOICE_SECRET') ?: 'giftvibe-local-invoice-secret');
+        $token = substr(hash_hmac('sha256', $number, $secret), 0, 24);
+        $config = (array) require BASE_PATH . '/config.php';
+        $base = rtrim((string) ($config['app_url'] ?? ''), '/');
+        return $base . '/invoice?order=' . rawurlencode($number) . '&token=' . rawurlencode($token);
     }
 
     private function createQuickCustomer(PDO $pdo, string $name, string $phone, string $address): int
@@ -438,7 +452,7 @@ final class OrderController extends Controller
 
         $itemsStmt = $pdo->prepare(
             'SELECT oi.*, p.short_description, p.slug, pv.color_name AS variant_color, pv.name AS variant_name,
-                COALESCE(pv.image_path, pi.image_path, \'/assets/images/hero_slide_1.jpg\') AS product_image
+                COALESCE(oi.image_path, pv.image_path, pi.image_path, \'/assets/images/hero_slide_1.jpg\') AS product_image
              FROM order_items oi
              LEFT JOIN products p ON p.id = oi.product_id
              LEFT JOIN product_variants pv ON pv.id = oi.variant_id

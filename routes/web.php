@@ -41,6 +41,7 @@ $router->post('/api/auth/password/reset', 'Public\AuthController@resetPassword')
 $router->get('/checkout', 'Public\CheckoutController@index');
 $router->post('/checkout', 'Public\CheckoutController@index');
 $router->get('/checkout/success', 'Public\CheckoutController@success');
+$router->get('/invoice', 'Public\InvoiceController@show');
 
 // Admin Authentication routes
 $router->get('/admin/login', 'Admin\AuthController@login');

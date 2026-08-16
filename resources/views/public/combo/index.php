@@ -28,7 +28,7 @@ $renderInput = static function(string $name, string $label, string $value, strin
 ?>
 <section class="mx-auto w-full py-8 max-w-7xl">
 
-    <form id="combo-filters" class="grid gap-3 rounded-2xl border border-primary/10 p-4 sm:grid-cols-2 lg:grid-cols-[1.8fr_1.2fr_1.2fr_auto_auto]" action="/combos" method="get">
+    <form id="combo-filters" class="grid gap-3 rounded-2xl border border-primary/10 p-4 sm:grid-cols-2 lg:grid-cols-[1.8fr_1.2fr_1.2fr_auto_auto]" action="<?= htmlspecialchars(app_url('/combos')) ?>" method="get">
         <?php $renderInput('search', 'Search combos', (string)$filters['search'], 'search', 'Combo name or description'); ?>
         <?php $renderInput('min_price', 'Minimum price', $filters['min_price'] > 0 ? (string)$filters['min_price'] : '', 'number', 'LKR ' . number_format((float)$priceBounds['min_price'], 0)); ?>
         <?php $renderInput('max_price', 'Maximum price', $filters['max_price'] > 0 ? (string)$filters['max_price'] : '', 'number', 'LKR ' . number_format((float)$priceBounds['max_price'], 0)); ?>
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
         searchInput.value = '';
         minPriceInput.value = '';
         maxPriceInput.value = '';
-        window.location.href = '/combos';
+        window.location.href = window.gvUrl('/combos');
     });
 });
 </script>

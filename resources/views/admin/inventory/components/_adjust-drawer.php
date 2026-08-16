@@ -1,69 +1,14 @@
-<?php
-declare(strict_types=1);
-
-$fc = 'w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-secondary outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition bg-white';
-
-ob_start();
-?>
-<form id="inventory-adjust-form" method="post" action="/admin/inventory" class="space-y-4" novalidate>
-    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $csrfToken) ?>">
-    <input type="hidden" name="action" value="adjust_stock">
-    <input type="hidden" name="inventory_item_id" id="adjust-item-id" value="0">
-
-    <p id="adjust-item-label" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-secondary">—</p>
-
-    <p class="text-xs text-slate-500">Use positive numbers to add stock, negative to remove (e.g. damage or correction).</p>
-
-    <?php
-    $inputName = 'change_qty';
-    $inputId = 'adjust-change-qty';
-    $inputLabel = 'Quantity change';
-    $inputValue = '';
-    $inputType = 'number';
-    $inputPlaceholder = 'e.g. 10 or -3';
-    $inputHint = $inputError = '';
-    $inputSize = 'lg';
-    $inputState = 'default';
-    $inputRequired = true;
-    $inputReadonly = $inputDisabled = false;
-    $inputAutocomplete = 'off';
-    $inputLeadingIcon = $inputPrefix = $inputTrailingIcon = $inputSuffix = '';
-    $inputAttributes = ['step' => '1'];
-    $inputClass = 'w-full';
-    $inputWrapperClass = 'w-full';
-    require BASE_PATH . '/resources/views/components/base/input.php';
-    ?>
-
-    <label class="block space-y-1.5">
-        <span class="text-sm font-medium text-secondary">Unit price (LKR) <span class="font-normal text-slate-400">(for purchased stock)</span></span>
-        <input type="number" min="0" step="0.01" name="unit_cost" id="adjust-unit-cost" class="<?= $fc ?>" placeholder="0.00">
-        <span class="text-xs text-slate-500">Positive quantity × unit price is automatically deducted from cash as an expense.</span>
-    </label>
-
-    <label class="block space-y-1.5">
-        <span class="text-sm font-medium text-secondary">Note <span class="font-normal text-slate-400">(optional)</span></span>
-        <input type="text" name="note" id="adjust-note" class="<?= $fc ?>" placeholder="Reason for adjustment">
-    </label>
-
-    <button type="submit" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:bg-secondary transition">Update stock</button>
+<?php declare(strict_types=1);
+$fc='w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-secondary outline-none focus:border-primary focus:ring-2 focus:ring-primary/10';
+ob_start(); ?>
+<form id="inventory-adjust-form" method="post" action="/admin/inventory" class="space-y-5">
+    <input type="hidden" name="csrf_token" value="<?=htmlspecialchars((string)$csrfToken)?>"><input type="hidden" name="action" value="adjust_stock"><input type="hidden" name="inventory_item_id" id="adjust-item-id" value="0">
+    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Current product cost</p><p id="adjust-current-cost" class="mt-1 text-lg font-black text-secondary">LKR 0.00</p></div>
+    <label class="block"><span class="mb-1.5 block text-sm font-semibold text-secondary">Stock to add *</span><input required type="number" min="1" step="1" name="change_qty" id="adjust-change-qty" class="<?=$fc?>" placeholder="10"></label>
+    <fieldset><legend class="mb-2 text-sm font-semibold text-secondary">Stock price *</legend><div class="grid gap-3 sm:grid-cols-2"><label class="cursor-pointer rounded-xl border border-slate-200 p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5"><input checked type="radio" name="price_mode" value="same" class="mr-2 accent-primary"><strong class="text-secondary">Same price</strong><span class="mt-1 block text-xs text-slate-500">Update the current batch.</span></label><label class="cursor-pointer rounded-xl border border-slate-200 p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5"><input type="radio" name="price_mode" value="new" class="mr-2 accent-primary"><strong class="text-secondary">New price</strong><span class="mt-1 block text-xs text-slate-500">Create a new batch.</span></label></div></fieldset>
+    <label class="hidden" data-new-price-field><span class="mb-1.5 block text-sm font-semibold text-secondary">New product cost (LKR) *</span><input type="number" min="0.01" step="0.01" name="new_unit_cost" id="adjust-new-unit-cost" class="<?=$fc?>" placeholder="0.00"><span class="mt-1.5 block text-xs text-slate-500">The new stock will be stored as a separate batch.</span></label>
 </form>
-
-<script>
-document.addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-adjust-id]');
-    if (!btn) return;
-    document.getElementById('adjust-item-id').value = btn.getAttribute('data-adjust-id') || '0';
-    document.getElementById('adjust-item-label').textContent = btn.getAttribute('data-adjust-name') || 'Item';
-    document.getElementById('adjust-change-qty').value = '';
-    document.getElementById('adjust-unit-cost').value = '';
-    document.getElementById('adjust-note').value = '';
-});
-</script>
+<script>(function(){var form=document.getElementById('inventory-adjust-form'),newField=form.querySelector('[data-new-price-field]'),newInput=document.getElementById('adjust-new-unit-cost');function sync(){var isNew=form.querySelector('[name="price_mode"]:checked')?.value==='new';newField.classList.toggle('hidden',!isNew);newField.classList.toggle('block',isNew);newInput.required=isNew;if(!isNew)newInput.value='';}form.querySelectorAll('[name="price_mode"]').forEach(function(r){r.addEventListener('change',sync);});document.addEventListener('click',function(e){var b=e.target.closest('[data-adjust-id]');if(!b)return;var cost=parseFloat(b.dataset.adjustCost||'0');document.getElementById('adjust-item-id').value=b.dataset.adjustId||'0';document.getElementById('adjust-current-cost').textContent='LKR '+cost.toFixed(2);document.getElementById('adjust-change-qty').value='';form.querySelector('[name="price_mode"][value="same"]').checked=true;sync();});sync();})();</script>
 <?php
-$drawerBody = (string) ob_get_clean();
-$drawerId = 'inventory-adjust-drawer';
-$drawerTitle = 'Adjust stock';
-$drawerDescription = 'Add or remove units. Catalog products stay in sync with the Products page.';
-$drawerTrigger = '<span class="hidden" aria-hidden="true"></span>';
-$drawerSize = 'sm';
-require BASE_PATH . '/resources/views/components/base/drawer.php';
+$drawerBody=(string)ob_get_clean();$drawerFooter='<button type="button" data-drawer-close class="rounded-xl border border-slate-200 px-6 py-2.5 text-sm font-bold text-secondary hover:bg-slate-50">Cancel</button><button type="submit" form="inventory-adjust-form" class="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-secondary">Add stock</button>';$drawerId='inventory-adjust-drawer';$drawerTitle='Add stock';$drawerDescription='Same cost updates the current batch; a changed cost creates a new batch.';$drawerTrigger='<span class="hidden"></span>';$drawerSize='xl';require BASE_PATH.'/resources/views/components/base/drawer.php';
+?>

@@ -5,6 +5,11 @@ declare(strict_types=1);
 $title = $title ?? 'Home';
 $content = $content ?? '';
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$basePath = app_base_path();
+if ($basePath !== '' && ($currentPath === $basePath || str_starts_with($currentPath, $basePath . '/'))) {
+    $currentPath = substr($currentPath, strlen($basePath)) ?: '/';
+}
+$currentPath = $currentPath !== '/' ? rtrim($currentPath, '/') : '/';
 $metaDescription = trim((string) ($metaDescription ?? 'Find thoughtful gifts for every person and celebration at GiftVibe.'));
 $canonicalPath = '/' . ltrim((string) ($canonicalPath ?? $currentPath), '/');
 $host = preg_replace('/[^a-zA-Z0-9.:-]/', '', (string) ($_SERVER['HTTP_HOST'] ?? 'localhost')) ?: 'localhost';
@@ -76,13 +81,21 @@ if (is_array($structuredData) && ($structuredData['url'] ?? '') === '/') {
     <?php require BASE_PATH . '/resources/views/components/base/feedback.php'; ?>
     <?php require BASE_PATH . '/resources/views/components/public/password-toggle.php'; ?>
 
-    <main class="flex flex-1 flex-col gap-4 px-4 sm:px-6 lg:px-8">
+    <main class="flex flex-1 flex-col gap-4 px-4 sm:px-6 lg:px-12">
         <?= $content ?>
     </main>
 
     <?php require BASE_PATH . '/resources/views/components/navigation/public-footer.php'; ?>
 
     <script>
+    // Global base-path-aware URL helper (the app may run in a subdirectory, e.g. /giftvibe-new-)
+    window.GV_BASE_PATH = <?= json_encode(app_base_path()) ?>;
+    window.gvUrl = function (url) {
+        if (typeof url !== 'string' || url === '' || /^https?:\/\//i.test(url) || url.charAt(0) !== '/') return url;
+        if (window.GV_BASE_PATH && url.indexOf(window.GV_BASE_PATH) !== 0) return window.GV_BASE_PATH + url;
+        return url;
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         // Section Reveal Observer
         const revealOptions = {

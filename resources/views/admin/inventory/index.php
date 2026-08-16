@@ -46,6 +46,7 @@ declare(strict_types=1);
 
 <?php require __DIR__ . '/components/_drawer.php'; ?>
 <?php require __DIR__ . '/components/_adjust-drawer.php'; ?>
+<?php require __DIR__ . '/components/_view-drawer.php'; ?>
 
 <?php
 $deleteModalId = 'inventory-delete-modal';

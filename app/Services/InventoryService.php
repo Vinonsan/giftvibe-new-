@@ -42,6 +42,27 @@ final class InventoryService
         );
 
         $pdo->exec(
+            "CREATE TABLE IF NOT EXISTS inventory_batches (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                inventory_item_id BIGINT UNSIGNED NOT NULL,
+                unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+                quantity_received INT NOT NULL DEFAULT 0,
+                quantity_remaining INT NOT NULL DEFAULT 0,
+                received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                KEY idx_inventory_batches_item (inventory_item_id),
+                KEY idx_inventory_batches_cost (inventory_item_id, unit_cost)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+
+        $pdo->exec(
+            "INSERT INTO inventory_batches (inventory_item_id, unit_cost, quantity_received, quantity_remaining)
+             SELECT i.id, i.cost_price, i.quantity, i.quantity
+             FROM inventory_items i
+             WHERE i.quantity > 0
+               AND NOT EXISTS (SELECT 1 FROM inventory_batches b WHERE b.inventory_item_id = i.id)"
+        );
+
+        $pdo->exec(
             "CREATE TABLE IF NOT EXISTS order_inventory_deductions (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 order_id BIGINT UNSIGNED NOT NULL,
@@ -275,6 +296,18 @@ final class InventoryService
         }
 
         $newQty = max(0, (int) $item['quantity'] + $change);
+        if ($change < 0) {
+            $toConsume = min((int)$item['quantity'], abs($change));
+            $batches = $pdo->prepare('SELECT id,quantity_remaining FROM inventory_batches WHERE inventory_item_id=? AND quantity_remaining>0 ORDER BY id ASC FOR UPDATE');
+            $batches->execute([$itemId]);
+            $consumeBatch = $pdo->prepare('UPDATE inventory_batches SET quantity_remaining=quantity_remaining-? WHERE id=?');
+            foreach ($batches->fetchAll(PDO::FETCH_ASSOC) as $batch) {
+                if ($toConsume < 1) break;
+                $used = min($toConsume, (int)$batch['quantity_remaining']);
+                $consumeBatch->execute([$used,(int)$batch['id']]);
+                $toConsume -= $used;
+            }
+        }
         $pdo->prepare('UPDATE inventory_items SET quantity = ? WHERE id = ?')->execute([$newQty, $itemId]);
 
         if (!empty($item['product_id'])) {
@@ -282,6 +315,33 @@ final class InventoryService
         }
 
         self::recordMovement($pdo, $itemId, $change, $type, $expenseId, $note);
+    }
+
+    public static function receiveBatch(PDO $pdo, int $itemId, int $quantity, float $unitCost): bool
+    {
+        $quantity = max(0, $quantity);
+        $unitCost = round(max(0, $unitCost), 2);
+        if ($itemId < 1 || $quantity < 1 || $unitCost <= 0) {
+            throw new \InvalidArgumentException('Enter a valid stock quantity and product cost.');
+        }
+
+        $latest = $pdo->prepare('SELECT id, unit_cost FROM inventory_batches WHERE inventory_item_id=? ORDER BY id DESC LIMIT 1 FOR UPDATE');
+        $latest->execute([$itemId]);
+        $batch = $latest->fetch(PDO::FETCH_ASSOC);
+        $newBatch = !$batch || abs((float)$batch['unit_cost'] - $unitCost) > 0.0001;
+
+        if ($newBatch) {
+            $pdo->prepare('INSERT INTO inventory_batches(inventory_item_id,unit_cost,quantity_received,quantity_remaining) VALUES(?,?,?,?)')
+                ->execute([$itemId,$unitCost,$quantity,$quantity]);
+        } else {
+            $pdo->prepare('UPDATE inventory_batches SET quantity_received=quantity_received+?, quantity_remaining=quantity_remaining+? WHERE id=?')
+                ->execute([$quantity,$quantity,(int)$batch['id']]);
+        }
+
+        self::adjustQuantity($pdo, $itemId, $quantity, 'purchase', null, 'Stock purchase batch');
+        $pdo->prepare('UPDATE inventory_items SET cost_price=? WHERE id=?')->execute([$unitCost,$itemId]);
+        $pdo->prepare('UPDATE products p INNER JOIN inventory_items i ON i.product_id=p.id SET p.cost_price=? WHERE i.id=?')->execute([$unitCost,$itemId]);
+        return $newBatch;
     }
 
     private static function findOrCreateForProduct(PDO $pdo, int $productId): int

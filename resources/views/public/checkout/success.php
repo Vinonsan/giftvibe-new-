@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('rating', selectedRating);
         formData.append('comments', commentText);
 
-        fetch('/checkout/success/review', {
+        fetch(<?= json_encode(app_url('/checkout/success/review')) ?>, {
             method: 'POST',
             body: formData
         })

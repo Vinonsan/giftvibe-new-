@@ -18,14 +18,13 @@ declare(strict_types=1);
             <h1 class="text-xl font-bold text-secondary">Categories</h1>
             <p class="mt-1 text-sm text-slate-500">Manage collections shown on the public homepage and shop.</p>
         </div>
-        <button
-            type="button"
-            data-drawer-open="category-drawer"
+        <a
+            href="<?= htmlspecialchars(app_url('/admin/categories?add=1')) ?>"
             class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-secondary transition cursor-pointer shadow-sm shadow-primary/20"
         >
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
             Add category
-        </button>
+        </a>
     </div>
 
     <?php require __DIR__ . '/components/_filter.php'; ?>

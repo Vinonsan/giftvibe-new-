@@ -70,6 +70,13 @@ $itemType = (string) ($product['_type'] ?? 'product');
 <?php if (!defined('PRODUCT_CARD_JS_DEFINED')): ?>
 <?php define('PRODUCT_CARD_JS_DEFINED', true); ?>
 <script>
+/* Base-path-aware URL helper — prefers the global one defined in the public layout */
+var GV_BASE = <?= json_encode(app_base_path()) ?>;
+function gvUrl(url) {
+    if (typeof window.gvUrl === 'function') return window.gvUrl(url);
+    if (url && !/^https?:\/\//i.test(url) && url.charAt(0) === '/' && GV_BASE && url.indexOf(GV_BASE) !== 0) return GV_BASE + url;
+    return url;
+}
 function showNotification(message) {
     let container = document.getElementById('gift-toast-container');
     if (!container) {
@@ -107,7 +114,7 @@ function giftAddCart(event, product) {
     event.preventDefault();
     event.stopPropagation();
     if ((product.type || 'product') === 'product') {
-        window.location.href = '/shop?product=' + encodeURIComponent(product.slug);
+        window.location.href = gvUrl('/shop?product=' + encodeURIComponent(product.slug));
         return;
     }
     
@@ -125,7 +132,7 @@ function giftAddCart(event, product) {
 function giftBuyNow(event, slug, type) {
     event.preventDefault();
     event.stopPropagation();
-    if (type === 'product') { window.location.href = '/shop?product=' + encodeURIComponent(slug); return; }
+    if (type === 'product') { window.location.href = gvUrl('/shop?product=' + encodeURIComponent(slug)); return; }
     window.giftRequireAuth('/checkout?' + (type === 'combo' ? 'combo' : 'product') + '=' + encodeURIComponent(slug));
 }
 function giftToggleFavorite(event, button, product) {

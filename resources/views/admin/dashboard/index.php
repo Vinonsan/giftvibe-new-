@@ -74,7 +74,7 @@ $orderBadge = static function (string $status): string {
             <?php else: ?>
                 <div class="divide-y divide-slate-100">
                     <?php foreach ($stats['recentOrders'] as $order): ?>
-                        <a href="/admin/orders/view?id=<?= (int) $order['id'] ?>" class="flex items-center justify-between gap-3 py-3 transition hover:bg-slate-50/80 -mx-2 px-2 rounded-lg">
+                        <a href="<?= htmlspecialchars(app_url('/admin/orders?view=' . (int) $order['id'])) ?>" class="flex items-center justify-between gap-3 py-3 transition hover:bg-slate-50/80 -mx-2 px-2 rounded-lg">
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-secondary"><?= htmlspecialchars((string) $order['order_number']) ?></p>
                                 <p class="truncate text-xs text-slate-500"><?= htmlspecialchars((string) $order['customer_name']) ?></p>

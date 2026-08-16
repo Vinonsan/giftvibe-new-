@@ -14,13 +14,19 @@ final class OrderPlacementService
     {
         $requested = [];
         foreach (array_slice(explode(',', $selection), 0, 20) as $entry) {
-            [$typedSlug, $quantity] = array_pad(explode(':', $entry, 2), 2, '1');
-            [$type, $slugWithVariant] = str_contains($typedSlug, '~')
+            [$typedSlug, $quantityAndImage] = array_pad(explode(':', $entry, 2), 2, '1');
+            [$quantity, $image] = array_pad(explode('|', $quantityAndImage, 2), 2, '');
+            [$type, $slugWithRest] = str_contains($typedSlug, '~')
                 ? array_pad(explode('~', $typedSlug, 2), 2, '')
                 : ['p', $typedSlug];
+            [$slugWithVariant, $optionsStr] = array_pad(explode('$', $slugWithRest, 2), 2, '');
             [$slug, $variantId] = array_pad(explode('@', $slugWithVariant, 2), 2, '0');
             if (in_array($type, ['p', 'c'], true) && preg_match('/^[a-z0-9-]+$/', $slug)) {
-                $requested[$type . '~' . $slug . '@' . max(0, (int) $variantId)] = max(1, min(10, (int) $quantity));
+                $key = $type . '~' . $slug . '@' . max(0, (int) $variantId) . ($optionsStr ? '$' . preg_replace('/[^0-9.-]/', '', $optionsStr) : '');
+                $requested[$key] = [
+                    'quantity' => max(1, min(10, (int) $quantity)),
+                    'image' => self::cleanImagePath($image),
+                ];
             }
         }
 
@@ -38,8 +44,11 @@ final class OrderPlacementService
              FROM combos WHERE slug = ? AND status = 'active' LIMIT 1"
         );
 
-        foreach ($requested as $typedSlug => $quantity) {
-            [$type, $slugWithVariant] = explode('~', $typedSlug, 2);
+        foreach ($requested as $typedSlug => $info) {
+            $quantity = $info['quantity'];
+            $selectedImage = $info['image'];
+            [$type, $slugWithRest] = explode('~', $typedSlug, 2);
+            [$slugWithVariant, $optionsStr] = array_pad(explode('$', $slugWithRest, 2), 2, '');
             [$slug, $variantId] = array_pad(explode('@', $slugWithVariant, 2), 2, '0');
             $stmt = $type === 'c' ? $comboStmt : $productStmt;
             $stmt->execute([$slug]);
@@ -49,13 +58,8 @@ final class OrderPlacementService
             }
 
             $normalized = self::normalizeItem($pdo, $row, $type === 'c' ? 'combo' : 'product', $quantity);
-            if ($type === 'p' && (int) $variantId < 1) {
-                $hasVariants = $pdo->prepare("SELECT 1 FROM product_variants WHERE product_id=? AND status='active' LIMIT 1");
-                $hasVariants->execute([(int) $row['id']]);
-                if ($hasVariants->fetchColumn()) continue;
-            }
             if ($type === 'p' && (int) $variantId > 0) {
-                $variantStmt = $pdo->prepare("SELECT id,name,sku,color_name,price_adjustment,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND status='active' LIMIT 1");
+                $variantStmt = $pdo->prepare("SELECT id,name,sku,color_name,image_path,price_adjustment,stock_quantity FROM product_variants WHERE id=? AND product_id=? AND status='active' LIMIT 1");
                 $variantStmt->execute([(int) $variantId, (int) $row['id']]);
                 $variant = $variantStmt->fetch(PDO::FETCH_ASSOC);
                 if (!$variant || (int) $variant['stock_quantity'] < $quantity) continue;
@@ -64,11 +68,74 @@ final class OrderPlacementService
                 $normalized['sku'] = (string) $variant['sku'];
                 $normalized['base_price'] = round((float) $row['base_price'] + (float) $variant['price_adjustment'], 2);
                 $normalized['line_total'] = round($normalized['base_price'] * $quantity, 2);
+                if ($selectedImage === '') $selectedImage = (string) ($variant['image_path'] ?? '');
             }
+            
+            if ($optionsStr !== '') {
+                $parsedOpts = [];
+                $optPairs = explode('-', $optionsStr);
+                $valIds = [];
+                foreach ($optPairs as $pair) {
+                    $parts = explode('.', $pair);
+                    if (count($parts) === 2) $valIds[] = (int) $parts[1];
+                }
+                if ($valIds) {
+                    $inQuery = implode(',', array_fill(0, count($valIds), '?'));
+                    $valStmt = $pdo->prepare("SELECT v.*, o.name as option_name FROM product_option_values v JOIN product_options o ON o.id = v.option_id WHERE v.id IN ($inQuery)");
+                    $valStmt->execute($valIds);
+                    $values = $valStmt->fetchAll(PDO::FETCH_ASSOC);
+                    $optPrice = 0;
+                    $optNames = [];
+                    foreach ($values as $val) {
+                        $optPrice += (float) $val['price_adjustment'];
+                        $optNames[] = $val['option_name'] . ': ' . $val['label'];
+                        $parsedOpts[] = [
+                            'optionId' => (int) $val['option_id'],
+                            'optionName' => $val['option_name'],
+                            'valueId' => (int) $val['id'],
+                            'valueLabel' => $val['label'],
+                            'priceAdjustment' => (float) $val['price_adjustment']
+                        ];
+                    }
+                    if ($parsedOpts) {
+                        $normalized['base_price'] = round($normalized['base_price'] + $optPrice, 2);
+                        $normalized['line_total'] = round($normalized['base_price'] * $quantity, 2);
+                        $normalized['options'] = $parsedOpts;
+                        $normalized['variant_name'] = ltrim(($normalized['variant_name'] ?? '') . ' | ' . implode(', ', $optNames), ' |');
+                    }
+                }
+            }
+            
+            if ($selectedImage === '') {
+                if ($type === 'c') {
+                    $ciStmt = $pdo->prepare('SELECT image_path FROM combo_images WHERE combo_id=? AND is_primary=1 LIMIT 1');
+                    $ciStmt->execute([(int) $row['id']]);
+                    $selectedImage = (string) $ciStmt->fetchColumn();
+                } else {
+                    $piStmt = $pdo->prepare('SELECT image_path FROM product_images WHERE product_id=? AND is_primary=1 LIMIT 1');
+                    $piStmt->execute([(int) $row['id']]);
+                    $selectedImage = (string) $piStmt->fetchColumn();
+                }
+            }
+            $normalized['image_path'] = $selectedImage;
             $items[] = $normalized;
         }
 
         return $items;
+    }
+
+    /** Validate and normalise an image path carried in the selection token. */
+    private static function cleanImagePath(string $path): string
+    {
+        $path = trim($path);
+        if ($path === '') return '';
+        if (str_starts_with($path, 'public/')) $path = '/' . substr($path, 7);
+        $base = app_base_path();
+        if ($base !== '' && str_starts_with($path, $base)) $path = substr($path, strlen($base));
+        if ($path === '') return '';
+        if (!str_starts_with($path, '/')) $path = '/' . $path;
+        if (preg_match('~^(?:/assets/|https?://)~i', $path) !== 1) return '';
+        return $path;
     }
 
     /**
@@ -255,8 +322,8 @@ final class OrderPlacementService
             $orderId = (int) $pdo->lastInsertId();
 
             $item = $pdo->prepare(
-                'INSERT INTO order_items (order_id, product_id, variant_id, product_name, sku, quantity, unit_price, cost_price, total_price, custom_options_json)
-                 VALUES (?,?,?,?,?,?,?,?,?,?)'
+                'INSERT INTO order_items (order_id, product_id, variant_id, product_name, sku, quantity, unit_price, cost_price, total_price, custom_options_json, image_path)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?)'
             );
             foreach ($orderItems as $product) {
                 $item->execute([
@@ -270,6 +337,7 @@ final class OrderPlacementService
                     $product['cost_price'],
                     $product['line_total'],
                     !empty($product['variant_name']) ? json_encode(['colour' => $product['variant_name']], JSON_UNESCAPED_UNICODE) : null,
+                    !empty($product['image_path']) ? $product['image_path'] : null,
                 ]);
             }
 
@@ -335,6 +403,10 @@ final class OrderPlacementService
         $columns = $pdo->query('DESCRIBE orders')->fetchAll(PDO::FETCH_COLUMN);
         if (!in_array('order_source', $columns, true)) {
             $pdo->exec("ALTER TABLE orders ADD order_source VARCHAR(30) NOT NULL DEFAULT 'website' AFTER order_status");
+        }
+        $itemColumns = $pdo->query('DESCRIBE order_items')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('image_path', $itemColumns, true)) {
+            $pdo->exec('ALTER TABLE order_items ADD image_path VARCHAR(255) NULL AFTER variant_id');
         }
     }
 

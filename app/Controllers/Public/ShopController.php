@@ -50,6 +50,23 @@ class ShopController extends Controller
                 $variantStmt->execute([$product['id']]);
                 $productVariants = $variantStmt->fetchAll(\PDO::FETCH_ASSOC);
 
+                $socialStmt = $pdo->prepare('SELECT platform, label, url, sort_order FROM product_social_links WHERE product_id=? ORDER BY sort_order,id');
+                $socialStmt->execute([$product['id']]);
+                $productSocialLinks = $socialStmt->fetchAll(\PDO::FETCH_ASSOC);
+
+                $optStmt = $pdo->prepare("SELECT * FROM product_options WHERE product_id=? ORDER BY sort_order, id");
+                $optStmt->execute([$product['id']]);
+                $productOptions = $optStmt->fetchAll(\PDO::FETCH_ASSOC);
+                if ($productOptions) {
+                    $optIds = array_column($productOptions, 'id');
+                    $valStmt = $pdo->prepare("SELECT * FROM product_option_values WHERE option_id IN (" . implode(',', array_fill(0, count($optIds), '?')) . ") ORDER BY sort_order, id");
+                    $valStmt->execute($optIds);
+                    $optVals = $valStmt->fetchAll(\PDO::FETCH_ASSOC);
+                    $valsByOpt = [];
+                    foreach ($optVals as $val) $valsByOpt[$val['option_id']][] = $val;
+                    foreach ($productOptions as &$opt) $opt['values'] = $valsByOpt[$opt['id']] ?? [];
+                }
+
                 // Fetch category IDs for the current product to query related items
                 $catIdsStmt = $pdo->prepare("SELECT category_id FROM product_categories WHERE product_id = ?");
                 $catIdsStmt->execute([$product['id']]);
@@ -73,7 +90,7 @@ class ShopController extends Controller
                     'structuredData' => [
                         '@context' => 'https://schema.org',
                         '@graph' => [
-                            ['@type' => 'Product', '@id' => $siteUrl . $productPath . '#product', 'name' => $product['name'], 'description' => $product['meta_description'] ?: ($product['short_description'] ?: $product['description']), 'image' => $seoImages, 'sku' => $product['sku'], 'productID' => (string) $product['id'], 'category' => $product['category_names'], 'brand' => ['@type'=>'Brand','name'=>'GiftVibe'], 'url' => $siteUrl . $productPath, 'mainEntityOfPage' => $siteUrl . $productPath, 'offers' => ['@type'=>'Offer','priceCurrency'=>'LKR','price'=>(string)$product['base_price'],'availability'=>(int)$product['stock_quantity']>0?'https://schema.org/InStock':'https://schema.org/OutOfStock','url'=>$siteUrl.$productPath,'seller'=>['@type'=>'Organization','name'=>'GiftVibe']]],
+                            ['@type' => 'Product', '@id' => $siteUrl . $productPath . '#product', 'name' => $product['name'], 'description' => $product['meta_description'] ?: ($product['short_description'] ?: $product['description']), 'image' => $seoImages, 'sku' => $product['sku'], 'productID' => (string) $product['id'], 'category' => $product['category_names'], 'brand' => ['@type'=>'Brand','name'=>'GiftVibe'], 'url' => $siteUrl . $productPath, 'mainEntityOfPage' => $siteUrl . $productPath, 'offers' => ['@type'=>'Offer','priceCurrency'=>'LKR','price'=>(string)$product['base_price'],'availability'=>((string)($product['procurement_type']??'')==='handcrafted'||(int)$product['stock_quantity']>0)?'https://schema.org/InStock':'https://schema.org/OutOfStock','url'=>$siteUrl.$productPath,'seller'=>['@type'=>'Organization','name'=>'GiftVibe']]],
                             ['@type' => 'BreadcrumbList', 'itemListElement' => [
                                 ['@type'=>'ListItem','position'=>1,'name'=>'Home','item'=>$siteUrl.'/'],
                                 ['@type'=>'ListItem','position'=>2,'name'=>'Shop','item'=>$siteUrl.'/shop'],
@@ -81,7 +98,7 @@ class ShopController extends Controller
                             ]],
                         ],
                     ],
-                    'content' => $this->render('public/product/show', compact('product', 'gallery', 'relatedProducts', 'categories', 'productVideos', 'productVariants')),
+                    'content' => $this->render('public/product/show', compact('product', 'gallery', 'relatedProducts', 'categories', 'productVideos', 'productVariants', 'productSocialLinks', 'productOptions')),
                 ]);
                 return;
             }

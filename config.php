@@ -30,8 +30,9 @@ $config = [
     'app_url' => getenv('APP_URL') ?: 'https://giftvibelk.lk',
     'database' => [
         'host' => getenv('DB_HOST') ?: 'localhost',
-        'name' => getenv('DB_NAME') ?: 'riversid_giftvibe_lk_db',
-        'user' => getenv('DB_USER') ?: 'riversid_giftvibe_lk_db',
+        'port' => (int) (getenv('DB_PORT') ?: 3306),
+        'name' => getenv('DB_NAME') ?: 'giftvibe_dev',
+        'user' => getenv('DB_USER') ?: 'root',
         'password' => getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '',
     ],
 ];
@@ -40,9 +41,14 @@ $localConfigFile = __DIR__ . '/config.local.php';
 if (is_file($localConfigFile)) {
     $local = (array) require $localConfigFile;
     if (isset($local['database']) && is_array($local['database'])) {
-        $config['database'] = array_replace($config['database'], $local['database']);
+        $environmentKeys = ['host'=>'DB_HOST','port'=>'DB_PORT','name'=>'DB_NAME','user'=>'DB_USER','password'=>'DB_PASSWORD'];
+        foreach ($local['database'] as $key => $value) {
+            if (isset($environmentKeys[$key]) && getenv($environmentKeys[$key]) === false) {
+                $config['database'][$key] = $value;
+            }
+        }
     }
-    if (isset($local['app_url']) && is_string($local['app_url'])) {
+    if (getenv('APP_URL') === false && isset($local['app_url']) && is_string($local['app_url'])) {
         $config['app_url'] = $local['app_url'];
     }
 }

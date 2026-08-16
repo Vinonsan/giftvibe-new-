@@ -63,6 +63,7 @@ final class ExpenseController extends Controller
                 'totalAmount' => $totalAmount,
                 'approvedTotal' => $approvedTotal,
                 'cashOnHand' => (float) $financeSummary['cashOnHand'],
+                'availableProfit' => (float) ($financeSummary['availableProfit'] ?? 0),
                 'csrfToken' => $_SESSION['csrf_token'],
                 'flash' => $flash,
             ]),
@@ -95,19 +96,42 @@ final class ExpenseController extends Controller
             $category = 'other';
         }
         $title = trim((string) ($_POST['title'] ?? ''));
-        $description = trim((string) ($_POST['description'] ?? ''));
+        $paidSource = (string) ($_POST['paid_source'] ?? 'company_cash');
+        if (!in_array($paidSource, ['company_cash', 'profit'], true)) {
+            $paidSource = 'company_cash';
+        }
+        $description = '';
         $amount = max(0.01, (float) ($_POST['amount'] ?? 0));
-        $expenseDate = trim((string) ($_POST['expense_date'] ?? '')) ?: date('Y-m-d');
+        $expenseDate = date('Y-m-d');
         $adminId = (int) ($_SESSION['admin_user']['id'] ?? 0) ?: null;
 
         if ($title === '') {
             $this->redirect('Please enter an expense title.', 'error');
         }
 
+        $summary = FinanceSummaryService::summary($pdo);
+        $oldAmount = 0.0;
+        $oldSource = '';
+        if ($id > 0) {
+            $oldStmt = $pdo->prepare('SELECT amount, paid_source, expense_date FROM expenses WHERE id = ? LIMIT 1');
+            $oldStmt->execute([$id]);
+            $old = $oldStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            $oldAmount = (float) ($old['amount'] ?? 0);
+            $oldSource = (string) ($old['paid_source'] ?? '');
+            $expenseDate = (string) ($old['expense_date'] ?? $expenseDate);
+        }
+        $available = $paidSource === 'profit'
+            ? (float) ($summary['availableProfit'] ?? 0) + ($oldSource === 'profit' ? $oldAmount : 0)
+            : (float) ($summary['cashOnHand'] ?? 0) + ($oldSource !== 'profit' ? $oldAmount : 0);
+        if ($amount > $available + 0.00001) {
+            $balanceName = $paidSource === 'profit' ? 'available profit' : 'cash on hand';
+            $this->redirect('Insufficient ' . $balanceName . '. Available: LKR ' . number_format(max(0, $available), 2), 'error');
+        }
+
         if ($id > 0) {
             $pdo->prepare(
-                'UPDATE expenses SET category = ?, title = ?, description = ?, amount = ?, expense_date = ? WHERE id = ?'
-            )->execute([$category, $title, $description ?: null, $amount, $expenseDate, $id]);
+                'UPDATE expenses SET paid_source = ?, category = ?, title = ?, description = ?, amount = ?, expense_date = ? WHERE id = ?'
+            )->execute([$paidSource, $category, $title, $description ?: null, $amount, $expenseDate, $id]);
             $this->redirect('Expense updated.', 'success');
         }
 
@@ -117,7 +141,7 @@ final class ExpenseController extends Controller
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         )->execute([
             $adminId,
-            'company_cash',
+            $paidSource,
             $expenseNumber,
             $category,
             $title,
@@ -162,6 +186,8 @@ final class ExpenseController extends Controller
                 paid_source VARCHAR(30) NOT NULL DEFAULT 'company_cash',
                 paid_by_admin_id BIGINT UNSIGNED NULL,
                 reimbursement_status VARCHAR(30) NULL,
+                inventory_item_id BIGINT UNSIGNED NULL,
+                stock_quantity INT UNSIGNED NULL,
                 expense_number VARCHAR(40) NOT NULL,
                 category VARCHAR(120) NOT NULL,
                 title VARCHAR(190) NOT NULL,
@@ -177,6 +203,17 @@ final class ExpenseController extends Controller
                 KEY idx_expenses_date_status (expense_date, status)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+
+        $columns = $pdo->query('DESCRIBE expenses')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('paid_source', $columns, true)) {
+            $pdo->exec("ALTER TABLE expenses ADD paid_source VARCHAR(30) NOT NULL DEFAULT 'company_cash' AFTER order_id");
+        }
+        if (!in_array('inventory_item_id', $columns, true)) {
+            $pdo->exec('ALTER TABLE expenses ADD inventory_item_id BIGINT UNSIGNED NULL AFTER order_id');
+        }
+        if (!in_array('stock_quantity', $columns, true)) {
+            $pdo->exec('ALTER TABLE expenses ADD stock_quantity INT UNSIGNED NULL AFTER inventory_item_id');
+        }
     }
 
     private function redirect(string $message, string $type = 'success'): never

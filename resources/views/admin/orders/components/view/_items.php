@@ -7,6 +7,7 @@ declare(strict_types=1);
             <?php
                 $img = (string) ($item['product_image'] ?? '/assets/images/hero_slide_1.jpg');
                 if (str_starts_with($img, 'public/')) $img = '/' . substr($img, 7);
+                $img = app_url($img);
             ?>
             <div class="flex gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <img src="<?= htmlspecialchars($img) ?>" alt="" class="h-20 w-24 shrink-0 rounded-xl object-cover ring-1 ring-slate-200">

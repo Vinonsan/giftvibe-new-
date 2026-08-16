@@ -31,6 +31,8 @@ if (function_exists('opcache_invalidate')) {
     opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/OrderController.php', true);
     opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/CustomerController.php', true);
     opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/FinanceController.php', true);
+    opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/ExpenseController.php', true);
+    opcache_invalidate(BASE_PATH . '/app/Services/FinanceSummaryService.php', true);
     opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/OrderController.php', true);
 }
 

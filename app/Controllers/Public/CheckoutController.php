@@ -139,7 +139,7 @@ final class CheckoutController extends Controller
             }
         }
         try {
-            $receipt = OrderPlacementService::storeReceipt($_FILES['receipt'] ?? [], true);
+            $receipt = OrderPlacementService::storeReceipt($_FILES['receipt'] ?? [], $method === 'bank_deposit');
             $orderId = OrderPlacementService::create($pdo, $orderItems, [
                 'user_id' => (int) $_SESSION['user']['id'],
                 'customer_name' => trim((string) $_POST['customer_name']),

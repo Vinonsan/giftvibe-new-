@@ -24,10 +24,13 @@ foreach ($orders as $order) {
     $id = (int) $order['id'];
     $oStatus = (string) $order['order_status'];
     $pStatus = (string) $order['payment_status'];
+    $orderMeta = $order;
+    $orderMeta['items'] = $orderItemsByOrder[$id] ?? [];
+    $metaJson = htmlspecialchars(json_encode($orderMeta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES);
 
     $actions = '<div class="flex items-center justify-end gap-2">'
-        . '<a href="/admin/orders/view?id=' . $id . '" title="View order" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 transition hover:text-primary">'
-        . '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"/><circle cx="12" cy="12" r="2.25"/></svg></a>';
+        . '<button type="button" data-drawer-open="order-view-drawer" data-order-view data-order-id="' . $id . '" title="View order" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 transition hover:text-primary">'
+        . '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"/><circle cx="12" cy="12" r="2.25"/></svg></button>';
 
     if (in_array($oStatus, ['confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered'], true)) {
         $actions .= '<a href="/admin/orders/receipt?id=' . $id . '" target="_blank" title="Print receipt" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 transition hover:text-primary">'
@@ -42,6 +45,7 @@ foreach ($orders as $order) {
         'amount' => '<span class="font-semibold text-secondary">LKR ' . number_format((float) $order['grand_total'], 2) . '</span>',
         'payment_verification' => $statusBadge($pStatus, 'payment'),
         'status' => $statusBadge($oStatus, 'order'),
+        '_meta' => $metaJson,
         '_actions' => $actions,
     ];
 }
@@ -53,6 +57,7 @@ $tableColumns = [
     ['key' => 'amount', 'label' => 'Total', 'html' => true, 'type' => 'number'],
     ['key' => 'payment_verification', 'label' => 'Payment', 'html' => true, 'sortable' => false],
     ['key' => 'status', 'label' => 'Order Status', 'html' => true, 'sortable' => false],
+    ['key' => '_meta', 'label' => '', 'class' => 'hidden'],
     ['key' => '_actions', 'label' => 'Actions', 'html' => true, 'sortable' => false, 'align' => 'right'],
 ];
 $tableSortable = true;

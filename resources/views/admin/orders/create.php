@@ -18,19 +18,6 @@ foreach ($customers as $customer) {
         <span class="hidden" data-toast-message="<?= htmlspecialchars((string) $flash['message'], ENT_QUOTES) ?>" data-toast-type="<?= htmlspecialchars((string) $flash['type'], ENT_QUOTES) ?>"></span>
     <?php endif; ?>
 
-    <div class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div>
-            <div class="flex items-center gap-2 text-sm text-slate-500">
-                <a href="<?= app_url('/admin/orders') ?>" class="font-semibold text-primary hover:underline">Orders</a>
-                <span>/</span>
-                <span>Create order</span>
-            </div>
-            <h1 class="mt-1 text-xl font-bold text-secondary">Create order</h1>
-            <p class="mt-1 text-sm text-slate-500">Existing customer select pannunga, illana name · phone · address mattum enter panni new customer create pannalam.</p>
-        </div>
-        <a href="<?= app_url('/admin/orders') ?>" class="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-slate-50 transition">Back</a>
-    </div>
-
     <form id="admin-create-order-form" method="post" action="<?= app_url('/admin/orders/create') ?>" class="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]" novalidate>
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $csrfToken) ?>">
         <input type="hidden" name="line_items" id="line-items-json" value="[]">
@@ -157,43 +144,30 @@ foreach ($customers as $customer) {
                     </div>
                 </div>
 
-                <label class="block space-y-1.5">
-                    <span class="text-sm font-medium text-secondary">Order notes <span class="font-normal text-slate-400">(optional)</span></span>
-                    <textarea name="customer_notes" rows="2" class="<?= $fc ?>" placeholder="Customer-ku show aagura notes…"></textarea>
-                </label>
-
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Order source</span>
-                        <select name="order_source" class="<?= $fc ?>"><option value="admin">Admin / walk-in</option><option value="whatsapp">WhatsApp</option><option value="phone">Phone</option><option value="website">Website</option></select>
-                    </label>
-                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Delivery date</span>
-                        <input type="date" name="delivery_date" min="<?= date('Y-m-d') ?>" class="<?= $fc ?>">
-                    </label>
-                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Discount (LKR)</span>
-                        <input type="number" min="0" step="0.01" name="discount_total" id="order-discount" value="0" class="<?= $fc ?>">
-                    </label>
-                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Payment</span>
-                        <select name="payment_option" id="payment-option" class="<?= $fc ?>"><option value="full">Fully paid</option><option value="partial">Partial payment</option><option value="unpaid">Not paid</option></select>
-                    </label>
-                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Amount received (LKR)</span>
+                <div class="space-y-5">
+                    <div><?php
+                        $dateInputName='delivery_date';$dateInputId='order-delivery-date';$dateInputValue='';$dateInputMin=date('Y-m-d');$dateInputMax='';$dateInputLabel='Delivery date';$dateInputHint='';$dateInputError='';$dateInputSize='lg';$dateInputState='default';$dateInputRequired=false;$dateInputDisabled=false;$dateInputAttributes=[];$dateInputClass='';
+                        require BASE_PATH.'/resources/views/components/base/date-input.php';
+                    ?></div>
+                    <div class="space-y-2"><span class="block text-sm font-medium text-secondary">Payment method</span><div class="grid gap-3 sm:grid-cols-2">
+                        <div data-payment-card class="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 transition has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-2 has-[:checked]:ring-primary/10"><?php
+                            $radioName='payment_method';$radioId='payment-method-cod';$radioValue='cod';$radioChecked=true;$radioLabel='Cash on delivery';$radioHint='Enter the initial amount paid';$radioError='';$radioSize='md';$radioColor='primary';$radioState='default';$radioRequired=true;$radioDisabled=false;$radioAttributes=[];$radioClass='';require BASE_PATH.'/resources/views/components/base/radio.php';
+                        ?></div>
+                        <div data-payment-card class="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 transition has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-2 has-[:checked]:ring-primary/10"><?php
+                            $radioName='payment_method';$radioId='payment-method-bank';$radioValue='bank_deposit';$radioChecked=false;$radioLabel='Bank deposit';$radioHint='Full order amount is received';$radioError='';$radioSize='md';$radioColor='primary';$radioState='default';$radioRequired=true;$radioDisabled=false;$radioAttributes=[];$radioClass='';require BASE_PATH.'/resources/views/components/base/radio.php';
+                        ?></div>
+                    </div></div>
+                    <label id="cod-initial-amount-wrap" class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Initial amount paid (LKR)</span>
                         <input type="number" min="0" step="0.01" name="payment_amount" id="payment-amount" value="0" class="<?= $fc ?>">
                     </label>
-                    <label class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Method</span>
-                        <select name="payment_method" class="<?= $fc ?>"><option value="cod">Cash</option><option value="bank_deposit">Bank deposit</option></select>
-                    </label>
                 </div>
-
-                <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-sm font-semibold text-secondary">
-                    <input type="checkbox" name="send_sms" value="1" checked class="accent-primary">
-                    SMS customer about this order
-                </label>
 
                 <div class="rounded-xl border border-primary/15 bg-primary/[0.04] p-4">
                     <div class="flex items-center justify-between text-sm font-semibold text-secondary">
                         <span>Order total</span>
                         <span id="order-summary-total" class="text-lg font-black text-primary">LKR 0.00</span>
                     </div>
-                    <p class="mt-2 text-xs text-slate-500">Discount and partial payments are reflected in the final balance.</p>
+                    <p id="payment-method-help" class="mt-2 text-xs text-slate-500">COD initial payment மட்டும் cash income-ல் சேரும்.</p>
                 </div>
 
                 <button type="submit" id="admin-create-order-btn"
@@ -229,15 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
         'image' => (string) ($c['image_path'] ?? ''),
     ], $catalogCombos), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
-    var recentOrderItems = <?= json_encode(array_map(static fn(array $r): array => [
-        'name' => (string) $r['product_name'],
-        'price' => (float) $r['unit_price'],
-        'cost' => (float) $r['cost_price'],
-        'sku' => (string) ($r['sku'] ?? 'CUSTOM'),
-        'product_id' => (int) ($r['product_id'] ?? 0),
-        'order_number' => (string) $r['order_number'],
-    ], $recentOrderItems ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
-
     var customers = <?= json_encode(array_values(array_map(static fn(array $u): array => [
         'id' => (int) $u['id'],
         'name' => trim(((string) ($u['first_name'] ?? '')) . ' ' . ((string) ($u['last_name'] ?? ''))) ?: (string) ($u['email'] ?? 'Customer'),
@@ -263,6 +228,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var savedAddressPicker = document.getElementById('saved-address-picker');
     var savedAddressList = document.getElementById('saved-address-list');
     var customerSelectWrap = document.querySelector('[data-custom-select][data-name="customer_id"]');
+    var paymentAmount = document.getElementById('payment-amount');
+    var initialAmountWrap = document.getElementById('cod-initial-amount-wrap');
+
+    function syncPaymentMethod() {
+        var isBank = document.querySelector('input[name="payment_method"]:checked')?.value === 'bank_deposit';
+        initialAmountWrap?.classList.toggle('hidden', isBank);
+        var total = cart.reduce(function (sum, item) { return sum + item.price * item.qty; }, 0);
+        if (isBank && paymentAmount) paymentAmount.value = Math.max(0, total).toFixed(2);
+        var help = document.getElementById('payment-method-help');
+        if (help) help.textContent = isBank ? 'Full order amount bank income-ல் சேரும்.' : 'COD initial payment மட்டும் cash income-ல் சேரும்.';
+    }
 
     function setCustomerMode(mode) {
         customerMode = mode === 'new' ? 'new' : 'existing';
@@ -310,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function field(name) { return document.getElementById('admin-order-' + name); }
 
     function setItemTab(tab) {
-        ['catalog', 'recent', 'custom'].forEach(function (t) {
+        ['catalog', 'custom'].forEach(function (t) {
             var panel = document.getElementById('item-tab-' + t);
             if (panel) panel.classList.toggle('hidden', t !== tab);
             document.querySelectorAll('[data-item-tab="' + t + '"]').forEach(function (btn) {
@@ -337,19 +313,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return item.name.toLowerCase().indexOf(q) !== -1 || item.sku.toLowerCase().indexOf(q) !== -1;
         });
         if (!filtered.length) {
-            container.innerHTML = '<p class="col-span-2 py-8 text-center text-sm text-slate-400">No items found.</p>';
+            container.innerHTML = '<p class="col-span-full py-8 text-center text-sm text-slate-400">No items found.</p>';
             return;
         }
-        container.innerHTML = filtered.map(function (item) {
-            return '<button type="button" data-add-item="' + item.type + ':' + item.id + '" class="group flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md">'
-                + '<img src="' + esc(item.image) + '" alt="" class="h-14 w-14 shrink-0 rounded-lg object-cover bg-slate-100 ring-1 ring-slate-100">'
-                + '<div class="min-w-0 flex-1"><p class="line-clamp-2 text-sm font-semibold text-secondary group-hover:text-primary">' + esc(item.name) + '</p>'
-                + '<p class="mt-0.5 text-[10px] font-medium text-slate-400">' + esc(item.sku) + '</p>'
-                + '<div class="mt-2 flex flex-wrap gap-1.5 text-[10px]">'
-                + '<span class="rounded bg-rose-50 px-1.5 py-0.5 font-bold text-rose-600">Buy ' + money(item.cost).replace('LKR ', '') + '</span>'
-                + '<span class="rounded bg-emerald-50 px-1.5 py-0.5 font-bold text-emerald-600">Sell ' + money(item.price).replace('LKR ', '') + '</span>'
-                + '</div></div>'
-                + '<span class="mt-1 shrink-0 rounded-lg bg-primary px-2.5 py-1.5 text-[10px] font-bold text-white">+ Add</span></button>';
+        container.innerHTML = filtered.slice(0,20).map(function (item) {
+            return '<button type="button" data-add-item="' + item.type + ':' + item.id + '" class="group flex min-h-[82px] w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-2.5 text-left shadow-sm transition hover:border-primary/40 hover:bg-primary/[0.02] hover:shadow-md">'
+                + '<img src="' + esc(item.image) + '" alt="' + esc(item.name) + '" class="h-16 w-16 shrink-0 rounded-lg bg-slate-100 object-cover ring-1 ring-slate-100">'
+                + '<span class="min-w-0 flex-1"><span class="line-clamp-2 block text-sm font-bold leading-5 text-secondary transition group-hover:text-primary">' + esc(item.name) + '</span><span class="mt-1.5 block text-sm font-black text-primary">' + money(item.price) + '</span></span></button>';
         }).join('');
     }
 
@@ -366,6 +336,7 @@ document.addEventListener('DOMContentLoaded', function () {
         lineItemsInput.value = JSON.stringify(cart.map(function (item) {
             return { type: item.type, id: item.type === 'custom' ? 0 : item.id, qty: item.qty, name: item.name, cost_price: item.cost, sell_price: item.price, sku: item.sku || '' };
         }));
+        syncPaymentMethod();
     }
 
     function renderCart() {
@@ -375,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!selectedWrap) return;
 
         if (!cart.length) {
-            selectedWrap.innerHTML = '<div class="rounded-xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-400">Catalog, past orders, or custom item add pannunga.</div>';
+            selectedWrap.innerHTML = '<div class="rounded-xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-400">Catalog or custom item add pannunga.</div>';
             if (cartBadge) cartBadge.textContent = '0';
             if (cartSummary) cartSummary.classList.add('hidden');
         } else {
@@ -384,8 +355,6 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedWrap.innerHTML = cart.map(function (item, index) {
                 var typeLabel = item.type === 'combo' ? 'Combo' : (item.type === 'custom' ? 'Custom' : 'Product');
                 var lineSell = item.price * item.qty;
-                var lineCost = item.cost * item.qty;
-                var lineProfit = lineSell - lineCost;
                 return '<div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">'
                     + '<div class="flex items-start justify-between gap-2">'
                     + '<div class="min-w-0 flex-1"><span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">' + typeLabel + '</span>'
@@ -401,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     + '</div>'
                     + '<div class="flex justify-between border-t border-slate-100 pt-2 text-xs">'
                     + '<span class="text-slate-500">Line total</span>'
-                    + '<span class="font-bold text-secondary">' + money(lineSell) + ' <span class="font-normal text-slate-400">(profit ' + money(lineProfit) + ')</span></span>'
+                    + '<span class="font-bold text-secondary">' + money(lineSell) + '</span>'
                     + '</div></div>';
             }).join('');
         }
@@ -427,15 +396,6 @@ document.addEventListener('DOMContentLoaded', function () {
         pushCartItem({
             type: found.type, id: found.id, uid: '', name: found.name, sku: found.sku,
             price: found.price, cost: found.cost || 0, qty: 1, image: found.image
-        });
-    }
-
-    function addRecentItem(index) {
-        var row = recentOrderItems[index];
-        if (!row) return;
-        pushCartItem({
-            type: 'custom', id: 0, uid: 'r' + index + '-' + Date.now(),
-            name: row.name, sku: row.sku || 'CUSTOM', price: row.price, cost: row.cost || 0, qty: 1
         });
     }
 
@@ -557,11 +517,6 @@ document.addEventListener('DOMContentLoaded', function () {
             addItem(parts[0], parseInt(parts[1], 10));
             return;
         }
-        var recentBtn = e.target.closest('[data-add-recent]');
-        if (recentBtn) {
-            addRecentItem(parseInt(recentBtn.getAttribute('data-add-recent'), 10));
-            return;
-        }
         var removeBtn = e.target.closest('[data-remove-index]');
         if (removeBtn) {
             cart.splice(parseInt(removeBtn.getAttribute('data-remove-index'), 10), 1);
@@ -615,6 +570,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.getElementById('catalog-search')?.addEventListener('input', renderCatalog);
+    document.querySelectorAll('input[name="payment_method"]').forEach(function(radio){radio.addEventListener('change',syncPaymentMethod);});
+    document.querySelectorAll('[data-payment-card]').forEach(function(card){card.addEventListener('click',function(e){if(e.target.closest('label,input'))return;var radio=card.querySelector('input[type="radio"]');if(radio&&!radio.checked){radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));}});});
 
     customerSelectWrap?.addEventListener('select:change', function (e) {
         if (customerMode !== 'existing') return;
@@ -679,6 +636,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setCustomerMode(customers.length ? 'existing' : 'new');
     setItemTab('catalog');
+    syncPaymentMethod();
     renderCatalog();
     renderCart();
 });

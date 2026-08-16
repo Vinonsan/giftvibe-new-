@@ -17,7 +17,7 @@ declare(strict_types=1);
                         ?>
                         <span class="rounded-full px-2 py-0.5 text-[10px] font-bold <?= $nClass ?>"><?= htmlspecialchars(ucfirst($nStatus)) ?></span>
                         <?php if (!empty($note['order_number'])): ?>
-                            <a href="/admin/orders/view?id=<?= (int) ($note['order_id'] ?? 0) ?>" class="text-xs font-bold text-primary hover:underline"><?= htmlspecialchars((string) $note['order_number']) ?></a>
+                            <a href="<?= htmlspecialchars(app_url('/admin/orders?view=' . (int) ($note['order_id'] ?? 0))) ?>" class="text-xs font-bold text-primary hover:underline"><?= htmlspecialchars((string) $note['order_number']) ?></a>
                         <?php endif; ?>
                     </div>
                     <time class="text-xs text-slate-400"><?= htmlspecialchars((string) ($note['created_at'] ?? '')) ?></time>

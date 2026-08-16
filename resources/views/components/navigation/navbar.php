@@ -28,7 +28,7 @@ $customerAvatar = (string) ($customer['avatar'] ?? 'giftvibe-1');
 $currentAvatarUrl = dicebear_avatar_url($customerAvatar);
 ?>
 <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl" data-public-header>
-    <nav class="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8" aria-label="Primary navigation">
+    <nav class="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12" aria-label="Primary navigation">
         <a href="/" class="flex shrink-0 items-center gap-2.5" aria-label="GiftVibe home">
             <img src="<?= htmlspecialchars($logo) ?>" alt="<?= htmlspecialchars($siteName) ?> Logo" width="40" height="40" class="h-10 w-10 rounded-xl shadow-sm object-contain">
             <span class="text-xl font-extrabold tracking-tight text-secondary">

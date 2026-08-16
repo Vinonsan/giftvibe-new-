@@ -24,6 +24,7 @@ $tabLabels = [
     'images'   => 'Images',
     'social'   => 'Social Links',
     'pricing'  => 'Pricing',
+    'options'  => 'Options',
 ];
 
 $normalizeImage = static function (string $path): string {
@@ -53,6 +54,7 @@ $tabEditPartials = [
     'images'   => '_edit-images.php',
     'social'   => '_edit-social.php',
     'pricing'  => '_edit-pricing.php',
+    'options'  => '_edit-options.php',
 ];
 ?>
 
@@ -76,24 +78,17 @@ $tabEditPartials = [
                 <p class="mt-1 text-sm text-slate-500">Product ID #<?= $productId ?></p>
             </div>
         </div>
-        <a href="/admin/products" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-slate-50 transition">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
-            Back to products
-        </a>
     </div>
 
-    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <nav class="flex gap-1 overflow-x-auto border-b border-slate-200 px-3 pt-3" aria-label="Product sections">
+    <div class="space-y-3" data-product-accordion>
             <?php foreach ($tabLabels as $key => $label): ?>
-                <a
-                    href="/admin/products/view?id=<?= $productId ?>&tab=<?= htmlspecialchars($key) ?>"
-                    class="shrink-0 rounded-t-xl px-4 py-2.5 text-sm font-bold transition <?= $tab === $key ? 'border border-b-white border-slate-200 bg-white text-primary -mb-px' : 'text-slate-500 hover:bg-slate-50 hover:text-secondary' ?>"
-                    aria-current="<?= $tab === $key ? 'page' : 'false' ?>"
-                ><?= htmlspecialchars($label) ?></a>
-            <?php endforeach; ?>
-        </nav>
-
-        <div class="p-5 sm:p-6">
+            <details class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" <?= $tab === $key ? 'open' : '' ?>>
+                <summary class="flex cursor-pointer list-none items-center justify-between px-5 py-4 text-sm font-bold <?= $tab === $key ? 'text-primary' : 'text-secondary' ?>" <?php if($tab !== $key): ?>onclick="event.preventDefault();window.location.href='<?= htmlspecialchars(app_url('/admin/products/view?id='.$productId.'&tab='.$key.'&drawer=1'), ENT_QUOTES) ?>'"<?php endif; ?>>
+                    <span><?= htmlspecialchars($label) ?></span>
+                    <svg class="h-4 w-4 transition-transform [[open]>&]:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="m6 9 6 6 6-6"/></svg>
+                </summary>
+                <?php if ($tab === $key): ?>
+                <div class="border-t border-slate-200 p-5">
             <div class="mb-5 flex items-center justify-between gap-3">
                 <h2 class="text-base font-bold text-secondary"><?= htmlspecialchars($tabLabels[$tab] ?? 'Details') ?></h2>
                 <?php if (!$editMode): ?>
@@ -208,8 +203,43 @@ $tabEditPartials = [
                     <?php $field('Featured product', !empty($product['is_featured']) ? 'Yes' : 'No'); ?>
                     <?php $field('Status', $isActive ? 'Active / Visible' : 'Draft'); ?>
                 </div>
+            <?php elseif ($tab === 'options'): ?>
+                <?php if ($productOptions ?? []): ?>
+                    <div class="space-y-6">
+                        <?php foreach ($productOptions as $opt): ?>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-sm font-bold text-secondary"><?= htmlspecialchars((string) $opt['name']) ?></h3>
+                                    <span class="rounded-lg bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 border border-slate-200"><?= htmlspecialchars((string) $opt['type']) ?> <?= $opt['is_required'] ? '(Required)' : '' ?></span>
+                                </div>
+                                <?php if ($opt['values'] ?? []): ?>
+                                    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        <?php foreach ($opt['values'] as $val): ?>
+                                            <div class="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
+                                                <?php if ($opt['type'] === 'image_select' && ($val['image_path'] ?? '')): ?>
+                                                    <img src="<?= htmlspecialchars($normalizeImage((string) $val['image_path'])) ?>" alt="" class="h-10 w-10 shrink-0 rounded-lg object-cover border border-slate-100">
+                                                <?php endif; ?>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="truncate text-xs font-semibold text-secondary"><?= htmlspecialchars((string) $val['label']) ?></p>
+                                                    <?php if ((float)($val['price_adjustment'] ?? 0) > 0): ?>
+                                                        <p class="text-[10px] font-bold text-emerald-600">+ LKR <?= number_format((float)$val['price_adjustment'], 2) ?></p>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <p class="text-sm italic text-slate-400">No product options configured.</p>
+                <?php endif; ?>
             <?php endif; ?>
-        </div>
+                </div>
+                <?php endif; ?>
+            </details>
+            <?php endforeach; ?>
     </div>
 </div>
 

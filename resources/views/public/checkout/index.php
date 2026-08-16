@@ -134,7 +134,7 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
                     <div class="mt-5 rounded-2xl border border-accent/20 bg-accent/10 p-4 text-sm font-semibold text-accent">No bank account is configured. Please contact GiftVibe before placing this order.</div>
                 <?php endif; ?>
                 
-                <label class="mt-5 block text-sm font-semibold text-secondary">Payment receipt (JPG, PNG, WebP, or PDF)<input required type="file" name="receipt" accept="image/jpeg,image/png,image/webp,application/pdf" class="mt-2 block w-full rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-secondary file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:font-bold file:text-white"></label>
+                <label class="mt-5 block text-sm font-semibold text-secondary">Payment receipt (JPG, PNG, WebP, or PDF)<input type="file" name="receipt" accept="image/jpeg,image/png,image/webp,application/pdf" class="mt-2 block w-full rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-secondary file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:font-bold file:text-white"></label>
                 <label class="mt-5 block text-sm font-semibold text-secondary">Order notes<textarea name="customer_notes" rows="3" class="mt-2 <?= $field ?>"></textarea></label>
             </section>
         </div>
@@ -146,12 +146,17 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
                 <div class="mt-5 divide-y divide-primary/10 border-b border-primary/10">
                     <?php foreach($orderItems as $product): ?>
                         <div class="py-3">
-                            <div class="flex justify-between gap-3">
-                                <p class="text-sm font-semibold text-secondary"><?= htmlspecialchars($product['name']) ?> × <?= (int)$product['quantity'] ?></p>
-                                <p class="shrink-0 text-sm font-bold text-secondary">LKR <?= number_format((float)$product['line_total'],2) ?></p>
+                            <div class="flex items-center gap-3">
+                                <?php if (!empty($product['image_path'])): ?><img src="<?= htmlspecialchars(app_url((string) $product['image_path'])) ?>" alt="" class="h-12 w-14 shrink-0 rounded-lg object-cover ring-1 ring-slate-200"><?php endif; ?>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex justify-between gap-3">
+                                        <p class="text-sm font-semibold text-secondary"><?= htmlspecialchars($product['name']) ?> × <?= (int)$product['quantity'] ?></p>
+                                        <p class="shrink-0 text-sm font-bold text-secondary">LKR <?= number_format((float)$product['line_total'],2) ?></p>
+                                    </div>
+                                    <p class="mt-1 text-xs text-secondary/55">LKR <?= number_format((float)$product['base_price'],2) ?> each</p>
+                                    <?php if (!empty($product['variant_name'])): ?><p class="mt-1 text-xs font-bold text-primary">Colour: <?= htmlspecialchars((string) $product['variant_name']) ?></p><?php endif; ?>
+                                </div>
                             </div>
-                            <p class="mt-1 text-xs text-secondary/55">LKR <?= number_format((float)$product['base_price'],2) ?> each</p>
-                            <?php if (!empty($product['variant_name'])): ?><p class="mt-1 text-xs font-bold text-primary">Colour: <?= htmlspecialchars((string) $product['variant_name']) ?></p><?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -201,6 +206,8 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
             pay = method === 'cod' ? Math.min(500, total) : total;
         amount.textContent = 'LKR ' + pay.toLocaleString('en-LK',{minimumFractionDigits:2,maximumFractionDigits:2});
         codMessage.classList.toggle('hidden', method !== 'cod');
+        var receipt = document.querySelector('input[name="receipt"]');
+        if (receipt) receipt.required = (method !== 'cod');
     }
     
     function updateRecipient(){

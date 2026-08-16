@@ -25,6 +25,8 @@ declare(strict_types=1);
 
 </div>
 
+<?php require __DIR__ . '/components/_drawer.php'; ?>
+
 <script class="hidden" type="application/x-disabled">
 document.addEventListener('DOMContentLoaded', function () {
     var table = document.querySelector('[data-datatable][data-id="finance-table"]');

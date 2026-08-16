@@ -20,6 +20,13 @@ class CategoryController extends Controller
         }
 
         $categories = $pdo->query('SELECT * FROM categories ORDER BY sort_order, id')->fetchAll();
+        $viewCategory = null;
+        $viewId = filter_input(INPUT_GET, 'view', FILTER_VALIDATE_INT);
+        if ($viewId) {
+            $statement = $pdo->prepare('SELECT * FROM categories WHERE id = ?');
+            $statement->execute([$viewId]);
+            $viewCategory = $statement->fetch() ?: null;
+        }
         $editCategory = null;
         $editId = filter_input(INPUT_GET, 'edit', FILTER_VALIDATE_INT);
         if ($editId) {
@@ -36,7 +43,7 @@ class CategoryController extends Controller
             'title' => 'Categories',
             'pageTitle' => 'Categories',
             'showPageTitle' => false,
-            'content' => $this->render('admin/categories/index', compact('categories', 'editCategory', 'flash') + ['csrfToken' => $_SESSION['csrf_token']]),
+            'content' => $this->render('admin/categories/index', compact('categories', 'viewCategory', 'editCategory', 'flash') + ['csrfToken' => $_SESSION['csrf_token']]),
         ]);
     }
 
@@ -103,7 +110,7 @@ class CategoryController extends Controller
                 $payload['name'], $payload['slug'], $payload['description'], $payload['link_url'], $payload['image'], $payload['image_alt_text'],
                 $payload['sort_order'], $payload['status'], $payload['meta_title'], $payload['meta_description'], $id,
             ]);
-            $this->redirect('Category updated.');
+            $this->redirect('Category updated.', 'success', $id, true);
         }
 
         $pdo->prepare('INSERT INTO categories (name, slug, description, link_url, image_path, image_alt_text, sort_order, status, meta_title, meta_description) VALUES (?,?,?,?,?,?,?,?,?,?)')->execute([
@@ -274,10 +281,11 @@ class CategoryController extends Controller
         return '/assets/uploads/categories/' . $name;
     }
 
-    private function redirect(string $message, string $type = 'success', ?int $id = null): never
+    private function redirect(string $message, string $type = 'success', ?int $id = null, bool $viewMode = false): never
     {
         $_SESSION['category_flash'] = compact('message', 'type');
-        header('Location: ' . app_url('/admin/categories' . ($id ? '?edit=' . $id : '')), true, 303);
+        $query = $id ? '?' . ($viewMode ? 'view' : 'edit') . '=' . $id : '';
+        header('Location: ' . app_url('/admin/categories' . $query), true, 303);
         exit;
     }
 

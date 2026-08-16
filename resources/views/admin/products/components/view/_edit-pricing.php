@@ -17,11 +17,10 @@
             <p id="profit-display" class="mt-0.5 text-2xl font-black text-emerald-600">LKR 0.00</p>
         </div>
     </div>
-    <label class="block">
+    <label class="block" data-product-stock-field>
         <span class="mb-1.5 block text-xs font-bold text-secondary">Stock quantity</span>
         <input type="number" min="0" name="stock_quantity" value="<?= (int) ($editProduct['stock_quantity'] ?? 0) ?>" class="<?= $fc ?>">
     </label>
-    <?php require dirname(__DIR__) . '/_variants.php'; ?>
     <div class="grid gap-3 sm:grid-cols-2">
         <label class="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-secondary">
             Featured product
@@ -33,3 +32,10 @@
         </label>
     </div>
 </div>
+<script>
+(function(){
+    var root=document.currentScript.previousElementSibling,stockField=root?.querySelector('[data-product-stock-field]'),stockInput=stockField?.querySelector('[name="stock_quantity"]');
+    function syncStockField(){var handcrafted=root?.querySelector('[name="procurement_type"]:checked')?.value==='handcrafted';stockField?.classList.toggle('hidden',handcrafted);if(stockInput){stockInput.disabled=handcrafted;if(handcrafted)stockInput.value='0';}}
+    root?.querySelectorAll('[name="procurement_type"]').forEach(function(input){input.addEventListener('change',syncStockField);});syncStockField();
+})();
+</script>

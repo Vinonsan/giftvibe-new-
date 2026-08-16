@@ -56,7 +56,7 @@ $fieldClass = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text
             <h3 class="text-lg font-bold text-secondary tracking-tight">Share Your Experience</h3>
             <p class="mt-1.5 text-xs text-slate-500 leading-normal">Your feedback helps us grow and keep spreading positive vibes.</p>
             
-            <form id="public-review-form" method="post" action="/reviews" enctype="multipart/form-data" class="mt-6 space-y-4">
+            <form id="public-review-form" method="post" action="<?= htmlspecialchars(app_url('/reviews')) ?>" enctype="multipart/form-data" class="mt-6 space-y-4">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <!-- Honeypot -->
                 <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">

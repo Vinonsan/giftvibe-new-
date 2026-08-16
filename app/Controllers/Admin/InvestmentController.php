@@ -39,19 +39,16 @@ final class InvestmentController extends Controller
             $pdo->prepare('DELETE FROM investments WHERE id=?')->execute([$id]);
             $this->redirect('Investment deleted.');
         }
-        $name = trim((string)($_POST['member_name'] ?? ''));
-        $phone = trim((string)($_POST['phone'] ?? ''));
         $amount = (float)($_POST['amount'] ?? 0);
-        $date = trim((string)($_POST['investment_date'] ?? '')) ?: date('Y-m-d');
-        $notes = trim((string)($_POST['notes'] ?? ''));
-        if ($name === '' || $amount <= 0) $this->redirect('Investor name and a valid amount are required.', 'error');
+        $date = date('Y-m-d');
+        if ($amount <= 0) $this->redirect('Enter a valid investment amount.', 'error');
         if ($id > 0) {
             $pdo->prepare("UPDATE investments SET member_name=?,phone=?,amount=?,investment_date=?,notes=?,status='received' WHERE id=?")
-                ->execute([$name,$phone ?: null,$amount,$date,$notes ?: null,$id]);
+                ->execute(['Investment',null,$amount,$date,null,$id]);
             $this->redirect('Investment updated.');
         }
         $pdo->prepare("INSERT INTO investments(member_name,phone,amount,investment_date,notes,status) VALUES(?,?,?,?,?,'received')")
-            ->execute([$name,$phone ?: null,$amount,$date,$notes ?: null]);
+            ->execute(['Investment',null,$amount,$date,null]);
         $this->redirect('Investment added to cash on hand.');
     }
 

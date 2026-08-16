@@ -1,4 +1,4 @@
-﻿-- GiftVibe LK — full database schema (generated from local dev DB)
+-- GiftVibe LK — full database schema (generated from local dev DB)
 -- Import once on cPanel phpMyAdmin.
 
 -- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
@@ -805,6 +805,23 @@ CREATE TABLE `inventory_movements` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `inventory_batches`
+--
+
+DROP TABLE IF EXISTS `inventory_batches`;
+CREATE TABLE `inventory_batches` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `inventory_item_id` bigint(20) unsigned NOT NULL,
+  `unit_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `quantity_received` int(11) NOT NULL DEFAULT 0,
+  `quantity_remaining` int(11) NOT NULL DEFAULT 0,
+  `received_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_inventory_batches_item` (`inventory_item_id`),
+  KEY `idx_inventory_batches_cost` (`inventory_item_id`,`unit_cost`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
 -- Table structure for table `message_replies`
 --
 
@@ -879,6 +896,7 @@ CREATE TABLE `order_items` (
   `order_id` bigint(20) unsigned NOT NULL,
   `product_id` bigint(20) unsigned DEFAULT NULL,
   `variant_id` bigint(20) unsigned DEFAULT NULL,
+  `image_path` varchar(255) DEFAULT NULL,
   `product_name` varchar(190) NOT NULL,
   `sku` varchar(80) DEFAULT NULL,
   `quantity` int(10) unsigned NOT NULL DEFAULT 1,
@@ -1111,6 +1129,7 @@ CREATE TABLE `product_option_values` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `option_id` bigint(20) unsigned NOT NULL,
   `label` varchar(160) NOT NULL,
+  `image_path` varchar(255) DEFAULT NULL,
   `price_adjustment` decimal(12,2) NOT NULL DEFAULT 0.00,
   `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
@@ -1130,7 +1149,7 @@ CREATE TABLE `product_options` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `product_id` bigint(20) unsigned NOT NULL,
   `name` varchar(160) NOT NULL,
-  `type` enum('text','textarea','select','radio','checkbox','file') NOT NULL DEFAULT 'text',
+  `type` enum('text','textarea','select','radio','checkbox','file','image_select') NOT NULL DEFAULT 'text',
   `is_required` tinyint(1) NOT NULL DEFAULT 0,
   `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),

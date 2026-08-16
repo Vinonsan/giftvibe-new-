@@ -30,10 +30,12 @@ final class FinanceSummaryService
         }
 
         $businessExpenses = self::businessExpensesTotal($pdo);
+        $personalWithdrawals = self::personalWithdrawalsTotal($pdo);
         $totalInvestments = self::investmentTotal($pdo);
         $productPurchases = self::productProcurementTotal($pdo);
         $grossProfit = $totalIncome - $totalCogs;
-        $netProfit = $grossProfit - $businessExpenses;
+        $netProfit = $grossProfit;
+        $availableProfit = max(0.0, $netProfit - $personalWithdrawals);
         $cashReceived = self::receivedPaymentsTotal($pdo);
         $cashOnHand = $cashReceived + $totalInvestments - $businessExpenses - $productPurchases;
 
@@ -73,6 +75,8 @@ final class FinanceSummaryService
             'totalInvestments' => $totalInvestments,
             'productPurchases' => $productPurchases,
             'netProfit' => $netProfit,
+            'personalWithdrawals' => $personalWithdrawals,
+            'availableProfit' => $availableProfit,
             'cashOnHand' => $cashOnHand,
             'margin' => $totalIncome > 0 ? ($netProfit / $totalIncome) * 100 : 0,
             'deliveredCount' => (int) ($incomeRow['cnt'] ?? 0),
@@ -89,7 +93,18 @@ final class FinanceSummaryService
     {
         try {
             return (float) ($pdo->query(
-                "SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE status IN ('approved','paid')"
+                "SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE status IN ('approved','paid') AND paid_source <> 'profit'"
+            )->fetchColumn() ?: 0);
+        } catch (\PDOException) {
+            return 0.0;
+        }
+    }
+
+    public static function personalWithdrawalsTotal(PDO $pdo): float
+    {
+        try {
+            return (float) ($pdo->query(
+                "SELECT COALESCE(SUM(amount), 0) FROM expenses WHERE status IN ('approved','paid') AND paid_source = 'profit'"
             )->fetchColumn() ?: 0);
         } catch (\PDOException) {
             return 0.0;

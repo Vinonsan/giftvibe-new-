@@ -96,7 +96,10 @@ $siteName = $settings['site_name'] ?? 'GiftVibe';
                         <?php foreach ($items as $item): ?>
                             <tr class="text-slate-700 font-medium">
                                 <td class="py-3">
-                                    <span class="font-bold text-slate-800"><?= htmlspecialchars($item['product_name']) ?></span>
+                                    <span class="inline-flex items-center gap-2">
+                                        <?php if (!empty($item['image_path'])): ?><img src="<?= htmlspecialchars(app_url((string) $item['image_path'])) ?>" alt="" class="h-10 w-12 shrink-0 rounded object-cover"><?php endif; ?>
+                                        <span class="font-bold text-slate-800"><?= htmlspecialchars($item['product_name']) ?></span>
+                                    </span>
                                     <?php if ($item['sku']): ?>
                                         <small class="block text-[9px] text-slate-400 font-normal mt-0.5">SKU: <?= htmlspecialchars($item['sku']) ?></small>
                                     <?php endif; ?>

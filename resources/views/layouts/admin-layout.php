@@ -9,6 +9,8 @@ $basePath = app_base_path();
 if ($basePath !== '' && str_starts_with($currentPath, $basePath)) {
     $currentPath = substr($currentPath, strlen($basePath)) ?: '/';
 }
+$isEmbeddedDetail = ($_GET['drawer'] ?? '') === '1'
+    && preg_match('~^/admin/(?:categories|products|combos|orders|customers)/view$~', $currentPath) === 1;
 
 $sidebarMenu = [
     [
@@ -42,7 +44,8 @@ $sidebarMenu = [
         'icon'  => '<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>',
         'href'  => '#',
         'children' => [
-            ['label' => 'Orders',        'href' => '/admin/orders'],
+            ['label' => 'All Orders',    'href' => '/admin/orders'],
+            ['label' => 'Create Order',  'href' => '/admin/orders/create'],
             ['label' => 'Customers',     'href' => '/admin/customers'],
             ['label' => 'Messages',      'href' => '/admin/messages'],
         ],
@@ -159,18 +162,55 @@ try {
         }
     </script>
 </head>
-<body class="bg-white font-sans text-slate-800 antialiased">
+<body class="bg-white font-sans text-slate-800 antialiased <?= $isEmbeddedDetail ? 'admin-embedded-detail' : '' ?>">
     <?php require BASE_PATH . '/resources/views/components/base/feedback.php'; ?>
-    <?php require BASE_PATH . '/resources/views/components/navigation/admin-sidebar.php'; ?>
+    <?php if (!$isEmbeddedDetail): ?>
+        <?php require BASE_PATH . '/resources/views/components/navigation/admin-sidebar.php'; ?>
+    <?php endif; ?>
 
-    <div class="flex min-h-screen min-w-0 flex-col lg:pl-72" data-admin-content>
-        <?php require BASE_PATH . '/resources/views/components/navigation/admin-navbar.php'; ?>
+    <div class="flex min-h-screen min-w-0 flex-col <?= $isEmbeddedDetail ? '' : 'lg:pl-72' ?>" data-admin-content>
+        <?php if (!$isEmbeddedDetail): ?>
+            <?php require BASE_PATH . '/resources/views/components/navigation/admin-navbar.php'; ?>
+        <?php endif; ?>
 
-        <main class="min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6" data-admin-main>
+        <main class="min-w-0 flex-1 overflow-x-hidden <?= $isEmbeddedDetail ? 'p-4' : 'p-4 sm:p-6' ?>" data-admin-main>
             <div class="mx-auto w-full min-w-0 max-w-[1600px]">
                 <?= $content ?? '' ?>
             </div>
         </main>
     </div>
+    <?php if (!$isEmbeddedDetail): ?>
+        <?php
+        $drawerId = 'admin-record-view-drawer';
+        $drawerSide = 'right';
+        $drawerSize = 'xl';
+        $drawerTitle = 'Details';
+        $drawerDescription = '';
+        $drawerTrigger = '<button type="button" data-drawer-open="admin-record-view-drawer" data-admin-record-trigger class="hidden" tabindex="-1" aria-hidden="true"></button>';
+        $drawerBody = '<iframe data-admin-record-frame title="Admin record details" class="h-full min-h-0 w-full border-0 bg-white"></iframe>';
+        $drawerBodyClass = 'min-h-0 flex-1 overflow-hidden bg-white';
+        $drawerFooter = '';
+        $drawerStatic = false;
+        $drawerCloseOnEsc = true;
+        $drawerShowCloseButton = true;
+        $drawerOverlay = true;
+        $drawerHeaderBottom = '';
+        require BASE_PATH . '/resources/views/components/base/drawer.php';
+        ?>
+        <script>
+        (function () {
+            var drawer=document.getElementById('admin-record-view-drawer'),frame=drawer?.querySelector('[data-admin-record-frame]'),trigger=document.querySelector('[data-admin-record-trigger]'),title=drawer?.querySelector('h3');
+            if(!drawer||!frame||!trigger)return;
+            document.addEventListener('click',function(event){var link=event.target.closest('a[href]');if(!link||event.defaultPrevented||event.button!==0||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;var url=new URL(link.href,window.location.href);if(url.origin!==window.location.origin||!/^.*\/admin\/(categories|products|combos|orders|customers)\/view$/.test(url.pathname))return;event.preventDefault();url.searchParams.set('drawer','1');frame.src=url.toString();if(title)title.textContent=/\/admin\/products\/view$/.test(url.pathname)?'Product details':'Details';trigger.click();});
+        })();
+        </script>
+    <?php else: ?>
+        <script>
+        document.addEventListener('DOMContentLoaded',function(){
+            document.querySelectorAll('a[href*="/admin/"][href*="/view"]').forEach(function(link){var url=new URL(link.href,location.href);url.searchParams.set('drawer','1');link.href=url.toString();});
+            document.querySelectorAll('form[action*="/admin/"][action*="/view"]').forEach(function(form){var url=new URL(form.action,location.href);url.searchParams.set('drawer','1');form.action=url.toString();});
+        });
+        </script>
+    <?php endif; ?>
 </body>
 </html>

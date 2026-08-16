@@ -25,7 +25,7 @@ declare(strict_types=1);
                         <td class="px-4 py-3 text-right font-semibold text-secondary">LKR <?= number_format((float) $order['grand_total'], 2) ?></td>
                         <td class="px-4 py-3 text-right text-xs text-slate-400"><?= htmlspecialchars(substr((string) ($order['created_at'] ?? ''), 0, 10)) ?></td>
                         <td class="px-4 py-3 text-right">
-                            <a href="/admin/orders/view?id=<?= (int) $order['id'] ?>" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 hover:text-primary" title="View order">
+                            <a href="<?= htmlspecialchars(app_url('/admin/orders?view=' . (int) $order['id'])) ?>" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 hover:text-primary" title="View order">
                                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"/><circle cx="12" cy="12" r="2.25"/></svg>
                             </a>
                         </td>
