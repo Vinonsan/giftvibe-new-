@@ -2,13 +2,31 @@
 
 declare(strict_types=1);
 
+use App\Core\Database;
+
 $sidebarMenu = $sidebarMenu ?? [];
 $currentPath = $currentPath ?? ($_SERVER['REQUEST_URI'] ?? '/admin');
 $currentPath = rtrim((string) parse_url($currentPath, PHP_URL_PATH), '/') ?: '/';
+$sidebarBase = app_base_path();
+if ($sidebarBase !== '' && str_starts_with($currentPath, $sidebarBase)) {
+    $currentPath = rtrim(substr($currentPath, strlen($sidebarBase)) ?: '/', '/') ?: '/';
+}
+$sidebarHref = static function (string $href): string {
+    if ($href === '' || $href === '#') {
+        return '#';
+    }
+    return app_url($href);
+};
 $footerMenu = array_values(array_filter(
     $sidebarMenu,
     static fn (array $item): bool => ($item['placement'] ?? '') === 'footer'
 ));
+
+$pdo = Database::connection();
+$general = $pdo->query("SELECT * FROM general_settings WHERE id = 1")->fetch(PDO::FETCH_ASSOC) ?: [];
+$logo = (string)($general['site_logo'] ?? '/assets/images/logo.svg');
+$logoUrl = str_starts_with($logo, 'http') ? $logo : app_url($logo);
+$siteName = (string)($general['site_name'] ?? 'GiftVibe');
 ?>
 
 <style>
@@ -26,11 +44,11 @@ $footerMenu = array_values(array_filter(
      data-sidebar-overlay></div>
 
 <aside id="admin-sidebar"
-       class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-white border-r border-slate-200 transition-transform duration-300 ease-in-out lg:translate-x-0"
+       class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-white border-r border-primary/10 transition-transform duration-300 ease-in-out lg:translate-x-0"
        data-sidebar>
 
     <button type="button"
-            class="absolute top-[3.25rem] -right-3.5 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm transition duration-200 hover:border-primary/20 hover:bg-primary/5 hover:text-primary cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 lg:flex"
+            class="absolute top-[3.25rem] -right-3.5 z-50 hidden h-7 w-7 items-center justify-center rounded-full border border-primary/10 bg-white text-slate-400 shadow-sm transition duration-200 hover:border-primary/20 hover:bg-primary/5 hover:text-primary cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 lg:flex"
             data-sidebar-collapse-toggle
             aria-label="Collapse sidebar">
         <svg class="h-4 w-4 transition-transform duration-300" data-collapse-toggle-icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -38,14 +56,17 @@ $footerMenu = array_values(array_filter(
         </svg>
     </button>
 
-    <div class="shrink-0 border-b border-slate-100 p-3">
-        <div class="flex h-14 items-center justify-between  px-3.5">
-            <a href="/admin" class="flex min-w-0 items-center gap-3">
-                <img src="/assets/images/giftvibe-mark.svg"
-                     alt="GiftVibe"
-                     class="h-9 w-9 shrink-0 rounded-lg shadow-sm">
+    <div class="shrink-0 border-b border-primary/10 p-3">
+        <div class="flex h-14 items-center justify-between px-3.5">
+            <a href="<?= htmlspecialchars($sidebarHref('/admin')) ?>" class="flex min-w-0 items-center gap-3">
+                <img src="<?= htmlspecialchars($logoUrl) ?>"
+                     alt="<?= htmlspecialchars($siteName) ?>"
+                     data-sidebar-logo
+                     width="36" height="36"
+                     style="width:2.25rem;height:2.25rem;max-width:2.25rem;object-fit:contain"
+                     class="h-9 w-9 shrink-0 rounded-lg shadow-sm object-contain border border-primary/10">
                 <span class="truncate text-lg font-extrabold tracking-tight text-secondary" data-sidebar-logo-text>
-                    Gift<span class="text-primary">Vibe</span>
+                    <?= htmlspecialchars($siteName) ?>
                 </span>
             </a>
 
@@ -60,7 +81,7 @@ $footerMenu = array_values(array_filter(
         </div>
     </div>
 
-    <nav class="flex-1 space-y-3 overflow-y-auto px-3 py-3" data-sidebar-nav>
+    <nav class="flex-1 space-y-1.5 overflow-y-auto px-3 py-3" data-sidebar-nav>
         <?php foreach ($sidebarMenu as $item):
             if (($item['placement'] ?? '') === 'footer') {
                 continue;
@@ -87,12 +108,12 @@ $footerMenu = array_values(array_filter(
         <?php if ($hasChildren): ?>
             <div data-sidebar-group>
                 <button type="button"
-                        class="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition duration-200 cursor-pointer  
-                               <?= $isActive ? 'bg-primary text-white shadow-sm shadow-primary/15' : 'text-slate-600 hover:bg-secondary/20 hover:text-secondary' ?>"
+                        class="flex min-h-10.5 w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition duration-150 cursor-pointer  
+                               <?= $isActive ? 'bg-primary text-white shadow-sm shadow-primary/15' : 'text-slate-600 hover:bg-primary/5 hover:text-primary' ?>"
                         data-sidebar-toggle
                         aria-expanded="<?= $childActive ? 'true' : 'false' ?>">
                     <?php if (!empty($item['icon'])): ?>
-                        <span class="flex h-5 w-5 shrink-0 items-center justify-center <?= $isActive ? 'text-white' : 'text-slate-400' ?>"><?= $item['icon'] ?></span>
+                        <span class="flex h-5 w-5 shrink-0 items-center justify-center <?= $isActive ? 'text-white' : 'text-slate-400 group-hover:text-primary' ?>"><?= $item['icon'] ?></span>
                     <?php endif; ?>
                     <span class="flex-1 text-left" data-sidebar-text><?= htmlspecialchars($item['label']) ?></span>
                     <svg class="h-4 w-4 shrink-0 transition-transform duration-200 <?= $isActive ? 'text-white/70' : 'text-slate-400' ?> <?= $childActive ? 'rotate-90' : '' ?>"
@@ -103,16 +124,16 @@ $footerMenu = array_values(array_filter(
                 <div class="overflow-hidden transition-all duration-300 ease-in-out"
                      data-sidebar-submenu
                      style="<?= $childActive ? '' : 'max-height:0' ?>">
-                    <div class="ml-5 mt-1 space-y-0.5 border-l border-slate-200 py-1 pl-4">
+                    <div class="ml-5 mt-1 space-y-0.5 border-l border-primary/10 py-1 pl-4">
                         <?php foreach ($item['children'] as $child):
                             $childHref = rtrim((string) ($child['href'] ?? ''), '/') ?: '/';
                             $isChildActive = ($child['active'] ?? false) || $childHref === $currentPath;
                         ?>
-                            <a href="<?= htmlspecialchars($child['href'] ?? '#') ?>"
-                               class="block rounded-lg px-3 py-2 text-[13px] font-medium leading-5 transition duration-150
+                            <a href="<?= htmlspecialchars($sidebarHref((string) ($child['href'] ?? '#'))) ?>"
+                               class="block rounded-lg px-3 py-1.5 text-[13px] font-medium leading-5 transition duration-150
                                       <?= $isChildActive
-                                          ? 'bg-secondary text-white font-semibold shadow-sm'
-                                          : 'text-slate-500 hover:bg-slate-100 hover:text-secondary' ?>">
+                                          ? 'bg-primary/10 text-primary font-semibold'
+                                          : 'text-slate-500 hover:bg-primary/5 hover:text-primary' ?>">
                                 <?= htmlspecialchars($child['label']) ?>
                             </a>
                         <?php endforeach; ?>
@@ -120,9 +141,9 @@ $footerMenu = array_values(array_filter(
                 </div>
             </div>
         <?php else: ?>
-            <a href="<?= htmlspecialchars($item['href'] ?? '#') ?>"
-               class="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition duration-200
-                      <?= $isActive ? 'bg-primary text-white shadow-sm shadow-primary/15' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' ?>">
+            <a href="<?= htmlspecialchars($sidebarHref((string) ($item['href'] ?? '#'))) ?>"
+               class="flex min-h-10.5 items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition duration-150
+                      <?= $isActive ? 'bg-primary text-white shadow-sm shadow-primary/15' : 'text-slate-600 hover:bg-primary/5 hover:text-primary' ?>">
                 <?php if (!empty($item['icon'])): ?>
                     <span class="flex h-5 w-5 shrink-0 items-center justify-center <?= $isActive ? 'text-white' : 'text-slate-400' ?>"><?= $item['icon'] ?></span>
                 <?php endif; ?>
@@ -133,18 +154,18 @@ $footerMenu = array_values(array_filter(
     </nav>
 
     <?php if ($footerMenu): ?>
-        <div class="shrink-0 border-t border-slate-100 bg-white p-3" data-sidebar-footer>
+        <div class="shrink-0 border-t border-primary/10 bg-white p-3" data-sidebar-footer>
             <?php foreach ($footerMenu as $item):
                 $itemHref = rtrim((string) ($item['href'] ?? ''), '/') ?: '/';
                 $isActive = ($item['active'] ?? false) || $itemHref === $currentPath;
             ?>
-                <a href="<?= htmlspecialchars((string) ($item['href'] ?? '#')) ?>"
-                   class="flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-medium transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary/20
+                <a href="<?= htmlspecialchars($sidebarHref((string) ($item['href'] ?? '#'))) ?>"
+                   class="flex min-h-10.5 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-medium transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/20
                           <?= $isActive
-                              ? 'border-secondary bg-secondary text-white shadow-sm'
-                              : 'border-secondary/10 text-secondary hover:border-secondary/15 hover:bg-secondary/10' ?>">
+                              ? 'border-primary bg-primary text-white shadow-sm shadow-primary/15'
+                              : 'border-primary/10 text-slate-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary' ?>">
                     <?php if (!empty($item['icon'])): ?>
-                        <span class="flex h-5 w-5 shrink-0 items-center justify-center <?= $isActive ? 'text-white' : 'text-secondary/60' ?>"><?= $item['icon'] ?></span>
+                        <span class="flex h-5 w-5 shrink-0 items-center justify-center <?= $isActive ? 'text-white' : 'text-slate-400' ?>"><?= $item['icon'] ?></span>
                     <?php endif; ?>
                     <span data-sidebar-text><?= htmlspecialchars((string) ($item['label'] ?? '')) ?></span>
                 </a>
@@ -162,6 +183,8 @@ $footerMenu = array_values(array_filter(
     var overlay = document.querySelector('[data-sidebar-overlay]');
     var collapseToggle = document.querySelector('[data-sidebar-collapse-toggle]');
     var toggleIcon = document.querySelector('[data-collapse-toggle-icon]');
+    var adminContent = document.querySelector('[data-admin-content]');
+    var desktopQuery = window.matchMedia('(min-width: 1024px)');
     if (!sidebar) return;
 
     function updateCollapseIcon(isCollapsed) {
@@ -172,17 +195,37 @@ $footerMenu = array_values(array_filter(
                 toggleIcon.classList.remove('rotate-180');
             }
         }
+        if (collapseToggle) {
+            collapseToggle.setAttribute('aria-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+            collapseToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        }
     }
 
-    if (localStorage.getItem('sidebar-collapsed') === 'true') {
-        updateCollapseIcon(true);
+    function applyCollapsedState(collapsed) {
+        collapsed = collapsed && desktopQuery.matches;
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
+        sidebar.style.width = collapsed ? '5rem' : '';
+        if (adminContent) adminContent.style.paddingLeft = collapsed ? '5rem' : '';
+
+        sidebar.querySelectorAll('[data-sidebar-text], [data-sidebar-chevron], [data-sidebar-logo-text], [data-sidebar-submenu]').forEach(function (element) {
+            element.hidden = collapsed;
+        });
+        sidebar.querySelectorAll('[data-sidebar-group] > button, nav > a, [data-sidebar-footer] a').forEach(function (element) {
+            element.style.justifyContent = collapsed ? 'center' : '';
+            element.style.paddingLeft = collapsed ? '0' : '';
+            element.style.paddingRight = collapsed ? '0' : '';
+        });
+        updateCollapseIcon(collapsed);
     }
+
+    applyCollapsedState(localStorage.getItem('sidebar-collapsed') === 'true');
 
     if (collapseToggle) {
         collapseToggle.addEventListener('click', function () {
-            var isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+            var isCollapsed = !document.body.classList.contains('sidebar-collapsed');
             localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
-            updateCollapseIcon(isCollapsed);
+            applyCollapsedState(isCollapsed);
 
             if (isCollapsed) {
                 sidebar.querySelectorAll('[data-sidebar-toggle]').forEach(function (btn) {
@@ -207,9 +250,8 @@ $footerMenu = array_values(array_filter(
 
         btn.addEventListener('click', function () {
             if (document.body.classList.contains('sidebar-collapsed')) {
-                document.body.classList.remove('sidebar-collapsed');
                 localStorage.setItem('sidebar-collapsed', 'false');
-                updateCollapseIcon(false);
+                applyCollapsedState(false);
             }
 
             var expanded = btn.getAttribute('aria-expanded') === 'true';
@@ -262,6 +304,10 @@ $footerMenu = array_values(array_filter(
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeSidebar();
+    });
+
+    desktopQuery.addEventListener('change', function () {
+        applyCollapsedState(localStorage.getItem('sidebar-collapsed') === 'true');
     });
 
     window.GiftVibeUI.sidebar = true;

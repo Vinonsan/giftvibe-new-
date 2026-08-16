@@ -9,17 +9,19 @@ declare(strict_types=1);
  */
 
 $heroSlides = $heroSlides ?? [];
+$initialBackground = (string) ($heroSlides[0]['background_color'] ?? '#0B1528');
+$initialBackground = preg_match('/^#[0-9A-Fa-f]{6}$/', $initialBackground) ? $initialBackground : '#0B1528';
 ?>
 
 <div id="hero-slider-container" 
-     class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 my-6 overflow-hidden transition-colors duration-1000 ease-in-out bg-[#0B1528] rounded-3xl"
-     style="min-height: 520px;">
+     class="relative mx-auto w-full max-w-7xl overflow-hidden rounded-3xl px-4 transition-colors duration-1000 ease-in-out"
+     style="min-height: 520px; background-color: <?= htmlspecialchars($initialBackground) ?>;">
 
     <!-- Background overlays for smooth color blending -->
     <div class="absolute inset-0 bg-linear-to-t from-black/20 to-transparent pointer-events-none"></div>
 
     <!-- Slides container -->
-    <div class="relative w-full h-full flex flex-col justify-center py-12 md:py-20 lg:py-24 px-6 md:px-12 lg:px-16" style="min-height: 520px;">
+    <div class="relative w-full h-full flex flex-col justify-center py-12  px-8" style="min-height: 520px;">
         <?php foreach ($heroSlides as $index => $slide):
             /* Parse custom packed subtitle format: tag|subText|price|btnText|bgColor */
             $parts = explode('|', $slide['subtitle'] ?? '');
@@ -27,14 +29,21 @@ $heroSlides = $heroSlides ?? [];
             $subText = $parts[1] ?? '';
             $price = $parts[2] ?? '';
             $btnText = $parts[3] ?? 'SHOP NOW';
-            $bgColor = $parts[4] ?? 'bg-[#0B1528]';
+            $bgColor = (string) ($slide['background_color'] ?? '#0B1528');
+            $bgColor = preg_match('/^#[0-9A-Fa-f]{6}$/', $bgColor) ? $bgColor : '#0B1528';
+            $buttonColor = strtoupper((string) ($slide['button_color'] ?? '#102E50'));
+            $buttonColor = preg_match('/^#[0-9A-F]{6}$/', $buttonColor) ? $buttonColor : '#102E50';
+            $red = hexdec(substr($buttonColor, 1, 2));
+            $green = hexdec(substr($buttonColor, 3, 2));
+            $blue = hexdec(substr($buttonColor, 5, 2));
+            $buttonTextColor = (($red * 299 + $green * 587 + $blue * 114) / 1000) > 150 ? '#0B182E' : '#FFFFFF';
             
             $isActive = $index === 0;
         ?>
             <!-- Single Slide Panel -->
             <div data-hero-slide="<?= $index ?>" 
-                 data-bg-class="<?= htmlspecialchars($bgColor) ?>"
-                 class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full transition-all duration-700 absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 md:px-12 lg:px-16 <?= $isActive ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 pointer-events-none z-0' ?>">
+                 data-bg-color="<?= htmlspecialchars($bgColor) ?>"
+                 class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center w-full transition-all duration-700 absolute inset-x-0 top-1/2 -translate-y-1/2 px-6 <?= $isActive ? 'opacity-100 pointer-events-auto z-10' : 'opacity-0 z-0' ?>">
                 
                 <!-- Left: Text Content (Slides UP when active) -->
                 <div class="text-left space-y-4 md:space-y-6">
@@ -66,7 +75,8 @@ $heroSlides = $heroSlides ?? [];
                     <div class="pt-2 transform transition-all duration-700 ease-out delay-400 <?= $isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0' ?>"
                          data-slide-el="btn">
                         <a href="<?= htmlspecialchars($slide['link_url'] ?? '/shop') ?>" 
-                           class="inline-block bg-primary text-white text-sm font-bold tracking-wide uppercase px-8 py-3.5 rounded-xl shadow-lg shadow-primary/30 transition duration-300 hover:opacity-90 hover:shadow-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/40">
+                           style="background-color: <?= htmlspecialchars($buttonColor) ?>; color: <?= htmlspecialchars($buttonTextColor) ?>;"
+                           class="inline-block text-sm font-bold tracking-wide uppercase px-8 py-3.5 rounded-xl shadow-lg transition duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-white/40">
                             <?= htmlspecialchars($btnText) ?>
                         </a>
                     </div>
@@ -74,13 +84,14 @@ $heroSlides = $heroSlides ?? [];
 
                 <!-- Right: Image Content (Slides DOWN when active) -->
                 <div class="flex justify-center md:justify-end items-center">
-                    <img src="<?= htmlspecialchars($slide['image_path'] ?? '') ?>" 
+                    <img src="<?= $index === 0 ? htmlspecialchars($slide['image_path'] ?? '') : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=' ?>"
+                         <?= $index === 0 ? '' : 'data-src="' . htmlspecialchars((string) ($slide['image_path'] ?? ''), ENT_QUOTES) . '"' ?>
                          alt="<?= htmlspecialchars($slide['title']) ?>" 
                          width="640"
                          height="480"
                          loading="<?= $index === 0 ? 'eager' : 'lazy' ?>"
                          fetchpriority="<?= $index === 0 ? 'high' : 'auto' ?>"
-                         class="max-h-[300px] md:max-h-[420px] object-contain rounded-2xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] transform transition-all duration-1000 ease-out delay-200 <?= $isActive ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-12 opacity-0 scale-95' ?>"
+                         class="max-h-[300px] md:max-h-[420px] object-contain rounded-2xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] transform transition-all duration-1000 ease-out delay-200 <?= $isActive ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-12 scale-95' ?>"
                          data-slide-el="img">
                 </div>
             </div>
@@ -114,6 +125,11 @@ $heroSlides = $heroSlides ?? [];
     function activateSlide(index) {
         var prevSlide = slides[current];
         var nextSlide = slides[index];
+        var deferredImage = nextSlide.querySelector('img[data-src]');
+        if (deferredImage) {
+            deferredImage.src = deferredImage.getAttribute('data-src');
+            deferredImage.removeAttribute('data-src');
+        }
 
         /* Reset the elements of the old slide */
         prevSlide.classList.replace('opacity-100', 'opacity-0');
@@ -153,8 +169,8 @@ $heroSlides = $heroSlides ?? [];
         });
 
         /* Background color swap */
-        var bgClass = nextSlide.getAttribute('data-bg-class');
-        container.className = container.className.replace(/bg-\[[^\]]+\]/g, bgClass);
+        var bgColor = nextSlide.getAttribute('data-bg-color');
+        if (/^#[0-9A-Fa-f]{6}$/.test(bgColor)) container.style.backgroundColor = bgColor;
 
         /* Update dot highlights */
         dots[current].className = 'h-2.5 w-2.5 bg-white/40 hover:bg-white/70 rounded-full transition-all duration-300 cursor-pointer focus:outline-none';

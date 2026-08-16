@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@source "../views/admin/**/*.php";
+@source "../views/components/**/*.php";
+@source "../views/layouts/admin-layout.php";
+
+@theme {
+    --color-primary: #102E50;
+    --color-secondary: #1A3D64;
+    --color-accent: #ec4899;
+}
+
+body {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+}

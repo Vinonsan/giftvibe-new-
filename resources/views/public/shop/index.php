@@ -1,12 +1,34 @@
-<?php declare(strict_types=1); ?>
-<section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-    <?php $animatedHeadingEyebrow = 'GiftVibe shop'; $animatedHeadingTitle = $activeName; $animatedHeadingDescription = 'Choose a category and discover the perfect gift.'; require BASE_PATH . '/resources/views/components/base/animated-heading.php'; ?>
-    <nav class="mt-8 flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none]" aria-label="Product categories">
-        <a href="/shop" class="shrink-0 rounded-full px-4 py-2 text-sm font-semibold <?= $categorySlug === '' ? 'bg-primary text-white' : 'border border-slate-200 bg-white text-secondary hover:border-primary' ?>">All gifts</a>
-        <?php foreach ($categories as $category): ?><a href="/shop?category=<?= rawurlencode($category['slug']) ?>" class="shrink-0 rounded-full px-4 py-2 text-sm font-semibold <?= $categorySlug === $category['slug'] ? 'bg-primary text-white' : 'border border-slate-200 bg-white text-secondary hover:border-primary' ?>"><?= htmlspecialchars($category['name']) ?></a><?php endforeach; ?>
-    </nav>
-    <div class="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        <?php foreach ($products as $product) require BASE_PATH . '/resources/views/components/base/product-card.php'; ?>
-    </div>
-    <?php if (!$products): ?><div class="mt-8 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-16 text-center text-sm text-slate-500">No products are available in this category yet.</div><?php endif; ?>
+<?php
+declare(strict_types=1);
+$renderInput=static function(string $name,string $label,string $value,string $type,string $placeholder=''):void{$inputName=$name;$inputId='shop-'.$name;$inputLabel=$label;$inputValue=$value;$inputType=$type;$inputPlaceholder=$placeholder;$inputHint='';$inputError='';$inputSize='lg';$inputState='default';$inputRequired=false;$inputAutocomplete='off';$inputReadonly=false;$inputDisabled=false;$inputLeadingIcon='';$inputPrefix='';$inputTrailingIcon='';$inputSuffix='';$inputAttributes=[];$inputClass='';$inputWrapperClass='';require BASE_PATH.'/resources/views/components/base/input.php';};
+$categoryOptions=[];foreach($categories as $category)$categoryOptions[$category['slug']]=$category['name'];
+?>
+<section class="mx-auto w-full py-8 max-w-7xl">
+    <form id="shop-filters" class="grid gap-3 rounded-2xl border border-primary/10 p-4 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto_auto]" action="<?= htmlspecialchars(app_url('/shop')) ?>" method="get">
+        <?php $renderInput('search','Search products',(string)$filters['search'],'search','Product name or SKU'); ?>
+        <?php $selectName='category';$selectId='shop-category';$selectOptions=$categoryOptions;$selectValue=$categorySlug;$selectPlaceholder='All products';$selectLabel='Category';$selectHint='';$selectError='';$selectSize='lg';$selectState='default';$selectMultiple=false;$selectRequired=false;$selectDisabled=false;$selectAttributes=[];$selectClass='';require BASE_PATH.'/resources/views/components/base/select.php'; ?>
+        <?php $renderInput('min_price','Minimum price',$filters['min_price']>0?(string)$filters['min_price']:'','number','LKR '.number_format((float)$priceBounds['min_price'],0)); ?>
+        <?php $renderInput('max_price','Maximum price',$filters['max_price']>0?(string)$filters['max_price']:'','number','LKR '.number_format((float)$priceBounds['max_price'],0)); ?>
+        <div class="self-end whitespace-nowrap rounded-xl border  px-4 py-3 text-center text-sm font-semibold bg-primary text-white"><span id="loaded-count"><?=count($products)?></span> / <span id="total-count"><?=number_format($totalProducts)?></span></div>
+        <div class="self-end"><?php $buttonLabel='Reset';$buttonVariant='outline';$buttonColor='primary';$buttonSize='lg';$buttonType='button';$buttonHref='';$buttonName='';$buttonValue='';$buttonId='shop-filter-reset';$buttonIcon='';$buttonIconTrailing='';$buttonIconOnly=false;$buttonFullWidth=true;$buttonDisabled=false;$buttonLoading=false;$buttonOnclick='';$buttonClass='';$buttonAttributes=[];require BASE_PATH.'/resources/views/components/base/button.php'; ?></div>
+    </form>
+    <div id="product-grid" class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3 2xl:grid-cols-4"><?php foreach($products as $product)require BASE_PATH.'/resources/views/components/base/product-card.php'; ?></div>
+    <div id="shop-empty" class="<?=$products?'hidden':''?> mt-8 rounded-2xl border border-dashed border-primary/20 bg-primary/5 px-6 py-16 text-center text-sm text-secondary/60">No products match these filters.</div>
+    <div id="load-sentinel" class="flex min-h-24 items-center justify-center"><span id="loading-products" class="hidden items-center gap-2 text-sm font-bold text-primary"><span class="h-5 w-5 animate-spin rounded-full border-2 border-primary/20 border-t-primary"></span>Loading products...</span><span id="all-loaded" class="<?=$totalProducts>count($products)?'hidden':''?> text-xs font-semibold text-secondary/45"><?=$totalProducts?'All products loaded.':''?></span></div>
 </section>
+<script>
+(function(){
+    var form=document.getElementById('shop-filters'),grid=document.getElementById('product-grid'),sentinel=document.getElementById('load-sentinel'),loading=document.getElementById('loading-products'),done=document.getElementById('all-loaded'),loadedCount=document.getElementById('loaded-count'),totalCount=document.getElementById('total-count'),empty=document.getElementById('shop-empty'),reset=document.getElementById('shop-filter-reset'),page=1,hasMore=<?=json_encode($totalProducts>count($products))?>,busy=false,requestId=0,timer;
+    function parameters(){var params=new URLSearchParams(new FormData(form));Array.from(params.entries()).forEach(function(entry){if(String(entry[1]).trim()==='')params.delete(entry[0]);});return params;}
+    function setLoading(active){loading.classList.toggle('hidden',!active);loading.classList.toggle('flex',active);}
+    async function request(nextPage,replace){if(busy&&!replace)return;var current=++requestId;busy=true;setLoading(true);var params=parameters();params.set('page',String(nextPage));var apiUrl=window.gvUrl?window.gvUrl('/api/shop/products?'+params.toString()):'/api/shop/products?'+params.toString();try{var response=await fetch(apiUrl,{headers:{'Accept':'application/json'}});var result=await response.json();if(current!==requestId)return;if(replace)grid.innerHTML=result.html||'';else if(result.html)grid.insertAdjacentHTML('beforeend',result.html);page=nextPage;hasMore=Boolean(result.has_more);loadedCount.textContent=String(grid.children.length);totalCount.textContent=Number(result.total||0).toLocaleString('en-LK');empty.classList.toggle('hidden',Number(result.total)>0);done.classList.toggle('hidden',hasMore||Number(result.total)===0);done.textContent=hasMore?'':'All products loaded.';if(window.updateFavoriteButtons)window.updateFavoriteButtons();if(hasMore)observer.observe(sentinel);else observer.unobserve(sentinel);}catch(error){done.textContent='Unable to load products.';done.classList.remove('hidden');}finally{if(current===requestId){busy=false;setLoading(false);}}}
+    function apply(){page=1;var params=parameters();var url='/shop'+(params.toString()?'?'+params.toString():'');history.replaceState({},'',window.gvUrl?window.gvUrl(url):url);request(1,true);}
+    var observer=new IntersectionObserver(function(entries){if(entries[0].isIntersecting&&hasMore&&!busy)request(page+1,false);},{rootMargin:'300px 0px'});if(hasMore)observer.observe(sentinel);
+    form.addEventListener('submit',function(event){event.preventDefault();apply();});
+    form.querySelector('[name="search"]').addEventListener('input',function(){clearTimeout(timer);timer=setTimeout(apply,300);});
+    var categorySelect=form.querySelector('[data-custom-select][data-name="category"]');
+    categorySelect.addEventListener('select:change',function(){clearTimeout(timer);apply();});
+    form.querySelectorAll('input[type="number"]').forEach(function(control){control.addEventListener('input',function(){clearTimeout(timer);timer=setTimeout(apply,250);});control.addEventListener('change',function(){clearTimeout(timer);apply();});});
+    reset.addEventListener('click',function(){clearTimeout(timer);form.querySelector('[name="search"]').value='';form.querySelector('[name="min_price"]').value='';form.querySelector('[name="max_price"]').value='';categorySelect.querySelectorAll('[data-select-option]').forEach(function(option){option.dataset.selected='false';option.setAttribute('aria-selected','false');option.classList.remove('bg-primary/10','text-primary','font-semibold');});categorySelect.querySelector('[data-select-hidden-container]').innerHTML='';var display=categorySelect.querySelector('[data-select-display-text]');display.textContent='All products';display.classList.add('text-slate-400');history.replaceState({},'',window.gvUrl?window.gvUrl('/shop'):'/shop');apply();});
+})();
+</script>

@@ -1,0 +1,15 @@
+/storage/*.html
+/storage/*.xml
+/storage/*.txt
+/storage/*.md
+/storage/*.log
+/storage/sessions/sess_*
+!/storage/sessions/.gitkeep
+/config.local.php
+/.env
+/.env.production
+
+# Deployment artifacts & local scratch
+/*.zip
+/scratch/
+/giftvibe_deploy/

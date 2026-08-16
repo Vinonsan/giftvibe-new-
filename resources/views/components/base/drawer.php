@@ -22,6 +22,7 @@ declare(strict_types=1);
  *   $drawerCloseOnEsc     bool     Close on Escape (default: true).
  *   $drawerShowCloseButton bool    Show the X close button (default: true).
  *   $drawerOverlay        bool     Show the backdrop (default: true).
+ *   $drawerHeaderBottom   string   Optional HTML below the title row, inside the header border.
  *
  *   Trigger (choose one):
  *   $drawerTrigger        string   Raw HTML used as the trigger (overrides all below).
@@ -73,6 +74,8 @@ $drawerStatic          = $drawerStatic          ?? false;
 $drawerCloseOnEsc      = $drawerCloseOnEsc      ?? true;
 $drawerShowCloseButton = $drawerShowCloseButton ?? true;
 $drawerOverlay         = $drawerOverlay         ?? true;
+$drawerHeaderBottom    = $drawerHeaderBottom    ?? '';
+$drawerBodyClass       = $drawerBodyClass       ?? 'flex-1 overflow-y-auto px-6 py-5 text-sm text-slate-600';
 
 $drawerTrigger         = $drawerTrigger         ?? '';
 $drawerTriggerLabel    = $drawerTriggerLabel    ?? 'Open Drawer';
@@ -126,6 +129,7 @@ if ($drawerTrigger === '') {
     data-close-esc="<?= $drawerCloseOnEsc ? '1' : '0' ?>"
     aria-hidden="true"
     class="pointer-events-none fixed inset-0 z-50 opacity-0 transition-opacity duration-300"
+    style="opacity:0;visibility:hidden;pointer-events:none"
 >
     <?php if ($drawerOverlay): ?>
         <div data-drawer-overlay class="absolute inset-0 bg-secondary/50"></div>
@@ -133,39 +137,47 @@ if ($drawerTrigger === '') {
 
     <aside
         class="absolute inset-y-0 <?= $isRight ? 'right-0' : 'left-0' ?> flex <?= $drawerSizes[$drawerSize] ?? $drawerSizes['md'] ?> max-w-full flex-col bg-white shadow-2xl transition-drawer <?= $slideClosed ?>"
+        style="<?= $isRight ? 'right:0;transform:translateX(100%)' : 'left:0;transform:translateX(-100%)' ?>"
         role="dialog"
         aria-modal="true"
         aria-labelledby="<?= htmlspecialchars($drawerId) ?>-title"
     >
-        <?php if ($drawerTitle !== '' || $drawerShowCloseButton): ?>
-            <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4">
-                <div>
-                    <?php if ($drawerTitle !== ''): ?>
-                        <h3 id="<?= htmlspecialchars($drawerId) ?>-title" class="text-lg font-bold text-secondary"><?= htmlspecialchars((string) $drawerTitle) ?></h3>
-                    <?php endif; ?>
-                    <?php if ($drawerDescription !== ''): ?>
-                        <p class="mt-0.5 text-sm text-slate-500"><?= htmlspecialchars((string) $drawerDescription) ?></p>
-                    <?php endif; ?>
-                </div>
-                <?php if ($drawerShowCloseButton): ?>
-                    <button
-                        type="button"
-                        data-drawer-close
-                        class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                        aria-label="Close"
-                    >
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+        <?php if ($drawerTitle !== '' || $drawerShowCloseButton || $drawerHeaderBottom !== ''): ?>
+            <div class="shrink-0 border-b border-slate-200">
+                <?php if ($drawerTitle !== '' || $drawerShowCloseButton): ?>
+                    <div class="flex items-start justify-between gap-4 px-6 py-4">
+                        <div>
+                            <?php if ($drawerTitle !== ''): ?>
+                                <h3 id="<?= htmlspecialchars($drawerId) ?>-title" class="text-lg font-bold text-secondary"><?= htmlspecialchars((string) $drawerTitle) ?></h3>
+                            <?php endif; ?>
+                            <?php if ($drawerDescription !== ''): ?>
+                                <p class="mt-0.5 text-sm text-slate-500"><?= htmlspecialchars((string) $drawerDescription) ?></p>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($drawerShowCloseButton): ?>
+                            <button
+                                type="button"
+                                data-drawer-close
+                                class="rounded-xl p-1.5 bg-[#FF5A79] text-white hover:bg-slate-900 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40 cursor-pointer"
+                                aria-label="Close"
+                            >
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($drawerHeaderBottom !== ''): ?>
+                    <?= $drawerHeaderBottom ?>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
 
-        <div class="flex-1 overflow-y-auto px-6 py-5 text-sm text-slate-600"><?= $drawerBody ?></div>
+        <div class="<?= htmlspecialchars($drawerBodyClass) ?>"><?= $drawerBody ?></div>
 
         <?php if ($drawerFooter !== ''): ?>
-            <div class="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4"><?= $drawerFooter ?></div>
+            <div class="shrink-0 flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4"><?= $drawerFooter ?></div>
         <?php endif; ?>
     </aside>
 </div>
@@ -192,25 +204,39 @@ if ($drawerTrigger === '') {
         var aside = el.querySelector('aside');
         el.classList.remove('pointer-events-none', 'opacity-0');
         el.classList.add('pointer-events-auto', 'opacity-100');
-        if (aside) { aside.classList.remove('translate-x-full', '-translate-x-full'); }
         el.setAttribute('aria-hidden', 'false');
+        el.style.opacity = '1';
+        el.style.visibility = 'visible';
+        el.style.pointerEvents = 'auto';
+        if (aside) {
+            aside.classList.remove('translate-x-full', '-translate-x-full');
+            aside.style.transform = 'translateX(0)';
+        }
         lockScroll();
         var closeBtn = el.querySelector('[data-drawer-close]');
         if (closeBtn) { closeBtn.focus(); }
+        openDrawer = el;
     }
 
     function close(el) {
         var aside = el.querySelector('aside');
         var side = el.getAttribute('data-side') || 'right';
-        if (aside) { aside.classList.add(side === 'right' ? 'translate-x-full' : '-translate-x-full'); }
+        if (aside) {
+            aside.classList.add(side === 'right' ? 'translate-x-full' : '-translate-x-full');
+            aside.style.transform = side === 'right' ? 'translateX(100%)' : 'translateX(-100%)';
+        }
         el.classList.add('pointer-events-none', 'opacity-0');
         el.classList.remove('pointer-events-auto', 'opacity-100');
         el.setAttribute('aria-hidden', 'true');
+        el.style.opacity = '0';
+        el.style.visibility = 'hidden';
+        el.style.pointerEvents = 'none';
         unlockScroll();
         if (lastOpener) {
             lastOpener.focus();
             lastOpener = null;
         }
+        if (openDrawer === el) { openDrawer = null; }
     }
 
     document.addEventListener('click', function (e) {

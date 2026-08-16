@@ -13,6 +13,10 @@ class HeroController extends Controller
     public function index(): void
     {
         $pdo = Database::connection();
+        $columns = $pdo->query('SHOW COLUMNS FROM banners')->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('button_color', $columns, true)) {
+            $pdo->exec("ALTER TABLE banners ADD button_color CHAR(7) NOT NULL DEFAULT '#102E50' AFTER background_color");
+        }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handlePost($pdo);
@@ -92,18 +96,20 @@ class HeroController extends Controller
         $buttonLabel = $this->cleanPart($_POST['button_label'] ?? 'Shop now');
         $background = strtoupper(trim((string) ($_POST['background'] ?? '#0B1528')));
         $background = preg_match('/^#[0-9A-F]{6}$/', $background) ? $background : '#0B1528';
-        $subtitle = implode('|', [$eyebrow, $description, $price, $buttonLabel, "bg-[{$background}]"]);
+        $buttonColor = strtoupper(trim((string) ($_POST['button_color'] ?? '#102E50')));
+        $buttonColor = preg_match('/^#[0-9A-F]{6}$/', $buttonColor) ? $buttonColor : '#102E50';
+        $subtitle = implode('|', [$eyebrow, $description, $price, $buttonLabel]);
         $linkUrl = trim((string) ($_POST['link_url'] ?? '/shop')) ?: '/shop';
         $sortOrder = max(0, (int) ($_POST['sort_order'] ?? 0));
         $status = ($_POST['status'] ?? 'inactive') === 'active' ? 'active' : 'inactive';
 
         if ($id) {
-            $statement = $pdo->prepare('UPDATE banners SET title = ?, subtitle = ?, image_path = ?, link_url = ?, sort_order = ?, status = ? WHERE id = ? AND placement = \'hero\'');
-            $statement->execute([$title, $subtitle, $imagePath, $linkUrl, $sortOrder, $status, $id]);
+            $statement = $pdo->prepare('UPDATE banners SET title = ?, subtitle = ?, image_path = ?, link_url = ?, background_color = ?, button_color = ?, sort_order = ?, status = ? WHERE id = ? AND placement = \'hero\'');
+            $statement->execute([$title, $subtitle, $imagePath, $linkUrl, $background, $buttonColor, $sortOrder, $status, $id]);
             $message = 'Hero slide updated.';
         } else {
-            $statement = $pdo->prepare("INSERT INTO banners (title, subtitle, image_path, link_url, placement, sort_order, status) VALUES (?, ?, ?, ?, 'hero', ?, ?)");
-            $statement->execute([$title, $subtitle, $imagePath, $linkUrl, $sortOrder, $status]);
+            $statement = $pdo->prepare("INSERT INTO banners (title, subtitle, image_path, link_url, background_color, button_color, placement, sort_order, status) VALUES (?, ?, ?, ?, ?, ?, 'hero', ?, ?)");
+            $statement->execute([$title, $subtitle, $imagePath, $linkUrl, $background, $buttonColor, $sortOrder, $status]);
             $message = 'Hero slide created.';
         }
 
@@ -163,7 +169,7 @@ class HeroController extends Controller
     {
         $_SESSION['hero_flash'] = ['message' => $message, 'type' => $type];
         $location = '/admin/hero' . ($editId ? '?edit=' . $editId : '');
-        header('Location: ' . $location, true, 303);
+        header('Location: ' . app_url($location), true, 303);
         exit;
     }
 }

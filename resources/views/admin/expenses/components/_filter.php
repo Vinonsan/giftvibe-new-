@@ -1,0 +1,4 @@
+<?php declare(strict_types=1); ?>
+<div class="w-full"><?php
+$inputName='expense_search';$inputId='expenses-table-search';$inputLabel='';$inputValue='';$inputType='search';$inputPlaceholder='Search expense name or date...';$inputHint=$inputError='';$inputSize='lg';$inputState='default';$inputRequired=$inputReadonly=$inputDisabled=false;$inputAutocomplete='off';$inputLeadingIcon='<svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="m20 20-3.5-3.5M18 10.5a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>';$inputPrefix=$inputTrailingIcon=$inputSuffix='';$inputAttributes=['data-datatable-search'=>'','data-datatable-target'=>'expenses-table'];$inputClass=$inputWrapperClass='w-full';require BASE_PATH.'/resources/views/components/base/input.php';
+?></div>
