@@ -157,8 +157,8 @@ foreach ($customers as $customer) {
                             $radioName='payment_method';$radioId='payment-method-bank';$radioValue='bank_deposit';$radioChecked=false;$radioLabel='Bank deposit';$radioHint='Full order amount is received';$radioError='';$radioSize='md';$radioColor='primary';$radioState='default';$radioRequired=true;$radioDisabled=false;$radioAttributes=[];$radioClass='';require BASE_PATH.'/resources/views/components/base/radio.php';
                         ?></div>
                     </div></div>
-                    <label id="cod-initial-amount-wrap" class="block space-y-1.5"><span class="text-sm font-medium text-secondary">Initial amount paid (LKR)</span>
-                        <input type="number" min="0" step="0.01" name="payment_amount" id="payment-amount" value="0" class="<?= $fc ?>">
+                    <label id="cod-initial-amount-wrap" class="block space-y-1.5"><span class="text-sm font-medium text-secondary">COD amount received (LKR)</span>
+                        <input type="number" min="0" step="0.01" name="payment_amount" id="payment-amount" value="0" data-cod-value="0" inputmode="decimal" autocomplete="off" placeholder="Enter received amount" class="<?= $fc ?>">
                     </label>
                 </div>
 
@@ -235,7 +235,17 @@ document.addEventListener('DOMContentLoaded', function () {
         var isBank = document.querySelector('input[name="payment_method"]:checked')?.value === 'bank_deposit';
         initialAmountWrap?.classList.toggle('hidden', isBank);
         var total = cart.reduce(function (sum, item) { return sum + item.price * item.qty; }, 0);
-        if (isBank && paymentAmount) paymentAmount.value = Math.max(0, total).toFixed(2);
+        if (paymentAmount) {
+            if (isBank) {
+                if (!paymentAmount.readOnly) paymentAmount.dataset.codValue = paymentAmount.value || '0';
+                paymentAmount.value = Math.max(0, total).toFixed(2);
+                paymentAmount.readOnly = true;
+            } else {
+                if (paymentAmount.readOnly) paymentAmount.value = paymentAmount.dataset.codValue || '0';
+                paymentAmount.readOnly = false;
+                paymentAmount.max = Math.max(0, total).toFixed(2);
+            }
+        }
         var help = document.getElementById('payment-method-help');
         if (help) help.textContent = isBank ? 'Full order amount bank income-ல் சேரும்.' : 'COD initial payment மட்டும் cash income-ல் சேரும்.';
     }
@@ -571,6 +581,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('catalog-search')?.addEventListener('input', renderCatalog);
     document.querySelectorAll('input[name="payment_method"]').forEach(function(radio){radio.addEventListener('change',syncPaymentMethod);});
+    paymentAmount?.addEventListener('input', function(){
+        if (!paymentAmount.readOnly) paymentAmount.dataset.codValue = paymentAmount.value;
+    });
     document.querySelectorAll('[data-payment-card]').forEach(function(card){card.addEventListener('click',function(e){if(e.target.closest('label,input'))return;var radio=card.querySelector('input[type="radio"]');if(radio&&!radio.checked){radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));}});});
 
     customerSelectWrap?.addEventListener('select:change', function (e) {

@@ -26,21 +26,19 @@ foreach ($orders as $order) {
     $pStatus = (string) $order['payment_status'];
     $orderMeta = $order;
     $orderMeta['items'] = $orderItemsByOrder[$id] ?? [];
-    $metaJson = htmlspecialchars(json_encode($orderMeta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES);
+    // Datatable escapes plain cell values while rendering. Keeping JSON raw here
+    // avoids double-encoding quotes, which prevented the drawer from parsing it.
+    $metaJson = json_encode($orderMeta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}';
 
     $actions = '<div class="flex items-center justify-end gap-2">'
-        . '<button type="button" data-drawer-open="order-view-drawer" data-order-view data-order-id="' . $id . '" title="View order" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 transition hover:text-primary">'
+        . '<button type="button" data-drawer-open="order-view-drawer" data-order-view data-order-target="summary" data-order-id="' . $id . '" title="View order details" aria-label="View order details" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary">'
         . '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12Z"/><circle cx="12" cy="12" r="2.25"/></svg></button>';
-
-    if (in_array($oStatus, ['confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered'], true)) {
-        $actions .= '<a href="/admin/orders/receipt?id=' . $id . '" target="_blank" title="Print receipt" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 transition hover:text-primary">'
-            . '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.821V21h10.56v-7.179m-10.56 0a2.44 2.44 0 0 1-1.956-2.4L4.5 5.25h15l-.204 6.171a2.44 2.44 0 0 1-1.956 2.4m-10.56 0h10.56M12 3v3.75m0 0a1.5 1.5 0 0 1-3 0h6a1.5 1.5 0 0 1-3 0Z"/></svg></a>';
-    }
+    $actions .= '<button type="button" data-drawer-open="order-view-drawer" data-order-view data-order-target="tracking" data-order-id="' . $id . '" title="Order status and tracking" aria-label="Order status and tracking" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/10 text-secondary/60 transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary">'
+        . '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h10.5v10.5H3.75zM14.25 9.75h3l3 3v4.5h-6z"/><circle cx="7.5" cy="18" r="1.5"/><circle cx="17.25" cy="18" r="1.5"/></svg></button>';
 
     $actions .= '</div>';
 
     $tableRows[] = [
-        'order_number' => '<strong class="text-secondary">' . htmlspecialchars((string) $order['order_number']) . '</strong>',
         'customer' => '<strong class="text-secondary">' . htmlspecialchars((string) $order['customer_name']) . '</strong><small class="block text-slate-400">' . htmlspecialchars((string) $order['customer_phone']) . '</small>',
         'amount' => '<span class="font-semibold text-secondary">LKR ' . number_format((float) $order['grand_total'], 2) . '</span>',
         'payment_verification' => $statusBadge($pStatus, 'payment'),
@@ -52,7 +50,6 @@ foreach ($orders as $order) {
 
 $tableId = 'orders-table';
 $tableColumns = [
-    ['key' => 'order_number', 'label' => 'Order #', 'html' => true],
     ['key' => 'customer', 'label' => 'Customer', 'html' => true],
     ['key' => 'amount', 'label' => 'Total', 'html' => true, 'type' => 'number'],
     ['key' => 'payment_verification', 'label' => 'Payment', 'html' => true, 'sortable' => false],

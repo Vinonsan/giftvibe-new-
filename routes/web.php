@@ -34,7 +34,6 @@ $router->post('/api/auth/login', 'Public\AuthController@login');
 $router->post('/api/auth/register', 'Public\AuthController@register');
 $router->get('/api/auth/logout', 'Public\AuthController@logout');
 $router->get('/api/auth/status', 'Public\AuthController@status');
-$router->post('/api/auth/avatar', 'Public\AuthController@updateAvatar');
 $router->post('/api/auth/password/request', 'Public\AuthController@requestPasswordReset');
 $router->post('/api/auth/password/verify', 'Public\AuthController@verifyPasswordReset');
 $router->post('/api/auth/password/reset', 'Public\AuthController@resetPassword');

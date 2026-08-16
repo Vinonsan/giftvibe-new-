@@ -92,12 +92,12 @@ $receiptPath = $normalizeImage($payment['receipt_path'] ?? '');
         </div>
         <div class="flex flex-wrap gap-2">
             <?php if (in_array($orderStatus, ['confirmed', 'processing', 'ready', 'out_for_delivery', 'delivered'], true)): ?>
-                <a href="/admin/orders/receipt?id=<?= $orderId ?>" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-slate-50 transition">
+                <a href="<?= htmlspecialchars(app_url('/admin/orders/receipt?id=' . $orderId)) ?>" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-slate-50 transition">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.821V21h10.56v-7.179m-10.56 0a2.44 2.44 0 0 1-1.956-2.4L4.5 5.25h15l-.204 6.171a2.44 2.44 0 0 1-1.956 2.4m-10.56 0h10.56M12 3v3.75"/></svg>
                     Print receipt
                 </a>
             <?php endif; ?>
-            <a href="/admin/orders" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-slate-50 transition">
+            <a href="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-secondary hover:bg-slate-50 transition">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
                 Back to orders
             </a>

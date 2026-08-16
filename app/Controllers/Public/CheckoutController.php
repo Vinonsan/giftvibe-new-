@@ -130,6 +130,13 @@ final class CheckoutController extends Controller
         if (!in_array($method, ['cod', 'bank_deposit'], true)) {
             $this->checkoutError('Select a valid payment method.', $selection);
         }
+        $orderTotal = round((float) array_sum(array_column($orderItems, 'line_total')), 2);
+        $paymentAmount = $method === 'cod'
+            ? round((float) ($_POST['payment_amount'] ?? 0), 2)
+            : $orderTotal;
+        if ($paymentAmount < 0 || $paymentAmount > $orderTotal) {
+            $this->checkoutError('Enter a valid COD amount within the order total.', $selection);
+        }
         $bankId = (int) ($_POST['bank_account_id'] ?? 0);
         if ($bankId > 0) {
             $bankStmt = $pdo->prepare("SELECT id,bank_name,account_name,account_number,branch FROM bank_accounts WHERE id=? AND status='active' LIMIT 1");
@@ -151,8 +158,9 @@ final class CheckoutController extends Controller
                 'delivery_address_line_2' => $addressLine2,
                 'delivery_city' => $city,
                 'delivery_district' => $district,
-                'customer_notes' => trim((string) ($_POST['customer_notes'] ?? '')),
+                'customer_notes' => '',
                 'payment_method' => $method,
+                'payment_amount' => $paymentAmount,
                 'bank_account_id' => $bankId,
                 'receipt_path' => $receipt,
                 'order_status' => 'pending',

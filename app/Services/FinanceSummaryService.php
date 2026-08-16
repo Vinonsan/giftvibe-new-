@@ -35,9 +35,10 @@ final class FinanceSummaryService
         $productPurchases = self::productProcurementTotal($pdo);
         $grossProfit = $totalIncome - $totalCogs;
         $netProfit = $grossProfit;
-        $availableProfit = max(0.0, $netProfit - $personalWithdrawals);
         $cashReceived = self::receivedPaymentsTotal($pdo);
-        $cashOnHand = $cashReceived + $totalInvestments - $businessExpenses - $productPurchases;
+        $cashOnHand = max(0.0, $cashReceived + $totalInvestments - $businessExpenses - $productPurchases - $personalWithdrawals);
+        $availableProfit = min($cashOnHand, max(0.0, $netProfit - $personalWithdrawals));
+        $usableCash = max(0.0, $cashOnHand - $availableProfit);
 
         $pendingOrders = (int) ($pdo->query(
             "SELECT COUNT(*) FROM orders WHERE order_status NOT IN ('delivered','cancelled','refunded')"
@@ -78,6 +79,7 @@ final class FinanceSummaryService
             'personalWithdrawals' => $personalWithdrawals,
             'availableProfit' => $availableProfit,
             'cashOnHand' => $cashOnHand,
+            'usableCash' => $usableCash,
             'margin' => $totalIncome > 0 ? ($netProfit / $totalIncome) * 100 : 0,
             'deliveredCount' => (int) ($incomeRow['cnt'] ?? 0),
             'pendingOrders' => $pendingOrders,
@@ -136,7 +138,9 @@ final class FinanceSummaryService
         try {
             return (float) ($pdo->query(
                 "SELECT COALESCE(SUM(p.amount),0) FROM payments p INNER JOIN orders o ON o.id=p.order_id
-                 WHERE p.status NOT IN ('failed','cancelled','refunded') AND o.order_status NOT IN ('cancelled','refunded')"
+                 WHERE o.order_status NOT IN ('cancelled','refunded')
+                   AND ((p.method = 'cod' AND p.status NOT IN ('failed','cancelled','refunded'))
+                     OR (p.method = 'bank_deposit' AND p.status = 'paid'))"
             )->fetchColumn() ?: 0);
         } catch (\PDOException) {
             return 0.0;

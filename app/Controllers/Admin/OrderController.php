@@ -45,9 +45,13 @@ final class OrderController extends Controller
         }
 
         $orders = $pdo->query(
-            "SELECT o.*, p.id payment_id, p.method, p.amount payment_amount, p.status payment_verification_status, p.receipt_path, p.raw_response_json
+            "SELECT o.*, p.id payment_id, p.method, p.amount payment_amount, p.status payment_verification_status, p.receipt_path, p.raw_response_json,
+                    p.paid_at AS payment_date,
+                    d.delivery_status, d.tracking_code, d.courier_service_name, d.courier_tracking_number,
+                    d.dispatch_date, d.expected_delivery_date, d.delivered_date
              FROM orders o
              LEFT JOIN payments p ON p.order_id = o.id
+             LEFT JOIN deliveries d ON d.order_id = o.id
              ORDER BY CASE WHEN LOWER(o.delivery_city) = 'jaffna' OR LOWER(o.delivery_district) = 'jaffna' THEN 0 ELSE 1 END, o.id DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
 
@@ -552,18 +556,14 @@ final class OrderController extends Controller
         }
 
         if ($decision === 'edit_details') {
-            $subtotal = max(0, (float) $order['subtotal']);
-            $discount = min($subtotal, max(0, (float) ($_POST['discount_total'] ?? 0)));
             $pdo->prepare(
                 'UPDATE orders SET customer_name=?, customer_phone=?, customer_email=?, recipient_name=?, recipient_phone=?,
-                 delivery_address_line_1=?, delivery_address_line_2=?, delivery_city=?, delivery_district=?, delivery_date=?,
-                 discount_total=?, grand_total=?, order_source=?, customer_notes=? WHERE id=?'
+                 delivery_address_line_1=?, delivery_address_line_2=?, delivery_city=?, delivery_district=?, delivery_date=? WHERE id=?'
             )->execute([
                 trim((string) $_POST['customer_name']), trim((string) $_POST['customer_phone']), trim((string) $_POST['customer_email']),
                 trim((string) $_POST['recipient_name']), trim((string) $_POST['recipient_phone']), trim((string) $_POST['delivery_address_line_1']),
                 trim((string) ($_POST['delivery_address_line_2'] ?? '')), trim((string) $_POST['delivery_city']), trim((string) $_POST['delivery_district']),
-                trim((string) ($_POST['delivery_date'] ?? '')) ?: null, $discount, $subtotal - $discount,
-                trim((string) ($_POST['order_source'] ?? 'admin')) ?: 'admin', trim((string) ($_POST['customer_notes'] ?? '')), $orderId,
+                trim((string) ($_POST['delivery_date'] ?? '')) ?: null, $orderId,
             ]);
             $this->recordOrderStatus($pdo, $orderId, 'edited', 'Order details edited by admin');
             $this->redirect('Order details updated.', 'success', $orderId, '/admin/orders/view?id=' . $orderId . '&tab=overview');
@@ -587,7 +587,7 @@ final class OrderController extends Controller
             $meta['payment_option'] = $received >= (float) $order['grand_total'] ? 'full' : ($received > 0 ? 'partial' : 'unpaid');
             $meta['balance_due'] = max(0, (float) $order['grand_total'] - $received);
             $pdo->prepare('UPDATE orders SET payment_status = ? WHERE id = ?')->execute([$newPaymentStatus, $orderId]);
-            $pdo->prepare('UPDATE payments SET amount = ?, status = ?, raw_response_json = ? WHERE order_id = ?')->execute([$received, $newPaymentStatus, json_encode($meta), $orderId]);
+            $pdo->prepare('UPDATE payments SET amount = ?, status = ?, raw_response_json = ?, paid_at = CASE WHEN ? = \'paid\' THEN COALESCE(paid_at, NOW()) ELSE paid_at END WHERE order_id = ?')->execute([$received, $newPaymentStatus, json_encode($meta), $newPaymentStatus, $orderId]);
             $this->recordOrderStatus($pdo, $orderId, 'payment_' . $newPaymentStatus, 'Payment status updated to ' . $newPaymentStatus);
             $this->redirect('Payment status updated.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
@@ -647,8 +647,8 @@ final class OrderController extends Controller
 
         if ($decision === 'mark_paid') {
             $pdo->prepare("UPDATE orders SET payment_status = 'paid' WHERE id = ?")->execute([$orderId]);
-            $pdo->prepare("UPDATE payments SET status = 'paid', paid_at = NOW(), verified_by = ?, verified_at = NOW() WHERE order_id = ?")
-                ->execute([(int) ($_SESSION['admin_user']['id'] ?? 0), $orderId]);
+            $pdo->prepare("UPDATE payments SET amount = ?, status = 'paid', paid_at = NOW(), verified_by = ?, verified_at = NOW(), raw_response_json = JSON_SET(COALESCE(raw_response_json, '{}'), '$.payment_option', 'full', '$.balance_due', 0) WHERE order_id = ?")
+                ->execute([(float) $order['grand_total'], (int) ($_SESSION['admin_user']['id'] ?? 0), $orderId]);
             $this->recordOrderStatus($pdo, $orderId, 'payment_paid', 'Payment marked as paid');
             $this->notifyCustomer($pdo, $order, $orderId, "Payment for GiftVibe order {$order['order_number']} has been verified. Thank you!");
             $this->redirect('Payment marked as paid.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
@@ -663,7 +663,7 @@ final class OrderController extends Controller
 
             if ($newOrderStatus === 'delivered') {
                 $this->completeOrder($pdo, $orderId, $order);
-                $this->redirect('Order marked as delivered and added to finance.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=overview');
+                $this->redirect('Order marked as delivered. Any COD balance remains pending until received.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=overview');
             }
 
             $pdo->prepare('UPDATE orders SET order_status = ? WHERE id = ?')->execute([$newOrderStatus, $orderId]);
@@ -694,18 +694,30 @@ final class OrderController extends Controller
 
         if ($decision === 'confirm') {
             $deliveryDate = date('Y-m-d', strtotime("+{$days} days"));
-            $paymentMetaStmt = $pdo->prepare('SELECT amount, raw_response_json FROM payments WHERE order_id = ? LIMIT 1');
+            $paymentMetaStmt = $pdo->prepare('SELECT method, amount, raw_response_json FROM payments WHERE order_id = ? LIMIT 1');
             $paymentMetaStmt->execute([$orderId]);
             $paymentRow = $paymentMetaStmt->fetch(PDO::FETCH_ASSOC) ?: [];
             $paymentMeta = json_decode((string) ($paymentRow['raw_response_json'] ?? ''), true) ?: [];
-            $orderPaymentStatus = (float) ($paymentMeta['balance_due'] ?? 0) > 0 ? 'pending' : 'paid';
+            $isBankDeposit = (string) ($paymentRow['method'] ?? '') === 'bank_deposit';
+            $receivedAmount = $isBankDeposit
+                ? (float) $order['grand_total']
+                : min((float) $order['grand_total'], max(0, (float) ($paymentRow['amount'] ?? 0)));
+            $balanceDue = max(0, (float) $order['grand_total'] - $receivedAmount);
+            $orderPaymentStatus = $balanceDue > 0 ? 'pending' : 'paid';
             $notes = trim((string) ($_POST['admin_notes'] ?? ''));
 
             $pdo->prepare("UPDATE orders SET order_status = 'confirmed', payment_status = ?, delivery_date = ?, admin_notes = ? WHERE id = ?")
                 ->execute([$orderPaymentStatus, $deliveryDate, $notes, $orderId]);
             if ($orderPaymentStatus === 'paid') {
-                $pdo->prepare("UPDATE payments SET status = 'paid', verified_by = ?, verified_at = NOW(), paid_at = NOW(), verification_notes = ? WHERE order_id = ?")
-                    ->execute([(int) ($_SESSION['admin_user']['id'] ?? 0), $notes, $orderId]);
+                $paymentMeta['payment_option'] = 'full';
+                $paymentMeta['balance_due'] = 0;
+                $pdo->prepare("UPDATE payments SET amount = ?, status = 'paid', raw_response_json = ?, verified_by = ?, verified_at = NOW(), paid_at = NOW(), verification_notes = ? WHERE order_id = ?")
+                    ->execute([$receivedAmount, json_encode($paymentMeta), (int) ($_SESSION['admin_user']['id'] ?? 0), $notes, $orderId]);
+            } else {
+                $paymentMeta['payment_option'] = $receivedAmount > 0 ? 'partial' : 'unpaid';
+                $paymentMeta['balance_due'] = $balanceDue;
+                $pdo->prepare("UPDATE payments SET amount = ?, status = 'pending', raw_response_json = ? WHERE order_id = ?")
+                    ->execute([$receivedAmount, json_encode($paymentMeta), $orderId]);
             }
 
             $this->recordOrderStatus($pdo, $orderId, 'confirmed', $notes ?: 'Order accepted by admin');
@@ -738,9 +750,23 @@ final class OrderController extends Controller
     private function completeOrder(PDO $pdo, int $orderId, array $order): void
     {
         InventoryService::deductOrderStock($pdo, $orderId);
-        $pdo->prepare("UPDATE orders SET order_status = 'delivered', payment_status = 'paid' WHERE id = ?")->execute([$orderId]);
-        $pdo->prepare("UPDATE payments SET status = 'paid', paid_at = COALESCE(paid_at, NOW()), verified_by = COALESCE(verified_by, ?), verified_at = COALESCE(verified_at, NOW()) WHERE order_id = ?")
-            ->execute([(int) ($_SESSION['admin_user']['id'] ?? 0), $orderId]);
+        $paymentStmt = $pdo->prepare('SELECT method, amount, raw_response_json FROM payments WHERE order_id = ? LIMIT 1');
+        $paymentStmt->execute([$orderId]);
+        $payment = $paymentStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $isBankDeposit = (string) ($payment['method'] ?? '') === 'bank_deposit';
+        $receivedAmount = $isBankDeposit
+            ? (float) $order['grand_total']
+            : min((float) $order['grand_total'], max(0, (float) ($payment['amount'] ?? 0)));
+        $balanceDue = max(0, (float) $order['grand_total'] - $receivedAmount);
+        $paymentStatus = $balanceDue > 0 ? 'pending' : 'paid';
+        $paymentMeta = json_decode((string) ($payment['raw_response_json'] ?? ''), true) ?: [];
+        $paymentMeta['payment_option'] = $balanceDue > 0 ? ($receivedAmount > 0 ? 'partial' : 'unpaid') : 'full';
+        $paymentMeta['balance_due'] = $balanceDue;
+
+        $pdo->prepare("UPDATE orders SET order_status = 'delivered', payment_status = ? WHERE id = ?")
+            ->execute([$paymentStatus, $orderId]);
+        $pdo->prepare("UPDATE payments SET amount = ?, status = ?, raw_response_json = ?, paid_at = CASE WHEN ? = 'paid' THEN COALESCE(paid_at, NOW()) ELSE paid_at END, verified_by = CASE WHEN ? = 'paid' THEN COALESCE(verified_by, ?) ELSE verified_by END, verified_at = CASE WHEN ? = 'paid' THEN COALESCE(verified_at, NOW()) ELSE verified_at END WHERE order_id = ?")
+            ->execute([$receivedAmount, $paymentStatus, json_encode($paymentMeta), $paymentStatus, $paymentStatus, (int) ($_SESSION['admin_user']['id'] ?? 0), $paymentStatus, $orderId]);
 
         $deliveryStmt = $pdo->prepare('SELECT id FROM deliveries WHERE order_id = ? LIMIT 1');
         $deliveryStmt->execute([$orderId]);
@@ -750,7 +776,7 @@ final class OrderController extends Controller
                 ->execute([$deliveryId]);
         }
 
-        $this->recordOrderStatus($pdo, $orderId, 'delivered', 'Order completed — revenue recorded in finance');
+        $this->recordOrderStatus($pdo, $orderId, 'delivered');
         $this->notifyCustomer($pdo, $order, $orderId, "Your GiftVibe order {$order['order_number']} has been delivered. Thank you for shopping with us!");
     }
 

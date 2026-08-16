@@ -107,7 +107,11 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
                     <label class="flex cursor-pointer items-center gap-3 rounded-2xl border border-primary/20 p-4 text-sm font-bold text-secondary"><input type="radio" name="payment_method" value="bank_deposit" class="accent-primary">Bank deposit</label>
                 </div>
                 
-                <div id="cod-message" class="mt-4 rounded-2xl border border-accent/20 bg-accent/10 p-4 text-sm font-semibold text-accent">Cash on delivery requires a Rs. 500 advance payment. The remaining balance is paid when the order is delivered.</div>
+                <div id="cod-payment-field" class="mt-4 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                    <label for="cod-payment-amount" class="block text-sm font-bold text-secondary">COD amount paid (LKR)</label>
+                    <p class="mt-1 text-xs text-secondary/60">Enter how much you are paying now. The remaining balance can be paid on delivery.</p>
+                    <input required type="number" min="0" max="<?= htmlspecialchars((string) $total) ?>" step="0.01" inputmode="decimal" name="payment_amount" id="cod-payment-amount" value="<?= htmlspecialchars(number_format(min(500, $total), 2, '.', '')) ?>" data-cod-value="<?= htmlspecialchars(number_format(min(500, $total), 2, '.', '')) ?>" class="mt-3 <?= $field ?>" placeholder="Enter amount">
+                </div>
                 
                 <?php if($bankAccounts): ?>
                     <div class="mt-5">
@@ -135,7 +139,6 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
                 <?php endif; ?>
                 
                 <label class="mt-5 block text-sm font-semibold text-secondary">Payment receipt (JPG, PNG, WebP, or PDF)<input type="file" name="receipt" accept="image/jpeg,image/png,image/webp,application/pdf" class="mt-2 block w-full rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm text-secondary file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:font-bold file:text-white"></label>
-                <label class="mt-5 block text-sm font-semibold text-secondary">Order notes<textarea name="customer_notes" rows="3" class="mt-2 <?= $field ?>"></textarea></label>
             </section>
         </div>
         
@@ -182,7 +185,8 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
 (function(){
     var total = <?=json_encode((float)$total)?>,
         amount = document.getElementById('pay-now-amount'),
-        codMessage = document.getElementById('cod-message'),
+        codPaymentField = document.getElementById('cod-payment-field'),
+        codPaymentInput = document.getElementById('cod-payment-amount'),
         giftFields = document.getElementById('gift-recipient-fields'),
         addressId = document.getElementById('address-id'),
         saveAddressWrapper = document.getElementById('save-address-wrapper');
@@ -202,10 +206,17 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
     var savedAddresses = <?= json_encode($savedAddresses) ?>;
 
     function updatePayment(){
-        var method = document.querySelector('input[name="payment_method"]:checked').value,
-            pay = method === 'cod' ? Math.min(500, total) : total;
+        var method = document.querySelector('input[name="payment_method"]:checked').value;
+        if (method !== 'cod' && !codPaymentField.classList.contains('hidden')) codPaymentInput.dataset.codValue = codPaymentInput.value || '0';
+        if (method === 'cod' && codPaymentField.classList.contains('hidden')) codPaymentInput.value = codPaymentInput.dataset.codValue || '0';
+        var
+            entered = parseFloat(codPaymentInput.value),
+            pay = method === 'cod' ? (Number.isFinite(entered) ? Math.max(0, Math.min(entered, total)) : 0) : total;
         amount.textContent = 'LKR ' + pay.toLocaleString('en-LK',{minimumFractionDigits:2,maximumFractionDigits:2});
-        codMessage.classList.toggle('hidden', method !== 'cod');
+        codPaymentField.classList.toggle('hidden', method !== 'cod');
+        codPaymentInput.required = method === 'cod';
+        codPaymentInput.readOnly = method !== 'cod';
+        if (method !== 'cod') codPaymentInput.value = total.toFixed(2);
         var receipt = document.querySelector('input[name="receipt"]');
         if (receipt) receipt.required = (method !== 'cod');
     }
@@ -251,6 +262,10 @@ $field = 'w-full rounded-xl border border-primary/20 bg-white px-4 py-3 text-sm 
     
     document.querySelectorAll('input[name="payment_method"]').forEach(function(input){
         input.addEventListener('change', updatePayment);
+    });
+    codPaymentInput.addEventListener('input', function(){
+        codPaymentInput.dataset.codValue = codPaymentInput.value;
+        updatePayment();
     });
     document.querySelectorAll('input[name="recipient_type"]').forEach(function(input){
         input.addEventListener('change', updateRecipient);

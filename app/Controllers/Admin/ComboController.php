@@ -25,7 +25,7 @@ class ComboController extends Controller
             GROUP BY c.id 
             ORDER BY c.id DESC")->fetchAll();
             
-        $products = $pdo->query("SELECT id, name, sku, cost_price, base_price FROM products WHERE status = 'active' ORDER BY name")->fetchAll();
+        $products = $pdo->query("SELECT p.id,p.name,p.sku,p.cost_price,p.base_price,COALESCE(pi.image_path,'/assets/images/hero_slide_1.jpg') image_path FROM products p LEFT JOIN product_images pi ON pi.product_id=p.id AND pi.is_primary=1 WHERE p.status='active' ORDER BY p.name")->fetchAll();
         
         $editCombo = null; 
         $selectedProducts = []; 

@@ -27,7 +27,7 @@ declare(strict_types=1);
 
 <?php require __DIR__ . '/components/_drawer.php'; ?>
 
-<script class="hidden" type="application/x-disabled">
+<script>
 document.addEventListener('DOMContentLoaded', function () {
     var table = document.querySelector('[data-datatable][data-id="finance-table"]');
     if (!table) return;
@@ -59,9 +59,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (expenseEl) expenseEl.textContent = money(cost);
         if (profitEl) profitEl.textContent = money(profit);
         if (marginEl) marginEl.textContent = margin.toFixed(1) + '% margin';
-        if (countEl) countEl.textContent = String(rows.length);
+        if (countEl) countEl.textContent = String(rows.filter(function(row){ return row.getAttribute('data-kind') === 'order'; }).length);
     }
 
     table.addEventListener('datatable:render', updateSummary);
+    updateSummary({ detail: { filtered: Array.prototype.slice.call(table.querySelectorAll('tbody tr[data-row]')) } });
 });
 </script>

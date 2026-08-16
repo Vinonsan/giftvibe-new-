@@ -2,11 +2,14 @@
 declare(strict_types=1);
 /** Finance filter bar — drives summary cards + datatable. */
 
-$currentYear = (int) date('Y');
+$years = [];
+foreach ($orderReports as $report) $years[] = (int) substr((string) ($report['date'] ?? ''), 0, 4);
+foreach ($procurementReports as $report) $years[] = (int) substr((string) ($report['created_at'] ?? ''), 0, 4);
+$years = array_values(array_unique(array_filter($years)));
+rsort($years);
+if ($years === []) $years[] = (int) date('Y');
 $yearOptions = [];
-for ($y = $currentYear; $y >= $currentYear - 3; $y--) {
-    $yearOptions[(string) $y] = 'Year ' . $y;
-}
+foreach ($years as $year) $yearOptions[(string) $year] = 'Year ' . $year;
 ?>
 <div class="flex w-full flex-col gap-3 lg:flex-row lg:items-center">
     <div class="w-full min-w-0 flex-1 lg:max-w-[200px]"><?php

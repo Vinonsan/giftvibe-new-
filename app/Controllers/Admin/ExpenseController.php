@@ -63,6 +63,7 @@ final class ExpenseController extends Controller
                 'totalAmount' => $totalAmount,
                 'approvedTotal' => $approvedTotal,
                 'cashOnHand' => (float) $financeSummary['cashOnHand'],
+                'usableCash' => (float) ($financeSummary['usableCash'] ?? 0),
                 'availableProfit' => (float) ($financeSummary['availableProfit'] ?? 0),
                 'csrfToken' => $_SESSION['csrf_token'],
                 'flash' => $flash,
@@ -122,9 +123,9 @@ final class ExpenseController extends Controller
         }
         $available = $paidSource === 'profit'
             ? (float) ($summary['availableProfit'] ?? 0) + ($oldSource === 'profit' ? $oldAmount : 0)
-            : (float) ($summary['cashOnHand'] ?? 0) + ($oldSource !== 'profit' ? $oldAmount : 0);
+            : (float) ($summary['usableCash'] ?? 0) + ($oldSource !== 'profit' ? $oldAmount : 0);
         if ($amount > $available + 0.00001) {
-            $balanceName = $paidSource === 'profit' ? 'available profit' : 'cash on hand';
+            $balanceName = $paidSource === 'profit' ? 'available profit' : 'usable cash';
             $this->redirect('Insufficient ' . $balanceName . '. Available: LKR ' . number_format(max(0, $available), 2), 'error');
         }
 

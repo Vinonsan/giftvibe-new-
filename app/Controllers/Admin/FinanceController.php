@@ -15,10 +15,14 @@ final class FinanceController extends Controller
         $pdo = Database::connection();
 
         $orders = $pdo->query(
-            "SELECT o.id, o.order_number, o.customer_name, o.grand_total, o.created_at,
+            "SELECT o.id, o.order_number, o.customer_name, o.grand_total, o.created_at, p.amount AS received_amount,
                 COALESCE((SELECT SUM(oi.cost_price * oi.quantity) FROM order_items oi WHERE oi.order_id = o.id), 0) AS total_cost
              FROM orders o
+             INNER JOIN payments p ON p.order_id = o.id
              WHERE o.order_status NOT IN ('cancelled','refunded')
+               AND ((p.method = 'cod' AND p.status NOT IN ('failed','cancelled','refunded'))
+                 OR (p.method = 'bank_deposit' AND p.status = 'paid'))
+               AND p.amount > 0
              ORDER BY o.id DESC"
         )->fetchAll(PDO::FETCH_ASSOC);
 
@@ -27,11 +31,11 @@ final class FinanceController extends Controller
         $orderReports = [];
 
         foreach ($orders as $order) {
-            $sales = (float) $order['grand_total'];
-            $cost = (float) $order['total_cost'];
-            if ($cost <= 0) {
-                $cost = $sales * 0.70;
-            }
+            $sales = (float) $order['received_amount'];
+            $orderTotal = max(0.01, (float) $order['grand_total']);
+            $fullCost = (float) $order['total_cost'];
+            if ($fullCost <= 0) $fullCost = $orderTotal * 0.70;
+            $cost = $fullCost * min(1, $sales / $orderTotal);
             $profit = $sales - $cost;
             $totalSales += $sales;
             $totalCost += $cost;
@@ -93,12 +97,17 @@ final class FinanceController extends Controller
 
         $orderRows = $pdo->query(
             "SELECT DATE_FORMAT(o.created_at, '%Y-%m') AS ym,
-                COALESCE(SUM(o.grand_total), 0) AS sales,
+                COALESCE(SUM(p.amount), 0) AS sales,
                 COALESCE(SUM(
-                    (SELECT SUM(oi.cost_price * oi.quantity) FROM order_items oi WHERE oi.order_id = o.id)
+                    COALESCE((SELECT SUM(oi.cost_price * oi.quantity) FROM order_items oi WHERE oi.order_id = o.id), o.grand_total * 0.70)
+                    * LEAST(1, p.amount / NULLIF(o.grand_total, 0))
                 ), 0) AS cost
              FROM orders o
+             INNER JOIN payments p ON p.order_id = o.id
              WHERE o.order_status NOT IN ('cancelled','refunded')
+               AND ((p.method = 'cod' AND p.status NOT IN ('failed','cancelled','refunded'))
+                 OR (p.method = 'bank_deposit' AND p.status = 'paid'))
+               AND p.amount > 0
                AND o.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
              GROUP BY ym"
         )->fetchAll(PDO::FETCH_ASSOC);

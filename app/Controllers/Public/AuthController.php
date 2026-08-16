@@ -63,7 +63,6 @@ class AuthController extends Controller
             'address_line_1' => $user['address_line_1'] ?? ($user['address'] ?? ''),
             'city' => $user['city'] ?? '',
             'district' => $user['district'] ?? '',
-            'avatar' => $user['avatar'] ?? 'avatar_1',
         ];
         $this->persistSessionCookie();
 
@@ -82,7 +81,6 @@ class AuthController extends Controller
         $city = trim((string) ($input['city'] ?? ''));
         $district = trim((string) ($input['district'] ?? ''));
         $password = (string) ($input['password'] ?? '');
-        $avatar = $this->validAvatarSeed((string) ($input['avatar'] ?? 'giftvibe-1'));
 
         if ($name === '' || $email === '' || $phone === '' || $addressLine1 === '' || $city === '' || $district === '' || $password === '') {
             echo json_encode(['success' => false, 'message' => 'Name, email, primary phone number, address, city, district, and password are required.']);
@@ -105,7 +103,6 @@ class AuthController extends Controller
         foreach (['phone_2' => 'VARCHAR(40) NULL AFTER phone', 'address_line_1' => 'VARCHAR(255) NULL AFTER address', 'city' => 'VARCHAR(120) NULL AFTER address_line_1', 'district' => 'VARCHAR(120) NULL AFTER city'] as $column => $definition) {
             if (!in_array($column, $columns, true)) $db->exec("ALTER TABLE users ADD {$column} {$definition}");
         }
-        if (!in_array('avatar', $columns, true)) $db->exec("ALTER TABLE users ADD avatar VARCHAR(30) NOT NULL DEFAULT 'giftvibe-1' AFTER district");
         $stmt = $db->prepare('SELECT id FROM users WHERE email = ? OR phone = ? LIMIT 1');
         $stmt->execute([$email, $phone]);
         if ($stmt->fetch()) {
@@ -129,8 +126,8 @@ class AuthController extends Controller
 
         $passwordHash = password_hash($password, PASSWORD_BCRYPT);
         
-        $insert = $db->prepare('INSERT INTO users (role_id, first_name, last_name, email, phone, phone_2, address, address_line_1, city, district, avatar, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        $insert->execute([$roleId, $firstName, $lastName, $email, $phone, $phone2, $addressLine1, $addressLine1, $city, $district, $avatar, $passwordHash, 'active']);
+        $insert = $db->prepare('INSERT INTO users (role_id, first_name, last_name, email, phone, phone_2, address, address_line_1, city, district, password_hash, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $insert->execute([$roleId, $firstName, $lastName, $email, $phone, $phone2, $addressLine1, $addressLine1, $city, $district, $passwordHash, 'active']);
         $newUserId = $db->lastInsertId();
 
         $_SESSION['user'] = [
@@ -144,7 +141,6 @@ class AuthController extends Controller
             'address_line_1' => $addressLine1,
             'city' => $city,
             'district' => $district,
-            'avatar' => $avatar,
         ];
         $this->persistSessionCookie();
 
@@ -176,21 +172,6 @@ class AuthController extends Controller
             'logged_in' => isset($_SESSION['user']),
             'user' => $_SESSION['user'] ?? null
         ]);
-    }
-
-    public function updateAvatar(): void
-    {
-        header('Content-Type: application/json');
-        if (!isset($_SESSION['user']['id'])) { http_response_code(401); echo json_encode(['success'=>false,'message'=>'Sign in required.']); return; }
-        $input = json_decode(file_get_contents('php://input'), true) ?? [];
-        $avatar = (string) ($input['avatar'] ?? '');
-        $avatar = $this->validAvatarSeed($avatar);
-        $db = Database::connection();
-        $columns = $db->query('DESCRIBE users')->fetchAll(PDO::FETCH_COLUMN);
-        if (!in_array('avatar', $columns, true)) $db->exec("ALTER TABLE users ADD avatar VARCHAR(30) NOT NULL DEFAULT 'giftvibe-1' AFTER district");
-        $db->prepare('UPDATE users SET avatar=? WHERE id=?')->execute([$avatar,(int)$_SESSION['user']['id']]);
-        $_SESSION['user']['avatar']=$avatar;
-        echo json_encode(['success'=>true,'avatar'=>$avatar]);
     }
 
     public function requestPasswordReset(): void
@@ -248,11 +229,6 @@ class AuthController extends Controller
         Database::connection()->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([password_hash($password, PASSWORD_BCRYPT),(int)$reset['user_id']]);
         unset($_SESSION['password_reset'], $_SESSION['password_reset_last_request']);
         echo json_encode(['success'=>true,'message'=>'Password reset successfully. You can now sign in.']);
-    }
-
-    private function validAvatarSeed(string $seed): string
-    {
-        return preg_match('/^[a-zA-Z0-9_-]{1,30}$/', $seed) === 1 ? $seed : 'giftvibe-1';
     }
 
     private function persistSessionCookie(): void

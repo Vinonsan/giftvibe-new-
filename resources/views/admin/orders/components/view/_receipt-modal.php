@@ -15,7 +15,7 @@ $modalBody = '
             <a id="order-modal-receipt-link" href="' . htmlspecialchars($receiptPath) . '" target="_blank" class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-secondary hover:bg-slate-50 transition">
                 View full image
             </a>
-            <form method="post" action="/admin/orders" onsubmit="return confirm(\'Delete this receipt?\')">
+            <form method="post" action="' . htmlspecialchars(app_url('/admin/orders')) . '" onsubmit="return confirm(\'Delete this receipt?\')">
                 <input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfToken) . '">
                 <input type="hidden" id="order-modal-receipt-order-id" name="order_id" value="' . $orderId . '">
                 <input type="hidden" name="redirect_to" value="' . htmlspecialchars($viewBase . '&tab=payment') . '">

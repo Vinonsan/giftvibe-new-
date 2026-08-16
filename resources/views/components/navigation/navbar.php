@@ -22,10 +22,6 @@ $customer = $_SESSION['user'] ?? null;
 $customerName = $customer ? trim((string) (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''))) : '';
 $initialSource = $customerName ?: (string) ($customer['email'] ?? 'US');
 $customerInitials = function_exists('mb_substr') ? mb_strtoupper(mb_substr($initialSource, 0, 2)) : strtoupper(substr($initialSource, 0, 2));
-$avatarPaths = [];
-foreach (['giftvibe-1','giftvibe-2','giftvibe-3','giftvibe-4','giftvibe-5','giftvibe-6'] as $avatarSeed) $avatarPaths[$avatarSeed] = dicebear_avatar_url($avatarSeed);
-$customerAvatar = (string) ($customer['avatar'] ?? 'giftvibe-1');
-$currentAvatarUrl = dicebear_avatar_url($customerAvatar);
 ?>
 <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl" data-public-header>
     <nav class="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12" aria-label="Primary navigation">
@@ -64,11 +60,10 @@ $currentAvatarUrl = dicebear_avatar_url($customerAvatar);
             <?php if ($customer): ?>
                 <div class="relative hidden sm:block" data-user-menu>
                     <button type="button" data-user-menu-toggle class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-primary bg-white text-primary transition hover:bg-primary hover:text-white" aria-label="Open customer menu" aria-expanded="false">
-                        <span data-current-avatar class="block h-full w-full"><img src="<?= htmlspecialchars($currentAvatarUrl) ?>" alt="Customer avatar" class="h-full w-full object-cover"></span>
+                        <span class="text-xs font-black"><?= htmlspecialchars($customerInitials) ?></span>
                     </button>
                     <div data-user-menu-panel class="absolute right-0 top-12 hidden w-64 rounded-2xl border border-primary/10 bg-white p-3 shadow-xl">
                         <div class="rounded-xl bg-primary/5 p-3"><p class="truncate text-sm font-bold text-secondary"><?= htmlspecialchars($customerName ?: 'Customer') ?></p><p class="mt-0.5 truncate text-xs text-secondary/55"><?= htmlspecialchars((string) ($customer['email'] ?? '')) ?></p><?php if (!empty($customer['phone'])): ?><p class="mt-1 text-xs text-secondary/55"><?= htmlspecialchars((string) $customer['phone']) ?></p><?php endif; ?></div>
-                        <div class="mt-2"><p class="px-2 text-[10px] font-bold uppercase tracking-wider text-secondary/50">Change avatar</p><div class="mt-2 grid grid-cols-6 gap-1.5"><?php foreach($avatarPaths as $avatarKey=>$avatarPath): ?><button type="button" data-avatar-choice="<?= $avatarKey ?>" class="aspect-square w-full overflow-hidden rounded-lg border border-primary/15 bg-primary/5 transition hover:border-primary"><img src="<?= $avatarPath ?>" alt="Avatar" class="h-full w-full object-cover"></button><?php endforeach; ?></div></div>
                         <a href="/api/auth/logout?redirect=/" class="mt-2 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-accent transition hover:bg-accent/10"><iconify-icon icon="heroicons:arrow-right-on-rectangle-solid" width="18" height="18"></iconify-icon>Logout</a>
                     </div>
                 </div>
@@ -149,13 +144,6 @@ $currentAvatarUrl = dicebear_avatar_url($customerAvatar);
                 userPanel.classList.add('hidden');
                 userToggle.setAttribute('aria-expanded', 'false');
             }
-        });
-        userPanel.querySelectorAll('[data-avatar-choice]').forEach(function (choice) {
-            choice.addEventListener('click', async function () {
-                var response = await fetch(<?= json_encode(app_url('/api/auth/avatar')) ?>, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({avatar:choice.dataset.avatarChoice})});
-                var result = await response.json();
-                if (result.success) userToggle.querySelector('[data-current-avatar]').innerHTML = choice.innerHTML;
-            });
         });
     }
 

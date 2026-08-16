@@ -24,7 +24,17 @@ $orderBadge = static function (string $status): string {
         <div class="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5 shadow-sm">
             <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Cash on hand</p>
             <p class="mt-2 text-2xl font-black text-secondary"><?= $money((float) $stats['cashOnHand']) ?></p>
-            <p class="mt-1 text-xs text-emerald-700/70">Placed orders + investments − external purchases − expenses</p>
+            <p class="mt-1 text-xs text-emerald-700/70">Total actual cash currently available</p>
+        </div>
+        <div class="rounded-2xl border border-amber-200 bg-amber-50/50 p-5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Usable cash</p>
+            <p class="mt-2 text-2xl font-black text-amber-700"><?= $money((float) ($stats['usableCash'] ?? 0)) ?></p>
+            <p class="mt-1 text-xs text-amber-700/70">For business and order expenses</p>
+        </div>
+        <div class="rounded-2xl border border-primary/15 bg-primary/[0.04] p-5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-primary">Available profit</p>
+            <p class="mt-2 text-2xl font-black text-primary"><?= $money((float) ($stats['availableProfit'] ?? 0)) ?></p>
+            <p class="mt-1 text-xs text-primary/70">Reserved for personal withdrawal</p>
         </div>
         <div class="rounded-2xl border border-primary/15 bg-primary/[0.04] p-5 shadow-sm">
             <p class="text-[10px] font-bold uppercase tracking-wider text-primary">Net profit</p>
@@ -40,6 +50,16 @@ $orderBadge = static function (string $status): string {
             <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Business expenses</p>
             <p class="mt-2 text-2xl font-black text-rose-700"><?= $money((float) $stats['businessExpenses']) ?></p>
             <p class="mt-1 text-xs text-rose-700/70"><?= (int) $stats['expenseCount'] ?> entries · <a href="/admin/expenses" class="font-semibold underline">Manage</a></p>
+        </div>
+        <div class="rounded-2xl border border-blue-100 bg-blue-50/40 p-5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-blue-700">Total investments</p>
+            <p class="mt-2 text-2xl font-black text-secondary"><?= $money((float) $stats['totalInvestments']) ?></p>
+            <p class="mt-1 text-xs text-blue-700/70">Capital received</p>
+        </div>
+        <div class="rounded-2xl border border-orange-100 bg-orange-50/40 p-5 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-orange-700">Product purchases</p>
+            <p class="mt-2 text-2xl font-black text-secondary"><?= $money((float) $stats['productPurchases']) ?></p>
+            <p class="mt-1 text-xs text-orange-700/70">External inventory cash out</p>
         </div>
     </div>
 

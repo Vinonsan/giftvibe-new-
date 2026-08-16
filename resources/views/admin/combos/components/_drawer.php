@@ -34,7 +34,7 @@ $steps = [
 ob_start();
 ?>
 <!-- ══ Form ═══════════════════════════════════════════════════════════ -->
-<form id="combo-form" method="post" action="/admin/combos" enctype="multipart/form-data" novalidate>
+<form id="combo-form" method="post" action="<?= htmlspecialchars(app_url('/admin/combos')) ?>" enctype="multipart/form-data" novalidate>
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
     <input type="hidden" name="action"     value="save">
     <?php if ($editCombo): ?>
@@ -64,8 +64,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function getSelectedTotals() {
         var totalCost = 0;
         var totalSelling = 0;
-        document.querySelectorAll('#gv-step-2 [data-select-option][data-selected="true"]').forEach(function (el) {
-            var pid = el.getAttribute('data-value');
+        document.querySelectorAll('#combo-selected-products input[name="product_ids[]"]').forEach(function (el) {
+            var pid = el.value;
             totalCost += parseFloat(productPrices[pid]) || 0;
             totalSelling += parseFloat(productSellingPrices[pid]) || 0;
         });
@@ -116,12 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
         syncComboPrice();
         updatePricing();
     });
-    document.addEventListener('select:change', function(e) {
-        if (e.target.dataset.name === 'product_ids[]') {
-            syncComboPrice();
-            updatePricing();
-        }
-    });
+    document.addEventListener('combo:products-change', function() { syncComboPrice(); updatePricing(); });
 
     /* ── localStorage helpers ──────────────────────── */
     function saveDraft() {
@@ -248,15 +243,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
         if (n === 2) {
-            var catWrapper = stepEl.querySelector('[data-custom-select][data-name="product_ids[]"]');
-            if (catWrapper) {
-                var catTrigger = catWrapper.querySelector('button[aria-haspopup="listbox"]');
-                var chosen = catWrapper.querySelectorAll('[data-select-option][data-selected="true"]').length > 0;
-                if (!chosen) {
-                    if (catTrigger) showError(catTrigger, 'Please select at least one product.');
-                    ok = false;
-                }
-            }
+            var chosen = stepEl.querySelectorAll('#combo-selected-products input[name="product_ids[]"]').length > 0;
+            if (!chosen) { toast('Please select at least one product.', 'error'); ok = false; }
             var priceEl = document.getElementById('field-price');
             if (priceEl && (!priceEl.value.trim() || parseFloat(priceEl.value) <= 0)) {
                 showError(priceEl, 'Valid selling price is required.');
@@ -361,7 +349,7 @@ $stepperDrawerPrefix = 'gv';
 $stepperDrawerFormId = 'combo-form';
 $stepperDrawerSubmitLabel = $editCombo ? 'Save Changes' : 'Save Combo';
 $stepperDrawerTrigger = '<span class="hidden" aria-hidden="true"></span>';
-$stepperDrawerSize = 'lg';
+$stepperDrawerSize = 'full';
 $stepperDrawerExternalNavigation = true;
 $stepperDrawerShowHeader = true;
 require BASE_PATH . '/resources/views/components/drawer/stepper-drawer.php';

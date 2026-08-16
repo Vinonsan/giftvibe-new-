@@ -33,7 +33,11 @@ if (function_exists('opcache_invalidate')) {
     opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/FinanceController.php', true);
     opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/ExpenseController.php', true);
     opcache_invalidate(BASE_PATH . '/app/Services/FinanceSummaryService.php', true);
-    opcache_invalidate(BASE_PATH . '/app/Controllers/Admin/OrderController.php', true);
+    opcache_invalidate(BASE_PATH . '/app/Controllers/Public/CheckoutController.php', true);
+    opcache_invalidate(BASE_PATH . '/resources/views/components/navigation/navbar.php', true);
+    opcache_invalidate(BASE_PATH . '/resources/views/public/auth/login.php', true);
+    opcache_invalidate(BASE_PATH . '/resources/views/public/checkout/index.php', true);
+    opcache_invalidate(BASE_PATH . '/resources/views/public/checkout/success.php', true);
 }
 
 if (session_status() !== PHP_SESSION_ACTIVE) {

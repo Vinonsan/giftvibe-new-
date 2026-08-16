@@ -18,7 +18,7 @@ $workflowButtons = [
 
         <?php if ($isPending): ?>
             <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <form method="post" action="/admin/orders" class="flex-1 min-w-[140px]">
+                <form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="flex-1 min-w-[140px]">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="order_id" value="<?= $orderId ?>">
                     <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
@@ -27,7 +27,7 @@ $workflowButtons = [
                         ✓ Accept order
                     </button>
                 </form>
-                <form method="post" action="/admin/orders" class="flex-1 min-w-[140px]" onsubmit="return confirm('Reject this order?')">
+                <form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="flex-1 min-w-[140px]" onsubmit="return confirm('Reject this order?')">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="order_id" value="<?= $orderId ?>">
                     <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
@@ -35,7 +35,7 @@ $workflowButtons = [
                         ✕ Reject order
                     </button>
                 </form>
-                <form method="post" action="/admin/orders" class="flex-[2] min-w-[200px]">
+                <form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="flex-[2] min-w-[200px]">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="order_id" value="<?= $orderId ?>">
                     <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
@@ -57,7 +57,7 @@ $workflowButtons = [
             <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <?php foreach ($nextSteps as $status): ?>
                     <?php $btn = $workflowButtons[$status] ?? null; if (!$btn) continue; ?>
-                    <form method="post" action="/admin/orders" class="flex-1 min-w-[130px]" <?= $status === 'delivered' ? 'onsubmit="return confirm(\'Mark as delivered? Revenue will be added to finance.\')"' : '' ?>>
+                    <form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="flex-1 min-w-[130px]" <?= $status === 'delivered' ? 'onsubmit="return confirm(\'Mark as delivered? Any unpaid COD balance will remain pending.\')"' : '' ?>>
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                         <input type="hidden" name="order_id" value="<?= $orderId ?>">
                         <input type="hidden" name="decision" value="advance_status">
@@ -68,13 +68,13 @@ $workflowButtons = [
                 <?php endforeach; ?>
 
                 <?php if ($paymentStatus !== 'paid'): ?>
-                    <form method="post" action="/admin/orders" class="flex-1 min-w-[130px]">
+                    <form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="flex-1 min-w-[130px]">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                         <input type="hidden" name="order_id" value="<?= $orderId ?>">
                         <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
                         <button type="submit" name="decision" value="mark_paid" class="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition cursor-pointer">✓ Mark paid</button>
                     </form>
-                    <form method="post" action="/admin/orders" class="flex-1 min-w-[130px]">
+                    <form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="flex-1 min-w-[130px]">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                         <input type="hidden" name="order_id" value="<?= $orderId ?>">
                         <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
@@ -98,7 +98,7 @@ $workflowButtons = [
 </div>
 
 <?php if ($canAct): ?>
-<form method="post" action="/admin/orders" class="mt-5 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-end">
+<form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="mt-5 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-end">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>"><input type="hidden" name="order_id" value="<?= $orderId ?>"><input type="hidden" name="decision" value="update_payment"><input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
     <label class="flex-1"><span class="mb-1 block text-xs font-bold text-slate-500">Total amount received</span><input type="number" min="0" max="<?= (float)$order['grand_total'] ?>" step="0.01" name="payment_amount" value="<?= (float)($payment['amount'] ?? 0) ?>" class="<?= $fc ?>"></label>
     <label class="flex-1"><span class="mb-1 block text-xs font-bold text-slate-500">Status</span><select name="payment_status" class="<?= $fc ?>"><option value="pending">Pending / partial</option><option value="paid">Paid in full</option><option value="failed">Failed</option></select></label>
@@ -118,32 +118,6 @@ $workflowButtons = [
     <?php endif; ?>
 </div>
 
-<?php if ($canAct && ($isPending || $paymentStatus === 'pending')): ?>
-    <hr class="my-8 border-slate-100">
-    <div class="rounded-2xl border border-amber-100 bg-amber-50/40 p-5">
-        <h3 class="mb-1 text-sm font-bold text-secondary">Message to customer</h3>
-        <p class="mb-4 text-sm text-slate-500">Customize the SMS sent when you mark payment as pending (e.g. ask them to pay and upload receipt).</p>
-        <form method="post" action="/admin/orders" class="space-y-4">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-            <input type="hidden" name="order_id" value="<?= $orderId ?>">
-            <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($redirectTo) ?>">
-            <input type="hidden" name="decision" value="payment_pending">
-            <textarea name="customer_message" rows="3" class="<?= $fc ?>" placeholder="Please complete your payment and upload your bank transfer receipt for order <?= htmlspecialchars((string) $order['order_number']) ?>."><?= htmlspecialchars((string) ($order['admin_notes'] ?? '')) ?></textarea>
-            <?php if ($isPending): ?>
-                <label class="block">
-                    <span class="mb-1.5 block text-xs font-bold text-secondary">Delivery days (for accept)</span>
-                    <input type="number" name="delivery_days" min="1" max="30" value="3" class="<?= $fc ?> max-w-[120px]">
-                </label>
-            <?php endif; ?>
-            <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-100 px-5 py-2.5 text-sm font-bold text-amber-900 hover:bg-amber-200 transition cursor-pointer">
-                Send payment pending message
-            </button>
-        </form>
-    </div>
-<?php elseif ($orderStatus === 'delivered'): ?>
-    <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-sm text-emerald-800">
-        <strong>Order complete.</strong> Revenue from this order is recorded in Finance.
-    </div>
-<?php elseif ($orderStatus === 'cancelled'): ?>
+<?php if ($orderStatus === 'cancelled'): ?>
     <div class="mt-6 rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3 text-sm text-rose-700">This order was rejected. No further actions available.</div>
 <?php endif; ?>

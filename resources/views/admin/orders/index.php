@@ -14,13 +14,9 @@ declare(strict_types=1);
         </div>
     </div>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <?php require __DIR__ . '/components/_filter.php'; ?>
-    </div>
+    <?php require __DIR__ . '/components/_filter.php'; ?>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <?php require __DIR__ . '/components/_datatable.php'; ?>
-    </div>
+    <?php require __DIR__ . '/components/_datatable.php'; ?>
 
 </div>
 

@@ -15,7 +15,7 @@ $trackingStages = [
 ];
 ?>
 
-<form method="post" action="/admin/orders" class="space-y-6" id="tracking-form">
+<form method="post" action="<?= htmlspecialchars(app_url('/admin/orders')) ?>" class="space-y-6" id="tracking-form">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
     <input type="hidden" name="order_id" value="<?= $orderId ?>">
     <input type="hidden" name="decision" value="save_tracking">
@@ -78,11 +78,6 @@ $trackingStages = [
             <input type="date" name="delivered_date" value="<?= htmlspecialchars((string) ($d['delivered_date'] ?? '')) ?>" class="<?= $fc ?>">
         </label>
     </div>
-
-    <label class="block">
-        <span class="mb-1.5 block text-xs font-bold text-secondary">Note (optional)</span>
-        <textarea name="tracking_note" rows="2" class="<?= $fc ?>" placeholder="Internal note for delivery history…"></textarea>
-    </label>
 
     <?php if (!empty($deliveryHistory)): ?>
         <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
