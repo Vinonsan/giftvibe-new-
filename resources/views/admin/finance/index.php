@@ -44,11 +44,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateSummary(event) {
         var rows = (event && event.detail && event.detail.filtered) ? event.detail.filtered : [];
+        var orderRows = rows.filter(function (row) { return row.getAttribute('data-kind') === 'order'; });
         var sales = 0;
         var cost = 0;
         var profit = 0;
 
-        rows.forEach(function (row) {
+        /* Only orders contribute to income/expense/profit.
+           Product cash-out (purchased inventory) rows are assets, not P&L losses. */
+        orderRows.forEach(function (row) {
             sales += parseFloat(row.getAttribute('data-sales') || '0') || 0;
             cost += parseFloat(row.getAttribute('data-cost') || '0') || 0;
             profit += parseFloat(row.getAttribute('data-profit') || '0') || 0;
@@ -59,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (expenseEl) expenseEl.textContent = money(cost);
         if (profitEl) profitEl.textContent = money(profit);
         if (marginEl) marginEl.textContent = margin.toFixed(1) + '% margin';
-        if (countEl) countEl.textContent = String(rows.filter(function(row){ return row.getAttribute('data-kind') === 'order'; }).length);
+        if (countEl) countEl.textContent = String(orderRows.length);
     }
 
     table.addEventListener('datatable:render', updateSummary);

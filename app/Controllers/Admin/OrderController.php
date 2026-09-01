@@ -618,6 +618,10 @@ final class OrderController extends Controller
                 InventoryService::deductOrderStock($pdo, $orderId);
             }
 
+            if (in_array($newOrderStatus, ['cancelled', 'refunded'], true)) {
+                InventoryService::restoreOrderStock($pdo, $orderId);
+            }
+
             $this->recordOrderStatus($pdo, $orderId, $newOrderStatus, $notes ?: null);
 
             $this->redirect('Order status updated.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
@@ -631,6 +635,8 @@ final class OrderController extends Controller
             $pdo->prepare("UPDATE orders SET order_status = 'pending', payment_status = 'pending', admin_notes = ? WHERE id = ?")
                 ->execute([$notes, $orderId]);
             $pdo->prepare("UPDATE payments SET status = 'pending' WHERE order_id = ?")->execute([$orderId]);
+            /* Moving a confirmed order back to pending releases its reserved stock. */
+            InventoryService::restoreOrderStock($pdo, $orderId);
             $this->recordOrderStatus($pdo, $orderId, 'payment_pending', $message);
             $this->redirect('Payment marked as pending.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');
         }
@@ -726,6 +732,8 @@ final class OrderController extends Controller
             $pdo->prepare("UPDATE payments SET status = 'cancelled', verified_by = ?, verified_at = NOW(), verification_notes = ? WHERE order_id = ?")
                 ->execute([(int) ($_SESSION['admin_user']['id'] ?? 0), $notes, $orderId]);
 
+            /* Return the reserved stock to inventory when the order is cancelled. */
+            InventoryService::restoreOrderStock($pdo, $orderId);
             $this->recordOrderStatus($pdo, $orderId, 'cancelled', $notes ?: 'Order rejected by admin');
             $pdo->prepare("UPDATE admin_notifications SET status = 'read', read_at = NOW() WHERE entity_type = 'order' AND entity_id = ?")->execute([$orderId]);
             $this->redirect('Order rejected.', 'success', $orderId, $redirectTo ?: '/admin/orders/view?id=' . $orderId . '&tab=payment');

@@ -202,6 +202,71 @@ final class InventoryService
     }
 
     /**
+     * Reverse a previous deductOrderStock() call — used when an order is
+     * cancelled or refunded. Restores variant stock, inventory quantities,
+     * batches and product stock, then clears the deduction ledger so a later
+     * re-confirmation deducts again (idempotent).
+     */
+    public static function restoreOrderStock(PDO $pdo, int $orderId): void
+    {
+        self::ensureSchema($pdo);
+
+        /* Restore variant stock that was deducted for this order. */
+        $variants = $pdo->prepare(
+            'SELECT variant_id, SUM(quantity) AS quantity FROM order_items WHERE order_id = ? AND variant_id IS NOT NULL GROUP BY variant_id'
+        );
+        $variants->execute([$orderId]);
+        foreach ($variants->fetchAll(PDO::FETCH_ASSOC) as $variant) {
+            $pdo->prepare('UPDATE product_variants SET stock_quantity = stock_quantity + ? WHERE id = ?')
+                ->execute([max(0, (int) $variant['quantity']), (int) $variant['variant_id']]);
+        }
+
+        /* Restore inventory from the deduction ledger, then clear it. */
+        $deductions = $pdo->prepare('SELECT id, inventory_item_id, quantity FROM order_inventory_deductions WHERE order_id = ?');
+        $deductions->execute([$orderId]);
+        foreach ($deductions->fetchAll(PDO::FETCH_ASSOC) as $deduction) {
+            $itemId = (int) $deduction['inventory_item_id'];
+            $qty = max(0, (int) $deduction['quantity']);
+            if ($itemId > 0 && $qty > 0) {
+                self::restoreQuantity($pdo, $itemId, $qty);
+            }
+            $pdo->prepare('DELETE FROM order_inventory_deductions WHERE id = ?')->execute([(int) $deduction['id']]);
+        }
+    }
+
+    /** Add stock back to an inventory item (and its batches) without an expense. */
+    public static function restoreQuantity(PDO $pdo, int $itemId, int $qty): void
+    {
+        $stmt = $pdo->prepare('SELECT id, product_id, quantity, cost_price FROM inventory_items WHERE id = ? LIMIT 1');
+        $stmt->execute([$itemId]);
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$item || $qty < 1) {
+            return;
+        }
+
+        $newQty = (int) $item['quantity'] + $qty;
+
+        /* Put the units back into the earliest batch; create one if none remains. */
+        $batchStmt = $pdo->prepare('SELECT id FROM inventory_batches WHERE inventory_item_id = ? ORDER BY id ASC LIMIT 1');
+        $batchStmt->execute([$itemId]);
+        $batchId = $batchStmt->fetchColumn();
+        if ($batchId) {
+            $pdo->prepare('UPDATE inventory_batches SET quantity_remaining = quantity_remaining + ? WHERE id = ?')
+                ->execute([$qty, (int) $batchId]);
+        } else {
+            $pdo->prepare(
+                'INSERT INTO inventory_batches (inventory_item_id, unit_cost, quantity_received, quantity_remaining) VALUES (?,?,?,?)'
+            )->execute([$itemId, (float) ($item['cost_price'] ?? 0), $qty, $qty]);
+        }
+
+        $pdo->prepare('UPDATE inventory_items SET quantity = ? WHERE id = ?')->execute([$newQty, $itemId]);
+        if (!empty($item['product_id'])) {
+            $pdo->prepare('UPDATE products SET stock_quantity = ? WHERE id = ?')->execute([$newQty, (int) $item['product_id']]);
+        }
+        self::recordMovement($pdo, $itemId, $qty, 'adjustment', null, 'Restock from cancelled/refunded order');
+    }
+
+    /**
      * @param array{title: string, quantity: int, product_id?: int|null, inventory_item_id?: int|null, cost_per_unit?: float, expense_id?: int|null} $data
      * @return int Inventory item id that received stock
      */

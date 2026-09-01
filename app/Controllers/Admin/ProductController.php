@@ -542,7 +542,7 @@ class ProductController extends Controller
             return;
         }
         $amount = round(max(0, $costPrice) * max(0, $stockQuantity), 2);
-        $pdo->prepare('INSERT INTO product_procurements(product_id,unit_cost,quantity,amount) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE product_id=VALUES(product_id)')
+        $pdo->prepare('INSERT INTO product_procurements(product_id,unit_cost,quantity,amount) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE unit_cost=VALUES(unit_cost), quantity=VALUES(quantity), amount=VALUES(amount)')
             ->execute([$productId,$costPrice,$stockQuantity,$amount]);
     }
 

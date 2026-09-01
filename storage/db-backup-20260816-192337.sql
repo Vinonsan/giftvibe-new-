@@ -1,7 +1,4 @@
--- GiftVibe LK — full database schema (generated from local dev DB)
--- Import once on cPanel phpMyAdmin.
-
--- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+﻿-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
 --
 -- Host: localhost    Database: giftvibe_dev
 -- ------------------------------------------------------
@@ -43,6 +40,15 @@ CREATE TABLE `activity_logs` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `activity_logs`
+--
+
+LOCK TABLES `activity_logs` WRITE;
+/*!40000 ALTER TABLE `activity_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `admin_notifications`
 --
 
@@ -62,8 +68,18 @@ CREATE TABLE `admin_notifications` (
   PRIMARY KEY (`id`),
   KEY `idx_admin_notifications_status` (`status`),
   KEY `idx_admin_notifications_entity` (`entity_type`,`entity_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `admin_notifications`
+--
+
+LOCK TABLES `admin_notifications` WRITE;
+/*!40000 ALTER TABLE `admin_notifications` DISABLE KEYS */;
+INSERT INTO `admin_notifications` VALUES (1,'new_order','New order awaiting verification','GV-20260816-DE3236: Admin manual order, LKR 2,200.00.','order',1,'read','2026-08-16 12:01:43','2026-08-16 12:04:18');
+/*!40000 ALTER TABLE `admin_notifications` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `bank_accounts`
@@ -83,8 +99,17 @@ CREATE TABLE `bank_accounts` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `bank_accounts`
+--
+
+LOCK TABLES `bank_accounts` WRITE;
+/*!40000 ALTER TABLE `bank_accounts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `bank_accounts` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `banners`
@@ -107,8 +132,17 @@ CREATE TABLE `banners` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `banners`
+--
+
+LOCK TABLES `banners` WRITE;
+/*!40000 ALTER TABLE `banners` DISABLE KEYS */;
+/*!40000 ALTER TABLE `banners` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `cart_items`
@@ -139,6 +173,15 @@ CREATE TABLE `cart_items` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `cart_items`
+--
+
+LOCK TABLES `cart_items` WRITE;
+/*!40000 ALTER TABLE `cart_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cart_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `carts`
 --
 
@@ -158,6 +201,15 @@ CREATE TABLE `carts` (
   CONSTRAINT `fk_carts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `carts`
+--
+
+LOCK TABLES `carts` WRITE;
+/*!40000 ALTER TABLE `carts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `carts` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `categories`
@@ -185,8 +237,18 @@ CREATE TABLE `categories` (
   UNIQUE KEY `slug` (`slug`),
   KEY `fk_categories_parent` (`parent_id`),
   CONSTRAINT `fk_categories_parent` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `categories`
+--
+
+LOCK TABLES `categories` WRITE;
+/*!40000 ALTER TABLE `categories` DISABLE KEYS */;
+INSERT INTO `categories` VALUES (1,NULL,'g','g','','/assets/uploads/categories/6ddf363a6b3ff7b1a5e1a3001b1f8d26.png','g','/shop?category=g',1,'active','','','2026-08-16 11:56:05','2026-08-16 11:56:05');
+/*!40000 ALTER TABLE `categories` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `combo_images`
@@ -206,8 +268,17 @@ CREATE TABLE `combo_images` (
   PRIMARY KEY (`id`),
   KEY `idx_combo_images_combo` (`combo_id`),
   CONSTRAINT `fk_combo_images_combo` FOREIGN KEY (`combo_id`) REFERENCES `combos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `combo_images`
+--
+
+LOCK TABLES `combo_images` WRITE;
+/*!40000 ALTER TABLE `combo_images` DISABLE KEYS */;
+/*!40000 ALTER TABLE `combo_images` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `combo_products`
@@ -228,6 +299,15 @@ CREATE TABLE `combo_products` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `combo_products`
+--
+
+LOCK TABLES `combo_products` WRITE;
+/*!40000 ALTER TABLE `combo_products` DISABLE KEYS */;
+/*!40000 ALTER TABLE `combo_products` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `combo_videos`
 --
 
@@ -243,8 +323,17 @@ CREATE TABLE `combo_videos` (
   PRIMARY KEY (`id`),
   KEY `idx_combo_videos_combo` (`combo_id`),
   CONSTRAINT `fk_combo_videos_combo` FOREIGN KEY (`combo_id`) REFERENCES `combos` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `combo_videos`
+--
+
+LOCK TABLES `combo_videos` WRITE;
+/*!40000 ALTER TABLE `combo_videos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `combo_videos` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `combos`
@@ -269,8 +358,17 @@ CREATE TABLE `combos` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_combos_slug` (`slug`),
   KEY `idx_combos_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `combos`
+--
+
+LOCK TABLES `combos` WRITE;
+/*!40000 ALTER TABLE `combos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `combos` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `contact_messages`
@@ -294,6 +392,15 @@ CREATE TABLE `contact_messages` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `contact_messages`
+--
+
+LOCK TABLES `contact_messages` WRITE;
+/*!40000 ALTER TABLE `contact_messages` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contact_messages` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `contact_settings`
 --
 
@@ -312,8 +419,17 @@ CREATE TABLE `contact_settings` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `contact_settings`
+--
+
+LOCK TABLES `contact_settings` WRITE;
+/*!40000 ALTER TABLE `contact_settings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contact_settings` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `coupons`
@@ -341,6 +457,15 @@ CREATE TABLE `coupons` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `coupons`
+--
+
+LOCK TABLES `coupons` WRITE;
+/*!40000 ALTER TABLE `coupons` DISABLE KEYS */;
+/*!40000 ALTER TABLE `coupons` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `custom_gift_request_images`
 --
 
@@ -359,6 +484,15 @@ CREATE TABLE `custom_gift_request_images` (
   CONSTRAINT `fk_custom_gift_request_images_request` FOREIGN KEY (`request_id`) REFERENCES `custom_gift_requests` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `custom_gift_request_images`
+--
+
+LOCK TABLES `custom_gift_request_images` WRITE;
+/*!40000 ALTER TABLE `custom_gift_request_images` DISABLE KEYS */;
+/*!40000 ALTER TABLE `custom_gift_request_images` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `custom_gift_requests`
@@ -392,6 +526,15 @@ CREATE TABLE `custom_gift_requests` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `custom_gift_requests`
+--
+
+LOCK TABLES `custom_gift_requests` WRITE;
+/*!40000 ALTER TABLE `custom_gift_requests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `custom_gift_requests` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `customer_addresses`
 --
 
@@ -420,6 +563,15 @@ CREATE TABLE `customer_addresses` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `customer_addresses`
+--
+
+LOCK TABLES `customer_addresses` WRITE;
+/*!40000 ALTER TABLE `customer_addresses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `customer_addresses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `customer_notifications`
 --
 
@@ -437,8 +589,18 @@ CREATE TABLE `customer_notifications` (
   PRIMARY KEY (`id`),
   KEY `idx_customer_notifications_user` (`user_id`),
   KEY `idx_customer_notifications_order` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `customer_notifications`
+--
+
+LOCK TABLES `customer_notifications` WRITE;
+/*!40000 ALTER TABLE `customer_notifications` DISABLE KEYS */;
+INSERT INTO `customer_notifications` VALUES (1,31,1,'0754476969','GiftVibeLK: Your order is confirmed. Products: gg, frame. Payment: Bank deposit. Paid: LKR 2200.00. Balance to pay: LKR 0.00.','sent','2026-08-16 12:01:46');
+/*!40000 ALTER TABLE `customer_notifications` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `customer_profiles`
@@ -460,6 +622,15 @@ CREATE TABLE `customer_profiles` (
   CONSTRAINT `fk_customer_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `customer_profiles`
+--
+
+LOCK TABLES `customer_profiles` WRITE;
+/*!40000 ALTER TABLE `customer_profiles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `customer_profiles` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `deliveries`
@@ -493,8 +664,18 @@ CREATE TABLE `deliveries` (
   KEY `fk_deliveries_staff` (`assigned_staff_id`),
   CONSTRAINT `fk_deliveries_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_deliveries_staff` FOREIGN KEY (`assigned_staff_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `deliveries`
+--
+
+LOCK TABLES `deliveries` WRITE;
+/*!40000 ALTER TABLE `deliveries` DISABLE KEYS */;
+INSERT INTO `deliveries` VALUES (1,1,NULL,NULL,NULL,NULL,NULL,0.00,NULL,'2026-08-18','2026-08-16','delivered','GV-9BA4CDB9',NULL,NULL,NULL,'2026-08-16 12:01:43','2026-08-16 12:04:35');
+/*!40000 ALTER TABLE `deliveries` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `delivery_reminders`
@@ -526,6 +707,15 @@ CREATE TABLE `delivery_reminders` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `delivery_reminders`
+--
+
+LOCK TABLES `delivery_reminders` WRITE;
+/*!40000 ALTER TABLE `delivery_reminders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `delivery_reminders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `delivery_status_history`
 --
 
@@ -551,6 +741,15 @@ CREATE TABLE `delivery_status_history` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `delivery_status_history`
+--
+
+LOCK TABLES `delivery_status_history` WRITE;
+/*!40000 ALTER TABLE `delivery_status_history` DISABLE KEYS */;
+/*!40000 ALTER TABLE `delivery_status_history` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `delivery_time_slots`
 --
 
@@ -567,8 +766,17 @@ CREATE TABLE `delivery_time_slots` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `delivery_time_slots`
+--
+
+LOCK TABLES `delivery_time_slots` WRITE;
+/*!40000 ALTER TABLE `delivery_time_slots` DISABLE KEYS */;
+/*!40000 ALTER TABLE `delivery_time_slots` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `delivery_zones`
@@ -590,6 +798,15 @@ CREATE TABLE `delivery_zones` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `delivery_zones`
+--
+
+LOCK TABLES `delivery_zones` WRITE;
+/*!40000 ALTER TABLE `delivery_zones` DISABLE KEYS */;
+/*!40000 ALTER TABLE `delivery_zones` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `expenses`
@@ -627,8 +844,17 @@ CREATE TABLE `expenses` (
   CONSTRAINT `fk_expenses_admin` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_expenses_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_expenses_paid_by_admin` FOREIGN KEY (`paid_by_admin_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `expenses`
+--
+
+LOCK TABLES `expenses` WRITE;
+/*!40000 ALTER TABLE `expenses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `expenses` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `faqs`
@@ -651,6 +877,16 @@ CREATE TABLE `faqs` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `faqs`
+--
+
+LOCK TABLES `faqs` WRITE;
+/*!40000 ALTER TABLE `faqs` DISABLE KEYS */;
+INSERT INTO `faqs` VALUES (1,'How do I order a personalised gift?','Share the recipient, occasion, and your budget through our checkout or WhatsApp. Our gifting team curates a thoughtful gift, adds a handwritten message, and delivers it on your chosen date.','services',1,'active','2026-08-16 13:44:43','2026-08-16 13:44:43'),(2,'Do you offer same-day delivery in Colombo?','Yes ├╣ orders placed before our daily cutoff are eligible for same-day delivery across Colombo and the metro area. Jaffna, Kandy, and Galle are covered via express next-day routes, with islandwide courier service available for every order.','services',2,'active','2026-08-16 13:44:43','2026-08-16 13:44:43'),(3,'Can I send a gift to someone in Sri Lanka from abroad?','Absolutely. You can order online from anywhere in the world ├╣ we handle the curation, packaging, and doorstep delivery to your recipient in Sri Lanka on your behalf.','services',3,'active','2026-08-16 13:44:43','2026-08-16 13:44:43'),(4,'What is corporate gifting and how do bulk orders work?','Corporate gifting covers team appreciation, client gifts, event hampers, and seasonal thank-yous. We support custom branding, bulk ordering, and scheduled deliveries. Contact us with your quantity and timeline for a tailored quote.','services',4,'active','2026-08-16 13:44:43','2026-08-16 13:44:43'),(5,'Do you provide gift wrapping and a personal message?','Yes. Every order includes elegant wrapping with ribbons and tissue, and we handwrite your personal message on a premium card at no extra cost.','services',5,'active','2026-08-16 13:44:43','2026-08-16 13:44:43');
+/*!40000 ALTER TABLE `faqs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `financial_transactions`
 --
 
@@ -668,8 +904,17 @@ CREATE TABLE `financial_transactions` (
   PRIMARY KEY (`id`),
   KEY `idx_financial_transactions_date` (`date`),
   KEY `idx_financial_transactions_type` (`type`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `financial_transactions`
+--
+
+LOCK TABLES `financial_transactions` WRITE;
+/*!40000 ALTER TABLE `financial_transactions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `financial_transactions` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `footer_settings`
@@ -685,8 +930,17 @@ CREATE TABLE `footer_settings` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `footer_settings`
+--
+
+LOCK TABLES `footer_settings` WRITE;
+/*!40000 ALTER TABLE `footer_settings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `footer_settings` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `general_settings`
@@ -704,8 +958,17 @@ CREATE TABLE `general_settings` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `general_settings`
+--
+
+LOCK TABLES `general_settings` WRITE;
+/*!40000 ALTER TABLE `general_settings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `general_settings` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `gift_reminders`
@@ -732,6 +995,15 @@ CREATE TABLE `gift_reminders` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `gift_reminders`
+--
+
+LOCK TABLES `gift_reminders` WRITE;
+/*!40000 ALTER TABLE `gift_reminders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `gift_reminders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `homepage_ctas`
 --
 
@@ -756,8 +1028,48 @@ CREATE TABLE `homepage_ctas` (
   PRIMARY KEY (`id`),
   KEY `idx_homepage_ctas_status` (`status`),
   KEY `idx_homepage_ctas_placement` (`placement`,`status`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `homepage_ctas`
+--
+
+LOCK TABLES `homepage_ctas` WRITE;
+/*!40000 ALTER TABLE `homepage_ctas` DISABLE KEYS */;
+INSERT INTO `homepage_ctas` VALUES (1,'services','Start planning','Ready to surprise someone special?','Tell us about your recipient and occasion ├╣ we will craft a gift they will never forget, delivered right on time.','Discuss your gift','/contact','/assets/images/hero_slide_3.jpg','#0B182E',0,1,'active','2026-08-16 13:44:43','2026-08-16 13:46:33');
+/*!40000 ALTER TABLE `homepage_ctas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inventory_batches`
+--
+
+DROP TABLE IF EXISTS `inventory_batches`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `inventory_batches` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `inventory_item_id` bigint(20) unsigned NOT NULL,
+  `unit_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `quantity_received` int(11) NOT NULL DEFAULT 0,
+  `quantity_remaining` int(11) NOT NULL DEFAULT 0,
+  `received_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_inventory_batches_item` (`inventory_item_id`),
+  KEY `idx_inventory_batches_cost` (`inventory_item_id`,`unit_cost`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inventory_batches`
+--
+
+LOCK TABLES `inventory_batches` WRITE;
+/*!40000 ALTER TABLE `inventory_batches` DISABLE KEYS */;
+INSERT INTO `inventory_batches` VALUES (1,6,1000.00,10,10,'2026-08-16 12:08:33');
+/*!40000 ALTER TABLE `inventory_batches` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `inventory_items`
@@ -781,8 +1093,18 @@ CREATE TABLE `inventory_items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_inventory_product` (`product_id`),
   KEY `idx_inventory_name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inventory_items`
+--
+
+LOCK TABLES `inventory_items` WRITE;
+/*!40000 ALTER TABLE `inventory_items` DISABLE KEYS */;
+INSERT INTO `inventory_items` VALUES (1,1,'gg','GV-GG',0,'pcs',500.00,5,NULL,'2026-08-16 11:57:03','2026-08-16 11:57:03'),(6,2,'testing briyani','GV-TESTING-BRIYANI',10,'pcs',1000.00,5,NULL,'2026-08-16 12:07:43','2026-08-16 13:20:00');
+/*!40000 ALTER TABLE `inventory_items` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `inventory_movements`
@@ -801,25 +1123,49 @@ CREATE TABLE `inventory_movements` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `idx_inventory_movements_item` (`inventory_item_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `inventory_batches`
+-- Dumping data for table `inventory_movements`
 --
 
-DROP TABLE IF EXISTS `inventory_batches`;
-CREATE TABLE `inventory_batches` (
+LOCK TABLES `inventory_movements` WRITE;
+/*!40000 ALTER TABLE `inventory_movements` DISABLE KEYS */;
+/*!40000 ALTER TABLE `inventory_movements` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `investments`
+--
+
+DROP TABLE IF EXISTS `investments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `investments` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `inventory_item_id` bigint(20) unsigned NOT NULL,
-  `unit_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
-  `quantity_received` int(11) NOT NULL DEFAULT 0,
-  `quantity_remaining` int(11) NOT NULL DEFAULT 0,
-  `received_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `member_name` varchar(190) NOT NULL,
+  `phone` varchar(40) DEFAULT NULL,
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `investment_date` date NOT NULL,
+  `notes` text DEFAULT NULL,
+  `status` enum('received','returned','cancelled') NOT NULL DEFAULT 'received',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
-  KEY `idx_inventory_batches_item` (`inventory_item_id`),
-  KEY `idx_inventory_batches_cost` (`inventory_item_id`,`unit_cost`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `idx_investment_date_status` (`investment_date`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `investments`
+--
+
+LOCK TABLES `investments` WRITE;
+/*!40000 ALTER TABLE `investments` DISABLE KEYS */;
+INSERT INTO `investments` VALUES (1,'Investment',NULL,40000.00,'2026-08-16',NULL,'received','2026-08-16 11:57:21','2026-08-16 11:57:21');
+/*!40000 ALTER TABLE `investments` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `message_replies`
@@ -845,6 +1191,15 @@ CREATE TABLE `message_replies` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `message_replies`
+--
+
+LOCK TABLES `message_replies` WRITE;
+/*!40000 ALTER TABLE `message_replies` DISABLE KEYS */;
+/*!40000 ALTER TABLE `message_replies` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `newsletter_subscribers`
 --
 
@@ -861,6 +1216,15 @@ CREATE TABLE `newsletter_subscribers` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `newsletter_subscribers`
+--
+
+LOCK TABLES `newsletter_subscribers` WRITE;
+/*!40000 ALTER TABLE `newsletter_subscribers` DISABLE KEYS */;
+/*!40000 ALTER TABLE `newsletter_subscribers` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `occasions`
@@ -883,6 +1247,45 @@ CREATE TABLE `occasions` (
   UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `occasions`
+--
+
+LOCK TABLES `occasions` WRITE;
+/*!40000 ALTER TABLE `occasions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `occasions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `order_inventory_deductions`
+--
+
+DROP TABLE IF EXISTS `order_inventory_deductions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `order_inventory_deductions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint(20) unsigned NOT NULL,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `inventory_item_id` bigint(20) unsigned NOT NULL,
+  `quantity` int(10) unsigned NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_order_inventory_product` (`order_id`,`product_id`),
+  KEY `idx_order_inventory_item` (`inventory_item_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_inventory_deductions`
+--
+
+LOCK TABLES `order_inventory_deductions` WRITE;
+/*!40000 ALTER TABLE `order_inventory_deductions` DISABLE KEYS */;
+INSERT INTO `order_inventory_deductions` VALUES (1,1,1,1,0,'2026-08-16 12:01:43');
+/*!40000 ALTER TABLE `order_inventory_deductions` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `order_items`
@@ -912,8 +1315,18 @@ CREATE TABLE `order_items` (
   CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_order_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_order_items_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_items`
+--
+
+LOCK TABLES `order_items` WRITE;
+/*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
+INSERT INTO `order_items` VALUES (1,1,1,NULL,NULL,'gg','GV-GG',1,600.00,500.00,600.00,NULL,NULL),(2,1,NULL,NULL,NULL,'frame','CUSTOM',1,1600.00,600.00,1600.00,NULL,NULL);
+/*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `order_status_history`
@@ -934,8 +1347,18 @@ CREATE TABLE `order_status_history` (
   KEY `fk_order_status_history_user` (`changed_by`),
   CONSTRAINT `fk_order_status_history_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_order_status_history_user` FOREIGN KEY (`changed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_status_history`
+--
+
+LOCK TABLES `order_status_history` WRITE;
+/*!40000 ALTER TABLE `order_status_history` DISABLE KEYS */;
+INSERT INTO `order_status_history` VALUES (1,1,'created','Manual order created by admin',1,'2026-08-16 12:01:43'),(2,1,'confirmed','Auto-confirmed on manual order creation',1,'2026-08-16 12:01:43'),(3,1,'payment_paid','Payment marked paid on manual order creation',1,'2026-08-16 12:01:43'),(4,1,'delivered',NULL,1,'2026-08-16 12:04:35');
+/*!40000 ALTER TABLE `order_status_history` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `orders`
@@ -984,8 +1407,18 @@ CREATE TABLE `orders` (
   CONSTRAINT `fk_orders_coupon` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_orders_delivery_slot` FOREIGN KEY (`delivery_time_slot_id`) REFERENCES `delivery_time_slots` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `orders`
+--
+
+LOCK TABLES `orders` WRITE;
+/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
+INSERT INTO `orders` VALUES (1,'GV-20260816-DE3236',31,NULL,NULL,'G.E.Vinonsan Gloed Edward Vinonsan','walkin+0754476969@giftvibe.local','0754476969','G.E.Vinonsan Gloed Edward Vinonsan','0754476969','Point Pedro Bus Station\r\nAB20','','ΓÇö','ΓÇö',NULL,'','2026-08-18',2200.00,0.00,0.00,0.00,2200.00,'paid','delivered','admin','Manual order created by admin','','2026-08-16 12:01:43','2026-08-16 12:04:35');
+/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `pages`
@@ -1010,6 +1443,15 @@ CREATE TABLE `pages` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `pages`
+--
+
+LOCK TABLES `pages` WRITE;
+/*!40000 ALTER TABLE `pages` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pages` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `password_resets`
 --
 
@@ -1029,6 +1471,15 @@ CREATE TABLE `password_resets` (
   CONSTRAINT `fk_password_resets_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `password_resets`
+--
+
+LOCK TABLES `password_resets` WRITE;
+/*!40000 ALTER TABLE `password_resets` DISABLE KEYS */;
+/*!40000 ALTER TABLE `password_resets` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `payments`
@@ -1060,8 +1511,18 @@ CREATE TABLE `payments` (
   KEY `fk_payments_verified_by` (`verified_by`),
   CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_payments_verified_by` FOREIGN KEY (`verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `payments`
+--
+
+LOCK TABLES `payments` WRITE;
+/*!40000 ALTER TABLE `payments` DISABLE KEYS */;
+INSERT INTO `payments` VALUES (1,1,'bank','bank_deposit','GV-20260816-DE3236-PAY',2200.00,'LKR','paid',NULL,1,'2026-08-16 08:31:43',NULL,'2026-08-16 08:31:43','{\"payment_option\":\"full\",\"balance_due\":0,\"bank_account_id\":null,\"bank_name\":null,\"account_number\":null,\"created_by_admin\":true}','2026-08-16 12:01:43','2026-08-16 12:01:43');
+/*!40000 ALTER TABLE `payments` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `product_categories`
@@ -1081,6 +1542,16 @@ CREATE TABLE `product_categories` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `product_categories`
+--
+
+LOCK TABLES `product_categories` WRITE;
+/*!40000 ALTER TABLE `product_categories` DISABLE KEYS */;
+INSERT INTO `product_categories` VALUES (1,1),(2,1);
+/*!40000 ALTER TABLE `product_categories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `product_images`
 --
 
@@ -1098,8 +1569,18 @@ CREATE TABLE `product_images` (
   PRIMARY KEY (`id`),
   KEY `fk_product_images_product` (`product_id`),
   CONSTRAINT `fk_product_images_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_images`
+--
+
+LOCK TABLES `product_images` WRITE;
+/*!40000 ALTER TABLE `product_images` DISABLE KEYS */;
+INSERT INTO `product_images` VALUES (1,1,'/assets/uploads/products/704f2bb348176e67cf29594b038b1834.png','ff 1',1,1,'2026-08-16 11:57:03'),(2,1,'/assets/uploads/products/ff38d7a301a6e3716dc2f266e0b3f4fd.png','ff 2',2,0,'2026-08-16 11:57:03'),(3,1,'/assets/uploads/products/c9e0e786be10418201bc6f0127cb0941.png','ff 3',3,0,'2026-08-16 11:57:03'),(4,1,'/assets/uploads/products/0cedda20656925c8ddd053e770421d15.png','ff 4',4,0,'2026-08-16 11:57:03'),(5,2,'/assets/uploads/products/11e6ff7233abdff37347c4f4ae1aab3e.png','testing briyani 1',1,1,'2026-08-16 12:07:43');
+/*!40000 ALTER TABLE `product_images` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `product_occasions`
@@ -1117,6 +1598,15 @@ CREATE TABLE `product_occasions` (
   CONSTRAINT `fk_product_occasions_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_occasions`
+--
+
+LOCK TABLES `product_occasions` WRITE;
+/*!40000 ALTER TABLE `product_occasions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_occasions` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `product_option_values`
@@ -1139,6 +1629,15 @@ CREATE TABLE `product_option_values` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `product_option_values`
+--
+
+LOCK TABLES `product_option_values` WRITE;
+/*!40000 ALTER TABLE `product_option_values` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_option_values` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `product_options`
 --
 
@@ -1159,6 +1658,46 @@ CREATE TABLE `product_options` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `product_options`
+--
+
+LOCK TABLES `product_options` WRITE;
+/*!40000 ALTER TABLE `product_options` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_options` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `product_procurements`
+--
+
+DROP TABLE IF EXISTS `product_procurements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `product_procurements` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` bigint(20) unsigned NOT NULL,
+  `unit_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `quantity` int(10) unsigned NOT NULL DEFAULT 0,
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_product_procurement` (`product_id`),
+  CONSTRAINT `fk_product_procurement_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_procurements`
+--
+
+LOCK TABLES `product_procurements` WRITE;
+/*!40000 ALTER TABLE `product_procurements` DISABLE KEYS */;
+INSERT INTO `product_procurements` VALUES (1,2,1000.00,10,10000.00,'2026-08-16 12:07:43','2026-08-16 13:06:58');
+/*!40000 ALTER TABLE `product_procurements` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `product_recipients`
 --
 
@@ -1174,6 +1713,15 @@ CREATE TABLE `product_recipients` (
   CONSTRAINT `fk_product_recipients_recipient` FOREIGN KEY (`recipient_id`) REFERENCES `recipients` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_recipients`
+--
+
+LOCK TABLES `product_recipients` WRITE;
+/*!40000 ALTER TABLE `product_recipients` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_recipients` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `product_social_links`
@@ -1195,6 +1743,15 @@ CREATE TABLE `product_social_links` (
   CONSTRAINT `fk_product_social_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_social_links`
+--
+
+LOCK TABLES `product_social_links` WRITE;
+/*!40000 ALTER TABLE `product_social_links` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_social_links` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `product_variants`
@@ -1224,6 +1781,15 @@ CREATE TABLE `product_variants` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `product_variants`
+--
+
+LOCK TABLES `product_variants` WRITE;
+/*!40000 ALTER TABLE `product_variants` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_variants` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `product_videos`
 --
 
@@ -1239,8 +1805,17 @@ CREATE TABLE `product_videos` (
   PRIMARY KEY (`id`),
   KEY `idx_product_videos_product` (`product_id`),
   CONSTRAINT `fk_product_videos_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_videos`
+--
+
+LOCK TABLES `product_videos` WRITE;
+/*!40000 ALTER TABLE `product_videos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `product_videos` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `products`
@@ -1278,8 +1853,18 @@ CREATE TABLE `products` (
   UNIQUE KEY `slug` (`slug`),
   KEY `idx_products_status` (`status`),
   KEY `idx_products_featured` (`is_featured`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `products`
+--
+
+LOCK TABLES `products` WRITE;
+/*!40000 ALTER TABLE `products` DISABLE KEYS */;
+INSERT INTO `products` VALUES (1,'GV-GG','gg','gg','gg','gg',600.00,NULL,500.00,'handcrafted','none',NULL,NULL,0,5,0,'active','gg','gg','2026-08-16 11:57:03','2026-08-16 11:57:03','',''),(2,'GV-TESTING-BRIYANI','testing briyani','testing-briyani','rg','rgt',2000.00,NULL,1000.00,'purchased','none',NULL,NULL,10,5,0,'active','testing briyani','rg','2026-08-16 12:07:43','2026-08-16 13:20:00','','rgrt');
+/*!40000 ALTER TABLE `products` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `recipients`
@@ -1302,6 +1887,15 @@ CREATE TABLE `recipients` (
   UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `recipients`
+--
+
+LOCK TABLES `recipients` WRITE;
+/*!40000 ALTER TABLE `recipients` DISABLE KEYS */;
+/*!40000 ALTER TABLE `recipients` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `reviews`
@@ -1333,6 +1927,15 @@ CREATE TABLE `reviews` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `reviews`
+--
+
+LOCK TABLES `reviews` WRITE;
+/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
+/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `roles`
 --
 
@@ -1351,6 +1954,16 @@ CREATE TABLE `roles` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `roles`
+--
+
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` VALUES (6,'Admin','admin','2026-08-06 08:53:48','2026-08-06 08:53:48'),(7,'Customer','customer','2026-08-06 09:46:32','2026-08-06 09:46:32');
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `settings`
 --
 
@@ -1366,8 +1979,17 @@ CREATE TABLE `settings` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `setting_key` (`setting_key`)
-) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `settings`
+--
+
+LOCK TABLES `settings` WRITE;
+/*!40000 ALTER TABLE `settings` DISABLE KEYS */;
+/*!40000 ALTER TABLE `settings` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `testimonials`
@@ -1393,8 +2015,17 @@ CREATE TABLE `testimonials` (
   PRIMARY KEY (`id`),
   KEY `idx_testimonials_status` (`status`,`sort_order`,`id`),
   CONSTRAINT `chk_testimonials_rating` CHECK (`rating` between 1 and 5)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `testimonials`
+--
+
+LOCK TABLES `testimonials` WRITE;
+/*!40000 ALTER TABLE `testimonials` DISABLE KEYS */;
+/*!40000 ALTER TABLE `testimonials` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `uploads`
@@ -1419,6 +2050,15 @@ CREATE TABLE `uploads` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `uploads`
+--
+
+LOCK TABLES `uploads` WRITE;
+/*!40000 ALTER TABLE `uploads` DISABLE KEYS */;
+/*!40000 ALTER TABLE `uploads` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `user_addresses`
 --
 
@@ -1439,8 +2079,18 @@ CREATE TABLE `user_addresses` (
   PRIMARY KEY (`id`),
   KEY `idx_user_addresses_user` (`user_id`),
   CONSTRAINT `fk_user_addresses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_addresses`
+--
+
+LOCK TABLES `user_addresses` WRITE;
+/*!40000 ALTER TABLE `user_addresses` DISABLE KEYS */;
+INSERT INTO `user_addresses` VALUES (1,31,'Primary address','Point Pedro Bus Station\r\nAB20',NULL,'ΓÇö','ΓÇö',1,'2026-08-16 12:01:43','2026-08-16 12:01:43');
+/*!40000 ALTER TABLE `user_addresses` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
@@ -1476,8 +2126,18 @@ CREATE TABLE `users` (
   UNIQUE KEY `phone` (`phone`),
   KEY `fk_users_role` (`role_id`),
   CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,6,'Admin','User','admin@giftvibe.lk','0768306759',NULL,NULL,NULL,NULL,NULL,'avatar_1','$2y$10$pMghIc./5qtDs.CNbM78berOTyFvJd001iNUpW2pf8oqfv7Q/.Tq2','active',NULL,NULL,NULL,'2026-08-06 08:55:22','2026-08-16 11:20:05',NULL,NULL),(31,7,'G.E.Vinonsan','Gloed Edward Vinonsan','walkin+0754476969@giftvibe.local','0754476969',NULL,'Point Pedro Bus Station\r\nAB20','Point Pedro Bus Station\r\nAB20','ΓÇö','ΓÇö','avatar_1','$2y$10$ATrfCv1iPXO1M2/eE0EuEOFR1BAiEYQFAiN4uViq2eDtlDMtxwg8K','active',NULL,NULL,NULL,'2026-08-16 12:01:43','2026-08-16 12:01:43',NULL,NULL);
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `wishlists`
@@ -1499,130 +2159,22 @@ CREATE TABLE `wishlists` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
--- -----------------------------------------------------------------------------
--- GiftVibe LK deployment seed data
--- Importing this single schema.sql file creates the schema and starter content.
--- -----------------------------------------------------------------------------
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+--
+-- Dumping data for table `wishlists`
+--
 
-INSERT INTO banners (id, title, subtitle, image_path, link_url, placement, sort_order, status) VALUES
-  (1, 'Find the Perfect Gift for Your Loved Ones', 'CRAFTED WITH LOVE|Exquisite curated gift boxes for every special moment|From LKR 4,500.00|EXPLORE NOW|bg-[#0B1528]', '/assets/images/hero_slide_1.jpg', '/shop', 'hero', 1, 'active'),
-  (2, 'Luxury Bouquets to Brighten Up Their Day', 'FRESH & ELEGANT|Freshly picked luxury flowers delivered with care|From LKR 3,800.00|ORDER FLOWERS|bg-[#111111]', '/assets/images/hero_slide_2.jpg', '/shop?category=flowers', 'hero', 2, 'active'),
-  (3, 'Assorted Gourmet Chocolates & Sweet Hampers', 'SWEET INDULGENCE|Premium chocolates and hampers for joyful celebrations|From LKR 5,200.00|SHOP SWEETS|bg-[#2C0A1A]', '/assets/images/hero_slide_3.jpg', '/shop?category=sweet-treats', 'hero', 3, 'active')
-ON DUPLICATE KEY UPDATE title=VALUES(title), subtitle=VALUES(subtitle), image_path=VALUES(image_path), link_url=VALUES(link_url), placement=VALUES(placement), sort_order=VALUES(sort_order), status=VALUES(status);
+LOCK TABLES `wishlists` WRITE;
+/*!40000 ALTER TABLE `wishlists` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wishlists` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-INSERT INTO categories (id, name, slug, description, image_path, sort_order, status) VALUES
-  (1, 'Birthday Gifts', 'birthday-gifts', 'Joyful gifts for memorable birthdays.', '/assets/uploads/categories/2a2f4708c9b565432395c68e5afed21b.png', 1, 'active'),
-  (2, 'Flowers', 'flowers', 'Fresh arrangements for every occasion.', '/assets/uploads/categories/5a727ebb72e5ffc96bc6301c84ec4d68.png', 2, 'active'),
-  (3, 'Sweet Treats', 'sweet-treats', 'Chocolate and dessert gifts made to delight.', '/assets/uploads/categories/b7b7dcdb182e09d47e015527b4e89e5f.png', 3, 'active'),
-  (4, 'Gift Boxes', 'gift-boxes', 'Thoughtfully curated premium gift boxes.', '/assets/uploads/categories/f903c2eb932f824a8523530badebe80d.png', 4, 'active')
-ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), image_path=VALUES(image_path), sort_order=VALUES(sort_order), status=VALUES(status);
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
-INSERT INTO products (id, sku, name, slug, short_description, description, base_price, sale_price, unit, stock_quantity, is_featured, status) VALUES
-  (1, 'GV-BOX-001', 'Celebration Gift Box', 'celebration-gift-box', 'A cheerful selection of treats and keepsakes.', 'A ready-to-gift celebration box curated for birthdays and joyful milestones.', 6500.00, 5900.00, 'box', 25, 1, 'active'),
-  (2, 'GV-FLR-001', 'Blush Rose Bouquet', 'blush-rose-bouquet', 'An elegant bouquet of soft blush roses.', 'Fresh roses arranged by hand and wrapped for a beautiful presentation.', 4800.00, NULL, 'bouquet', 18, 1, 'active'),
-  (3, 'GV-SWT-001', 'Chocolate Indulgence Box', 'chocolate-indulgence-box', 'Premium chocolates for a sweet celebration.', 'A rich assortment of chocolates, presented in a premium keepsake box.', 5200.00, 4750.00, 'box', 30, 1, 'active'),
-  (4, 'GV-HMP-001', 'Golden Moments Hamper', 'golden-moments-hamper', 'A luxurious hamper for lifeÃ¢â‚¬â„¢s special moments.', 'A generous hamper combining gourmet treats and thoughtful celebration pieces.', 8900.00, 8250.00, 'hamper', 12, 1, 'active')
-ON DUPLICATE KEY UPDATE name=VALUES(name), short_description=VALUES(short_description), description=VALUES(description), base_price=VALUES(base_price), sale_price=VALUES(sale_price), stock_quantity=VALUES(stock_quantity), is_featured=VALUES(is_featured), status=VALUES(status);
-
-INSERT INTO product_images (product_id, image_path, alt_text, sort_order, is_primary) VALUES
-  (1, '/assets/uploads/products/1e6a4353627593a79329817d77ce91ca.png', 'Celebration gift box', 1, 1),
-  (2, '/assets/uploads/products/2c0c24f03a4fcd3db32d4c075a164a95.png', 'Blush rose bouquet', 1, 1),
-  (3, '/assets/uploads/products/501abe1ce41e1bd6e4ae2eb5a6a647bc.png', 'Chocolate indulgence box', 1, 1),
-  (4, '/assets/uploads/products/7a80ae0588384d0c6674d30af24ec584.png', 'Golden moments hamper', 1, 1);
-
-INSERT IGNORE INTO product_categories (product_id, category_id) VALUES
-  (1,1), (1,4), (2,2), (3,3), (3,4), (4,1), (4,3), (4,4);
-
-INSERT INTO combos (id, name, slug, description, price, status) VALUES
-  (1, 'Birthday Surprise Combo', 'birthday-surprise-combo', 'A festive gift box and sweet treat pairing for a wonderful birthday surprise.', 9900.00, 'active'),
-  (2, 'Love & Roses Combo', 'love-and-roses-combo', 'Fresh roses paired with premium chocolates for someone special.', 8950.00, 'active'),
-  (3, 'Grand Celebration Combo', 'grand-celebration-combo', 'A generous collection made for unforgettable celebrations.', 13900.00, 'active'),
-  (4, 'Sweet Moments Combo', 'sweet-moments-combo', 'A charming assortment of treats and thoughtful gifts.', 7800.00, 'active')
-ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), price=VALUES(price), status=VALUES(status);
-
-INSERT INTO combo_images (combo_id, image_path, alt_text, sort_order, is_primary) VALUES
-  (1, '/assets/uploads/combos/0b3eee47ccfbcf96498ea09eb1e44b95.png', 'Birthday surprise combo', 1, 1),
-  (2, '/assets/uploads/combos/364f68e6ae160a99c2db1da013bbed0b.png', 'Love and roses combo', 1, 1),
-  (3, '/assets/uploads/combos/85c39f914ac0aa8655ddda0a99b32e12.png', 'Grand celebration combo', 1, 1),
-  (4, '/assets/uploads/combos/ac6dde5186fab7b46bd9cb58709fecd0.jpg', 'Sweet moments combo', 1, 1);
-
-INSERT IGNORE INTO combo_products (combo_id, product_id, sort_order) VALUES
-  (1,1,1), (1,3,2), (2,2,1), (2,3,2), (3,1,1), (3,2,2), (3,4,3), (4,1,1), (4,3,2);
-
-INSERT INTO homepage_ctas (placement, badge, title, description, button_label, link_url, image_path, background_color, overlay_opacity, sort_order, status) VALUES
-  ('home_after_categories', 'Made for every moment', 'Turn thoughtful moments into lasting memories', 'Choose a curated gift or let us help you create something personal for someone special.', 'Explore gifts', '/shop', '/assets/uploads/cta/62cd254f1c8fc6a8dd159cadeaa2af77.png', '#102E50', 55, 1, 'active'),
-  ('home_between_products_combos', 'Better together', 'Discover ready-to-gift celebration combos', 'Beautifully matched favourites, wrapped together and ready to make their day.', 'Shop combos', '/combos', '/assets/uploads/cta/6a9d7cc81c852254e2d3ac5b4c0405c7.png', '#0B182E', 55, 2, 'active');
-
-INSERT INTO testimonials (reviewer_name, reviewer_role, avatar_path, title, review_text, rating, source, status, sort_order) VALUES
-  ('Kugan', 'Birthday shopper', '/assets/uploads/testimonials/kugan.jpg', 'Beautifully presented', 'The gift arrived right on time and every detail looked wonderful. It made the celebration extra special.', 5, 'admin', 'approved', 1),
-  ('Vasuki', 'GiftVibe customer', '/assets/uploads/testimonials/vasuki.jpg', 'A lovely surprise', 'Ordering was simple, the presentation was elegant, and the recipient absolutely loved it.', 5, 'admin', 'approved', 2),
-  ('Yazhini', 'Anniversary shopper', '/assets/uploads/testimonials/yazhini.jpg', 'Thoughtful from start to finish', 'The combination was beautifully curated and the service was warm and helpful throughout.', 5, 'admin', 'approved', 3);
-
-INSERT INTO testimonials (id, reviewer_name, reviewer_role, avatar_path, title, review_text, rating, source, status, sort_order) VALUES
-  (4, 'Nivetha Raj', 'Surprise gift shopper', NULL, 'Exactly what I hoped for', 'The packaging felt premium and the handwritten message made the gift feel genuinely personal.', 5, 'admin', 'approved', 4),
-  (5, 'Arun Kumar', 'Corporate gifting customer', NULL, 'Effortless and reliable', 'GiftVibe helped us arrange several gifts quickly, and every recipient was delighted with the presentation.', 5, 'admin', 'approved', 5),
-  (6, 'Shalini Devi', 'Flower bouquet customer', NULL, 'Fresh, elegant and on time', 'The flowers looked even better than the photos and arrived beautifully wrapped at the perfect time.', 5, 'admin', 'approved', 6)
-ON DUPLICATE KEY UPDATE reviewer_name=VALUES(reviewer_name), reviewer_role=VALUES(reviewer_role), title=VALUES(title), review_text=VALUES(review_text), rating=VALUES(rating), status=VALUES(status), sort_order=VALUES(sort_order);
-
-INSERT INTO faqs (question, answer, category, sort_order, status) VALUES
-  ('How quickly can my gift be delivered?', 'Delivery timing depends on the destination and selected product. Available delivery options are shown during checkout.', 'Delivery', 1, 'active'),
-  ('Can I include a personal message?', 'Yes. You can add a personal message while ordering and we will include it with your gift.', 'Gifting', 2, 'active'),
-  ('Can I customise a gift box?', 'Yes. Contact us with your preferred items, theme, budget and delivery date, and our team will help curate it.', 'Custom gifts', 3, 'active'),
-  ('How should I care for a flower bouquet?', 'Keep flowers in fresh water, trim the stems at an angle and place them away from direct sunlight and heat.', 'Flowers', 4, 'active'),
-  ('What payment methods are accepted?', 'Available payment methods are displayed securely during checkout.', 'Payments', 5, 'active');
-
-CREATE TABLE IF NOT EXISTS `product_procurements` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `product_id` bigint(20) unsigned NOT NULL,
-  `unit_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
-  `quantity` int(10) unsigned NOT NULL DEFAULT 0,
-  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_product_procurement` (`product_id`),
-  CONSTRAINT `fk_product_procurement_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `investments` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `member_name` varchar(190) NOT NULL,
-  `phone` varchar(40) DEFAULT NULL,
-  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
-  `investment_date` date NOT NULL,
-  `notes` text DEFAULT NULL,
-  `status` enum('received','returned','cancelled') NOT NULL DEFAULT 'received',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_investment_date_status` (`investment_date`,`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `order_inventory_deductions` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `order_id` bigint(20) unsigned NOT NULL,
-  `product_id` bigint(20) unsigned NOT NULL,
-  `inventory_item_id` bigint(20) unsigned NOT NULL,
-  `quantity` int(10) unsigned NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_order_product_deduction` (`order_id`,`product_id`),
-  KEY `idx_order_inventory_item` (`inventory_item_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
-
--- Production footer/domain defaults (overrides legacy seed keys above).
-INSERT INTO settings (setting_key, setting_value, setting_group) VALUES
-('site.name', 'GiftVibe LK', 'general'),
-('site.description', 'Thoughtful gifts, curated gift boxes, flowers and celebration combos delivered across Sri Lanka.', 'general'),
-('site.contact_email', 'hello@giftvibelk.lk', 'contact'),
-('site.contact_phone', '+94 77 123 4567', 'contact'),
-('site.contact_address', 'Colombo, Sri Lanka', 'contact'),
-('footer.quick_links', '[{"label":"Home","href":"/"},{"label":"Shop","href":"/shop"},{"label":"Services","href":"/services"},{"label":"Blog","href":"/blog"},{"label":"About Us","href":"/about"},{"label":"Contact","href":"/contact"}]', 'footer'),
-('footer.products_links', '[{"label":"All Gifts","href":"/shop"},{"label":"Gift Combos","href":"/combos"},{"label":"Birthday Gifts","href":"/shop?category=birthday-gifts"},{"label":"Flowers","href":"/shop?category=flowers"},{"label":"Sweet Treats","href":"/shop?category=sweet-treats"}]', 'footer')
-ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value), setting_group=VALUES(setting_group);
-
+-- Dump completed on 2026-08-16 19:23:40

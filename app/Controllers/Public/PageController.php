@@ -41,6 +41,39 @@ class PageController extends Controller
         ];
 
         $structuredData = [$schema];
+
+        /* Services page gets a dedicated Service schema for rich SEO results. */
+        if ($page === 'services') {
+            $structuredData[] = [
+                '@context' => 'https://schema.org',
+                '@type' => 'Service',
+                'serviceType' => 'Gift delivery and personalisation',
+                'name' => 'GiftVibe Gifting Services',
+                'description' => $intro,
+                'provider' => ['@type' => 'LocalBusiness', 'name' => 'GiftVibe LK', 'url' => $siteUrl.'/'],
+                'url' => $siteUrl.'/services',
+                'areaServed' => [
+                    ['@type' => 'City', 'name' => 'Colombo'],
+                    ['@type' => 'City', 'name' => 'Jaffna'],
+                    ['@type' => 'City', 'name' => 'Kandy'],
+                    ['@type' => 'City', 'name' => 'Galle'],
+                    ['@type' => 'Country', 'name' => 'Sri Lanka'],
+                ],
+                'hasOfferCatalog' => [
+                    '@type' => 'OfferCatalog',
+                    'name' => 'GiftVibe services',
+                    'itemListElement' => [
+                        ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Personalised gifting']],
+                        ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Curated gift boxes']],
+                        ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Flowers and sweet treats']],
+                        ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Gift combo delivery']],
+                        ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Corporate gifting']],
+                        ['@type' => 'Offer', 'itemOffered' => ['@type' => 'Service', 'name' => 'Gifting guidance']],
+                    ],
+                ],
+            ];
+        }
+
         if (!empty($faqs)) {
             $structuredData[] = [
                 '@context' => 'https://schema.org',
